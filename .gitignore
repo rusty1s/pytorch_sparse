@@ -1,0 +1,8 @@
+__pycache__/
+build/
+dist/
+.cache/
+.eggs/
+*.egg-info/
+.coverage
+*.so
