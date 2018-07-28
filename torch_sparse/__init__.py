@@ -1,5 +1,5 @@
-from .matmul import sparse_sparse_matmul
+from .matmul import spspmm
 
 __all__ = [
-    'sparse_sparse_matmul',
+    'spspmm',
 ]
