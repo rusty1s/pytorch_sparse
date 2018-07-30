@@ -1,7 +1,7 @@
-from .matmul import spspmm
 from .transpose import transpose
+from .matmul import spspmm
 
 __all__ = [
-    'spspmm',
     'transpose',
+    'spspmm',
 ]
