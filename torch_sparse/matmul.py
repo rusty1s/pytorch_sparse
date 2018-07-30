@@ -2,6 +2,8 @@ import torch
 from torch import from_numpy
 from scipy.sparse import coo_matrix
 
+import matmul_cuda
+
 
 class SpSpMM(torch.autograd.Function):
     @staticmethod
@@ -34,10 +36,23 @@ spspmm = SpSpMM.apply
 
 
 def mm(e1, v1, s1, e2, v2, s2):
-    if e1.is_cuda:
-        pass
+    if v1.is_cuda:
+        return mm_cuda(e1, v1, s1, e2, v2, s2)
     else:
         return mm_cpu(e1, v1, s1, e2, v2, s2)
+
+
+def mm_cuda(e1, v1, s1, e2, v2, s2):
+    matrix1 = to_sparse(e1, v1, s1)
+    matrix2 = to_sparse(e2, v2, s2)
+    out = matmul_cuda.spspmm(matrix1, matrix2)
+    return out._indices(), out._values()
+
+
+def to_sparse(index, value, size):
+    assert value.is_cuda
+    SparseTensor = getattr(torch.cuda.sparse, value.type().split('.')[-1])
+    return SparseTensor(index, value, size)
 
 
 def mm_cpu(e1, v1, s1, e2, v2, s2):
