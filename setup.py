@@ -12,7 +12,10 @@ ext_modules = []
 cmdclass = {}
 
 if torch.cuda.is_available():
-    ext_modules += [CUDAExtension('matmul_cuda', ['cuda/matmul.cpp'])]
+    ext_modules += [
+        CUDAExtension('matmul_cuda',
+                      ['cuda/matmul.cpp', 'cuda/matmul_cuda.cu'])
+    ]
     cmdclass['build_ext'] = BuildExtension
 
 setup(
