@@ -46,8 +46,7 @@ def mm(e1, v1, s1, e2, v2, s2):
 def mm_cuda(e1, v1, s1, e2, v2, s2):
     matrix1 = SparseTensor(e1, v1, s1)
     matrix2 = SparseTensor(e2, v2, s2)
-    out = matmul_cuda.spspmm(matrix1, matrix2)
-    return out._indices(), out._values()
+    return matmul_cuda.spspmm(matrix1, matrix2)
 
 
 def mm_cpu(e1, v1, s1, e2, v2, s2):
