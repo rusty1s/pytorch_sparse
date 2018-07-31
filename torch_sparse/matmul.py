@@ -53,7 +53,7 @@ def to_scipy(A):
 def from_scipy(A):
     A = A.tocoo()
     row, col, value, size = A.row, A.col, A.data, torch.Size(A.shape)
+    row, col = torch.from_numpy(row).long(), torch.from_numpy(col).long()
     value = torch.from_numpy(value)
-    index = torch.stack([torch.from_numpy(row), torch.from_numpy(col)], dim=0)
-    index = index.to(torch.long)
+    index = torch.stack([row, col], dim=0)
     return torch.sparse_coo_tensor(index, value, size)
