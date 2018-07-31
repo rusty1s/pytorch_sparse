@@ -40,7 +40,7 @@ $ echo $CPATH
 Then run:
 
 ```
-pip install cffi torch-sparse
+pip install torch-sparse
 ```
 
 If you are running into any installation problems, please follow these [instructions](https://rusty1s.github.io/pytorch_geometric/build/html/notes/installation.html) first before creating an [issue](https://github.com/rusty1s/pytorch_sparse/issues).
