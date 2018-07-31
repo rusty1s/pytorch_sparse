@@ -28,10 +28,10 @@ static void init_cusparse() {
 }
 
 std::tuple<at::Tensor, at::Tensor> spspmm_cuda(at::Tensor A, at::Tensor B) {
+  init_cusparse();
+
   A = A.coalesce();
   B = B.coalesce();
-
-  init_cusparse();
 
   auto m = A.size(0);
   auto n = B.size(1);
@@ -46,6 +46,8 @@ std::tuple<at::Tensor, at::Tensor> spspmm_cuda(at::Tensor A, at::Tensor B) {
   cusparseXcoo2csr(cusparse_handle, indexA[0].data<int>(), nnzA, k,
                    row_ptrA.data<int>(), CUSPARSE_INDEX_BASE_ZERO);
   auto colA = indexA[1];
+  cudaMemcpy(row_ptrA.data<int>() + m, &nnzA, sizeof(int),
+             cudaMemcpyHostToDevice);
 
   auto valueB = B._values();
   auto indexB = B._indices().toType(at::kInt);
@@ -53,6 +55,8 @@ std::tuple<at::Tensor, at::Tensor> spspmm_cuda(at::Tensor A, at::Tensor B) {
   cusparseXcoo2csr(cusparse_handle, indexB[0].data<int>(), nnzB, k,
                    row_ptrB.data<int>(), CUSPARSE_INDEX_BASE_ZERO);
   auto colB = indexB[1];
+  cudaMemcpy(row_ptrB.data<int>() + k, &nnzB, sizeof(int),
+             cudaMemcpyHostToDevice);
 
   cusparseMatDescr_t descr = 0;
   cusparseCreateMatDescr(&descr);

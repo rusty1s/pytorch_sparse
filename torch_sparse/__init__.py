@@ -1,7 +1,8 @@
-from .transpose import transpose
+from .sparse import SparseTensor, to_value
 from .matmul import spspmm
 
 __all__ = [
-    'transpose',
+    'SparseTensor',
+    'to_value',
     'spspmm',
 ]
