@@ -12,3 +12,42 @@
 [![Code Coverage][coverage-image]][coverage-url]
 
 --------------------------------------------------------------------------------
+
+This package consists of a small extension library of optimized sparse matrix operations for the use in [PyTorch](http://pytorch.org/), which are missing and or lack autograd support in the main package.
+The package consists of the following methods:
+
+* **[Autograd Sparse Tensor Creation](#Autograd Sparse Tensor Creation)**
+* **[Autograd Sparse Tensor Value Extraction](#Autograd Sparse Tensor Value Extraction)**
+* **[Sparse Sparse Matrix Multiplication](#Sparse Sparse Matrix Multiplication)**
+
+All included operations work on varying data types and are implemented both for CPU and GPU.
+
+## Installation
+
+Ensure that PyTorch 0.4.0 is installed and verify that `cuda/bin` and `cuda/install` are in your `$PATH` and `$CPATH` respectively, *e.g.*:
+
+```
+$ echo $PATH
+/usr/local/cuda/bin:...
+
+$ echo $CPATH
+/usr/local/cuda/install:...
+```
+
+Then run:
+
+```
+pip install cffi torch-sparse
+```
+
+## Autograd Sparse Tensor Creation
+
+## Autograd Sparse Tensor Value Extraction
+
+## Sparse Sparse Matrix Multiplication
+
+## Running tests
+
+```
+python setup.py test
+```
