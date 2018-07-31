@@ -14,7 +14,7 @@
 --------------------------------------------------------------------------------
 
 This package consists of a small extension library of optimized sparse matrix operations for the use in [PyTorch](http://pytorch.org/), which are missing and or lack autograd support in the main package.
-The package consists of the following methods:
+This package currently consists of the following methods:
 
 * **[Autograd Sparse Tensor Creation](#Autograd Sparse Tensor Creation)**
 * **[Autograd Sparse Tensor Value Extraction](#Autograd Sparse Tensor Value Extraction)**
