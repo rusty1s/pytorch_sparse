@@ -40,6 +40,8 @@ Then run:
 pip install cffi torch-sparse
 ```
 
+If you are running into installation problems, please follow [these instructions](https://rusty1s.github.io/pytorch_geometric/build/html/notes/installation.html) and create an [issue](https://github.com/rusty1s/pytorch_sparse/issues).
+
 ## Autograd Sparse Tensor Creation
 
 ## Autograd Sparse Tensor Value Extraction
