@@ -2,7 +2,7 @@ from itertools import product
 
 import pytest
 import torch
-from torch_sparse import SparseTensor, spspmm, to_value
+from torch_sparse import sparse_coo_tensor, spspmm, to_value
 
 from .utils import dtypes, devices, tensor
 
@@ -30,13 +30,13 @@ def test_spspmm(test, dtype, device):
     indexA = torch.tensor(test['indexA'], device=device)
     valueA = tensor(test['valueA'], dtype, device, requires_grad=True)
     sizeA = torch.Size(test['sizeA'])
-    A = SparseTensor(indexA, valueA, sizeA)
+    A = sparse_coo_tensor(indexA, valueA, sizeA)
     denseA = A.detach().to_dense().requires_grad_()
 
     indexB = torch.tensor(test['indexB'], device=device)
     valueB = tensor(test['valueB'], dtype, device, requires_grad=True)
     sizeB = torch.Size(test['sizeB'])
-    B = SparseTensor(indexB, valueB, sizeB)
+    B = sparse_coo_tensor(indexB, valueB, sizeB)
     denseB = B.detach().to_dense().requires_grad_()
 
     C = spspmm(A, B)

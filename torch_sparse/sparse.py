@@ -1,7 +1,9 @@
 import torch
 
 
-class _SparseTensor(torch.autograd.Function):
+class SparseCooTensor(torch.autograd.Function):
+    """Constructs Sparse matrix with autograd capabilities w.r.t. to value."""
+
     @staticmethod
     def forward(ctx, index, value, size):
         ctx.size = size
@@ -26,10 +28,12 @@ class _SparseTensor(torch.autograd.Function):
         return None, grad_in, None
 
 
-SparseTensor = _SparseTensor.apply
+sparse_coo_tensor = SparseCooTensor.apply
 
 
 class ToValue(torch.autograd.Function):
+    """Extract values of sparse tensors with autograd support."""
+
     @staticmethod
     def forward(ctx, A):
         ctx.save_for_backward(A)

@@ -16,9 +16,9 @@
 This package consists of a small extension library of optimized sparse matrix operations for the use in [PyTorch](http://pytorch.org/), which are missing and or lack autograd support in the main package.
 This package currently consists of the following methods:
 
-* **[Autograd Sparse Tensor Creation](#Autograd Sparse Tensor Creation)**
-* **[Autograd Sparse Tensor Value Extraction](#Autograd Sparse Tensor Value Extraction)**
-* **[Sparse Sparse Matrix Multiplication](#Sparse Sparse Matrix Multiplication)**
+* **[Autograd Sparse Tensor Creation](#autograd-sparse-tensor-creation)**
+* **[Autograd Sparse Tensor Value Extraction](#autograd-sparse-tensor-value-extraction)**
+* **[Sparse Sparse Matrix Multiplication](#sparse-sparse-matrix-multiplication)**
 
 All included operations work on varying data types and are implemented both for CPU and GPU.
 
@@ -47,9 +47,59 @@ If you are running into any installation problems, please follow these [instruct
 
 ## Autograd Sparse Tensor Creation
 
+```
+torch_sparse.sparse_coo_tensor(torch.LongTensor, torch.Tensor, torch.Size) -> torch.SparseTensor
+```
+
+Constructs a [`torch.SparseTensor`](https://pytorch.org/docs/stable/sparse.html) with autograd capabilities w.r.t. `value`.
+
+```python
+from torch_sparse import sparse_coo_tensor
+
+i = torch.tensor([[0, 1, 1],
+                  [2, 0, 2]])
+v = torch.Tensor([3, 4, 5], requires_grad=True)
+A = sparse_coo_tensor(i, v, torch.Size([2,3]))
+```
+
+This method may become obsolete in future PyTorch releases (>= 0.4.1) as reported by this [issue](https://github.com/pytorch/pytorch/issues/9674).
+
 ## Autograd Sparse Tensor Value Extraction
 
+```
+torch_sparse.to_value(SparseTensor) --> Tensor
+```
+
+Wrapper method to support autograd on values of sparse tensors.
+
+```python
+from torch_sparse import to_value
+
+i = torch.tensor([[0, 1, 1],
+                  [2, 0, 2]])
+v = torch.Tensor([3, 4, 5], requires_grad=True)
+A = torch.sparse_coo_tensor(i, v, torch.Size([2,3]), requires_grad=True)
+v = to_value(A)
+```
+
+This method may become obsolete in future PyTorch releases (>= 0.4.1) as reported by this [issue](https://github.com/pytorch/pytorch/issues/9674).
+
 ## Sparse Sparse Matrix Multiplication
+
+```
+torch_sparse.spspmm(SparseTensor, SparseTensor) --> SparseTensor
+```
+
+Sparse matrix product of two sparse tensors with autograd support.
+
+```
+from torch_sparse import spspmm
+
+A = torch.sparse_coo_tensor(..., requries_grad=True)
+B = torch.sparse_coo_tensor(..., requries_grad=True)
+
+C = spspmm(A, B)
+```
 
 ## Running tests
 

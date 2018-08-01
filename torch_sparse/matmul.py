@@ -6,6 +6,8 @@ if torch.cuda.is_available():
 
 
 class SpSpMM(torch.autograd.Function):
+    """Sparse matrix product of two sparse tensors with autograd support."""
+
     @staticmethod
     def forward(ctx, A, B):
         ctx.save_for_backward(A, B)
