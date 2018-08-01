@@ -1,1 +1,3 @@
 include LICENSE
+include cuda/matmul.cpp
+include cuda/matmul_cuda.cu
