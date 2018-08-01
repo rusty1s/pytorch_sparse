@@ -67,10 +67,10 @@ This method may become obsolete in future PyTorch releases (>= 0.4.1) as reporte
 ## Autograd Sparse Tensor Value Extraction
 
 ```
-torch_sparse.to_value(SparseTensor) --> Tensor
+torch_sparse.to_value(torch.SparseTensor) -> torch.Tensor
 ```
 
-Wrapper method to support autograd on values of sparse tensors.
+Wrapper method to support autograd on values of [`torch.SparseTensor`](https://pytorch.org/docs/stable/sparse.html).
 
 ```python
 from torch_sparse import to_value
@@ -87,7 +87,7 @@ This method may become obsolete in future PyTorch releases (>= 0.4.1) as reporte
 ## Sparse Sparse Matrix Multiplication
 
 ```
-torch_sparse.spspmm(SparseTensor, SparseTensor) --> SparseTensor
+torch_sparse.spspmm(torch.SparseTensor, torch.SparseTensor) -> torch.SparseTensor
 ```
 
 Sparse matrix product of two sparse tensors with autograd support.
