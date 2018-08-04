@@ -24,11 +24,11 @@ All included operations work on varying data types and are implemented both for 
 
 ## Installation
 
-Ensure that at least PyTorch 0.4.0 is installed and verify that `cuda/bin` and `cuda/install` are in your `$PATH` and `$CPATH` respectively, *e.g.*:
+Ensure that at least PyTorch 0.4.1 is installed and verify that `cuda/bin` and `cuda/install` are in your `$PATH` and `$CPATH` respectively, *e.g.*:
 
 ```
 $ python -c "import torch; print(torch.__version__)"
->>> 0.4.0
+>>> 0.4.1
 
 $ echo $PATH
 >>> /usr/local/cuda/bin:...
@@ -40,7 +40,7 @@ $ echo $CPATH
 Then run:
 
 ```
-pip install torch-sparse
+pip install torch-scatter torch-sparse
 ```
 
 If you are running into any installation problems, please follow these [instructions](https://rusty1s.github.io/pytorch_geometric/build/html/notes/installation.html) first before creating an [issue](https://github.com/rusty1s/pytorch_sparse/issues).
