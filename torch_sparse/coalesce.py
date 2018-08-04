@@ -9,7 +9,7 @@ def coalesce(index, value, size, op='add', fill_value=0):
     unique, inv = torch.unique(row * n + col, sorted=True, return_inverse=True)
 
     perm = torch.arange(inv.size(0), dtype=inv.dtype, device=inv.device)
-    perm = inv.new_empty(inv.max().item() + 1).scatter_(0, inv, perm)
+    perm = inv.new_empty(unique.size(0)).scatter_(0, inv, perm)
     index = torch.stack([row[perm], col[perm]], dim=0)
 
     if value is not None:
