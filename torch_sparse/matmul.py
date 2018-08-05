@@ -1,5 +1,6 @@
 import torch
 import scipy.sparse
+from torch_sparse import transpose
 
 if torch.cuda.is_available():
     import matmul_cuda
@@ -9,53 +10,54 @@ class SpSpMM(torch.autograd.Function):
     """Sparse matrix product of two sparse tensors with autograd support."""
 
     @staticmethod
-    def forward(ctx, A, B):
-        ctx.save_for_backward(A, B)
-        return mm(A, B)
+    def forward(ctx, indexA, valueA, indexB, valueB, m, k, n):
+        indexC, valueC = mm(indexA, valueA, indexB, valueB, m, k, n)
+        ctx.m, ctx.k, ctx.n = m, k, n
+        ctx.save_for_backward(indexA, valueA, indexB, valueB, indexC)
+        return indexC, valueC
 
     @staticmethod
-    def backward(ctx, grad_C):
-        A, B = ctx.saved_variables
-        grad_A = grad_B = None
+    def backward(ctx, grad_indexC, grad_valueC):
+        m, k, n = ctx.m, ctx.k, ctx.n
+        indexA, valueA, indexB, valueB, indexC = ctx.saved_variables
 
-        if ctx.needs_input_grad[0]:
-            grad_A = mm(grad_C, B.t().coalesce())
+        grad_valueA = grad_valueB = None
 
         if ctx.needs_input_grad[1]:
-            grad_B = mm(A.t(), grad_C)
+            indexB, valueB = transpose(indexB, valueB, k, n)
+            _, grad_valueA = mm(indexC, grad_valueC, indexB, valueB, m, n, k)
+            # TODO: Filter values.
 
-        return grad_A, grad_B
+        if ctx.needs_input_grad[4]:
+            indexA, valueA = transpose(indexA, valueA, m, k)
+            _, grad_valueB = mm(indexA, valueA, indexC, grad_valueC, k, m, n)
+            # TODO: Filter values.
+
+        return None, grad_valueA, None, grad_valueB, None, None, None
 
 
 spspmm = SpSpMM.apply
 
 
-def mm(A, B):
-    assert A.dtype == B.dtype
-    assert A.size(1) == B.size(0)
-    return mm_cuda(A, B) if A.is_cuda else mm_cpu(A, B)
+def mm(indexA, valueA, indexB, valueB, m, k, n):
+    assert valueA.dtype == valueB.dtype
+
+    if indexA.is_cuda:
+        return matmul_cuda.spspmm(indexA, valueA, indexB, valueB, m, k, n)
+
+    A = to_scipy(indexA, valueA, m, k)
+    B = to_scipy(indexB, valueB, k, n)
+    indexC, valueC = from_scipy(A.tocsr().dot(B.tocsr()).tocoo())
+
+    return indexC, valueC
 
 
-def mm_cuda(A, B):
-    index, value = matmul_cuda.spspmm(A, B)
-    size = torch.Size([A.size(0), B.size(1)])
-    return torch.sparse_coo_tensor(index, value, size, device=value.device)
-
-
-def mm_cpu(A, B):
-    return from_scipy(to_scipy(A).dot(to_scipy(B)))
-
-
-def to_scipy(A):
-    (row, col), data, shape = A._indices(), A._values(), tuple(A.size())
-    row, col, data = row.detach(), col.detach(), data.detach()
-    return scipy.sparse.coo_matrix((data, (row, col)), shape).tocsr()
+def to_scipy(index, value, m, n):
+    (row, col), data = index.detach(), value.detach()
+    return scipy.sparse.coo_matrix((data, (row, col)), (m, n))
 
 
 def from_scipy(A):
-    A = A.tocoo()
-    row, col, value, size = A.row, A.col, A.data, torch.Size(A.shape)
-    row, col = torch.from_numpy(row).long(), torch.from_numpy(col).long()
-    value = torch.from_numpy(value)
-    index = torch.stack([row, col], dim=0)
-    return torch.sparse_coo_tensor(index, value, size)
+    row, col, value = A.row, A.col, A.data
+    index = torch.stack([row, col], dim=0).to(torch.long)
+    return index, value

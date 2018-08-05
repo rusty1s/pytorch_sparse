@@ -30,12 +30,9 @@ static void init_cusparse() {
 std::tuple<at::Tensor, at::Tensor> spspmm_cuda(at::Tensor A, at::Tensor B) {
   init_cusparse();
 
-  A = A.coalesce();
-  B = B.coalesce();
-
   auto m = A.size(0);
-  auto n = B.size(1);
   auto k = A.size(1);
+  auto n = B.size(1);
 
   auto nnzA = A._nnz();
   auto nnzB = B._nnz();

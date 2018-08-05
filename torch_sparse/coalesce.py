@@ -2,8 +2,7 @@ import torch
 import torch_scatter
 
 
-def coalesce(index, value, size, op='add', fill_value=0):
-    m, n = size
+def coalesce(index, value, m, n, op='add', fill_value=0):
     row, col = index
 
     unique, inv = torch.unique(row * n + col, sorted=True, return_inverse=True)
