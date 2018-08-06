@@ -3,6 +3,8 @@ import torch_scatter
 
 
 def coalesce(index, value, m, n, op='add', fill_value=0):
+    """Row-wise reorders and removes duplicate entries in sparse matrixx."""
+
     row, col = index
 
     unique, inv = torch.unique(row * n + col, sorted=True, return_inverse=True)

@@ -32,6 +32,11 @@ spspmm_cuda(at::Tensor indexA, at::Tensor valueA, at::Tensor indexB,
             at::Tensor valueB, int m, int k, int n) {
   init_cusparse();
 
+  indexA = indexA.contiguous();
+  valueA = valueA.contiguous();
+  indexB = indexB.contiguous();
+  valueB = valueB.contiguous();
+
   auto nnzA = valueA.size(0);
   auto nnzB = valueB.size(0);
 
