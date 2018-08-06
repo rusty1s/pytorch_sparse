@@ -27,28 +27,27 @@ static void init_cusparse() {
   }
 }
 
-std::tuple<at::Tensor, at::Tensor> spspmm_cuda(at::Tensor A, at::Tensor B) {
+std::tuple<at::Tensor, at::Tensor>
+spspmm_cuda(at::Tensor indexA, at::Tensor valueA, at::Tensor indexB,
+            at::Tensor valueB, int m, int k, int n) {
   init_cusparse();
 
-  auto m = A.size(0);
-  auto k = A.size(1);
-  auto n = B.size(1);
+  auto nnzA = valueA.size(0);
+  auto nnzB = valueB.size(0);
 
-  auto nnzA = A._nnz();
-  auto nnzB = B._nnz();
+  indexA = indexA.toType(at::kInt);
+  indexB = indexB.toType(at::kInt);
 
-  auto valueA = A._values();
-  auto indexA = A._indices().toType(at::kInt);
-  auto row_ptrA = at::empty(indexA.type(), {m + 1});
+  // Convert A to CSR format.
+  auto row_ptrA = at::empty(m + 1, indexA.type());
   cusparseXcoo2csr(cusparse_handle, indexA[0].data<int>(), nnzA, k,
                    row_ptrA.data<int>(), CUSPARSE_INDEX_BASE_ZERO);
   auto colA = indexA[1];
   cudaMemcpy(row_ptrA.data<int>() + m, &nnzA, sizeof(int),
              cudaMemcpyHostToDevice);
 
-  auto valueB = B._values();
-  auto indexB = B._indices().toType(at::kInt);
-  auto row_ptrB = at::empty(indexB.type(), {k + 1});
+  // Convert B to CSR format.
+  auto row_ptrB = at::empty(k + 1, indexB.type());
   cusparseXcoo2csr(cusparse_handle, indexB[0].data<int>(), nnzB, k,
                    row_ptrB.data<int>(), CUSPARSE_INDEX_BASE_ZERO);
   auto colB = indexB[1];
@@ -61,14 +60,14 @@ std::tuple<at::Tensor, at::Tensor> spspmm_cuda(at::Tensor A, at::Tensor B) {
   cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
 
   int nnzC;
-  auto row_ptrC = at::empty(indexA.type(), {m + 1});
+  auto row_ptrC = at::empty(m + 1, indexB.type());
   cusparseXcsrgemmNnz(cusparse_handle, CUSPARSE_OPERATION_NON_TRANSPOSE,
                       CUSPARSE_OPERATION_NON_TRANSPOSE, m, n, k, descr, nnzA,
                       row_ptrA.data<int>(), colA.data<int>(), descr, nnzB,
                       row_ptrB.data<int>(), colB.data<int>(), descr,
                       row_ptrC.data<int>(), &nnzC);
-  auto colC = at::empty(indexA.type(), {nnzC});
-  auto valueC = at::empty(valueA.type(), {nnzC});
+  auto colC = at::empty(nnzC, indexA.type());
+  auto valueC = at::empty(nnzC, valueA.type());
 
   CSRGEMM(valueC.type(), cusparse_handle, CUSPARSE_OPERATION_NON_TRANSPOSE,
           CUSPARSE_OPERATION_NON_TRANSPOSE, m, n, k, descr, nnzA,
@@ -77,7 +76,7 @@ std::tuple<at::Tensor, at::Tensor> spspmm_cuda(at::Tensor A, at::Tensor B) {
           colB.data<int>(), descr, valueC.data<scalar_t>(),
           row_ptrC.data<int>(), colC.data<int>());
 
-  auto rowC = at::empty(indexA.type(), {nnzC});
+  auto rowC = at::empty(nnzC, indexA.type());
   cusparseXcsr2coo(cusparse_handle, row_ptrC.data<int>(), nnzC, m,
                    rowC.data<int>(), CUSPARSE_INDEX_BASE_ZERO);
 

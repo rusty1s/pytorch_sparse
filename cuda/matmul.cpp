@@ -1,13 +1,19 @@
 #include <torch/torch.h>
 
-#define CHECK_CUDA(x) AT_ASSERT(x.type().is_cuda(), #x " must be a CUDA tensor")
+#define CHECK_CUDA(x) AT_ASSERTM(x.type().is_cuda(), #x " must be CUDA tensor")
 
-std::tuple<at::Tensor, at::Tensor> spspmm_cuda(at::Tensor A, at::Tensor B);
+std::tuple<at::Tensor, at::Tensor>
+spspmm_cuda(at::Tensor indexA, at::Tensor valueA, at::Tensor indexB,
+            at::Tensor valueB, int m, int k, int n);
 
-std::tuple<at::Tensor, at::Tensor> spspmm(at::Tensor A, at::Tensor B) {
-  CHECK_CUDA(A);
-  CHECK_CUDA(B);
-  return spspmm_cuda(A, B);
+std::tuple<at::Tensor, at::Tensor> spspmm(at::Tensor indexA, at::Tensor valueA,
+                                          at::Tensor indexB, at::Tensor valueB,
+                                          int m, int k, int n) {
+  CHECK_CUDA(indexA);
+  CHECK_CUDA(valueA);
+  CHECK_CUDA(indexB);
+  CHECK_CUDA(valueB);
+  return spspmm_cuda(indexA, valueA, indexB, valueB, m, k, n);
 }
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
