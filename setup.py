@@ -21,13 +21,13 @@ if torch.cuda.is_available():
 setup(
     name='torch_sparse',
     version=__version__,
-    description='PyTorch Extension Library of Optimized Sparse Matrix '
-    'Operations',
+    description='PyTorch Extension Library of Optimized Autograd Sparse '
+    'Matrix Operations',
     author='Matthias Fey',
     author_email='matthias.fey@tu-dortmund.de',
     url=url,
     download_url='{}/archive/{}.tar.gz'.format(url, __version__),
-    keywords=['pytorch', 'sparse', 'deep-learning'],
+    keywords=['pytorch', 'sparse', 'autograd', 'deep-learning'],
     install_requires=install_requires,
     setup_requires=setup_requires,
     tests_require=tests_require,
