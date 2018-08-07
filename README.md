@@ -43,7 +43,7 @@ Then run:
 pip install torch-scatter torch-sparse
 ```
 
-If you are running into any installation problems, please follow these [instructions](https://rusty1s.github.io/pytorch_geometric/build/html/notes/installation.html) first before creating an [issue](https://github.com/rusty1s/pytorch_sparse/issues).
+If you are running into any installation problems, please create an [issue](https://github.com/rusty1s/pytorch_sparse/issues).
 
 ## Autograd Sparse Tensor Creation
 
