@@ -66,7 +66,7 @@ def from_scipy(A):
     return index, value
 
 
-def lift(indexA, valueA, indexB, n):
+def lift(indexA, valueA, indexB, n):  # pragma: no cover
     indexA = indexA[0] * n + indexA[1]
     indexB = indexB[0] * n + indexB[1]
 
