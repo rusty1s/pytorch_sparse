@@ -1,13 +1,14 @@
 import torch
+from torch import from_numpy
 import scipy.sparse
 from torch_sparse import transpose
 
 if torch.cuda.is_available():
-    import matmul_cuda
+    import spspmm_cuda
 
 
 class SpSpMM(torch.autograd.Function):
-    """Sparse matrix product of two sparse tensors with autograd support."""
+    """Sparse matrix product of two sparse matrices with autograd support."""
 
     @staticmethod
     def forward(ctx, indexA, valueA, indexB, valueB, m, k, n):
@@ -24,14 +25,16 @@ class SpSpMM(torch.autograd.Function):
         grad_valueA = grad_valueB = None
 
         if ctx.needs_input_grad[1]:
-            indexB, valueB = transpose(indexB, valueB, k, n)
-            _, grad_valueA = mm(indexC, grad_valueC, indexB, valueB, m, n, k)
-            # TODO: Filter values.
+            indexB_T, valueB_T = transpose(indexB, valueB, k, n)
+            grad_indexA, grad_valueA = mm(indexC, grad_valueC, indexB_T,
+                                          valueB_T, m, n, k)
+            grad_valueA = lift(grad_indexA, grad_valueA, indexA, k)
 
-        if ctx.needs_input_grad[4]:
-            indexA, valueA = transpose(indexA, valueA, m, k)
-            _, grad_valueB = mm(indexA, valueA, indexC, grad_valueC, k, m, n)
-            # TODO: Filter values.
+        if ctx.needs_input_grad[3]:
+            indexA_T, valueA_T = transpose(indexA, valueA, m, k)
+            grad_indexB, grad_valueB = mm(indexA_T, valueA_T, indexC,
+                                          grad_valueC, k, m, n)
+            grad_valueB = lift(grad_indexB, grad_valueB, indexB, n)
 
         return None, grad_valueA, None, grad_valueB, None, None, None
 
@@ -43,7 +46,7 @@ def mm(indexA, valueA, indexB, valueB, m, k, n):
     assert valueA.dtype == valueB.dtype
 
     if indexA.is_cuda:
-        return matmul_cuda.spspmm(indexA, valueA, indexB, valueB, m, k, n)
+        return spspmm_cuda.spspmm(indexA, valueA, indexB, valueB, m, k, n)
 
     A = to_scipy(indexA, valueA, m, k)
     B = to_scipy(indexB, valueB, k, n)
@@ -58,6 +61,17 @@ def to_scipy(index, value, m, n):
 
 
 def from_scipy(A):
-    row, col, value = A.row, A.col, A.data
+    row, col, value = from_numpy(A.row), from_numpy(A.col), from_numpy(A.data)
     index = torch.stack([row, col], dim=0).to(torch.long)
     return index, value
+
+
+def lift(indexA, valueA, indexB, n):
+    indexA = indexA[0] * n + indexA[1]
+    indexB = indexB[0] * n + indexB[1]
+
+    value = valueA.new_zeros(indexB.max().item() + 1)
+    value[indexA] = valueA
+    value = value[indexB]
+
+    return value
