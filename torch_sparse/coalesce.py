@@ -3,7 +3,7 @@ import torch_scatter
 
 
 def coalesce(index, value, m, n, op='add', fill_value=0):
-    """Row-wise reorders and removes duplicate entries in sparse matrixx."""
+    """Row-wise reorders and removes duplicate entries in sparse matrix."""
 
     row, col = index
 
@@ -16,5 +16,7 @@ def coalesce(index, value, m, n, op='add', fill_value=0):
     if value is not None:
         op = getattr(torch_scatter, 'scatter_{}'.format(op))
         value = op(value, inv, 0, None, perm.size(0), fill_value)
+        if isinstance(value, tuple):
+            value = value[0]
 
     return index, value
