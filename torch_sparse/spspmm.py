@@ -8,7 +8,21 @@ if torch.cuda.is_available():
 
 
 class SpSpMM(torch.autograd.Function):
-    """Sparse matrix product of two sparse matrices with autograd support."""
+    """Matrix product of two sparse tensors. Both input sparse matrices need to
+    be coalesced.
+
+    Args:
+        indexA (:class:`LongTensor`): The index tensor of first sparse matrix.
+        valueA (:class:`Tensor`): The value tensor of first sparse matrix.
+        indexB (:class:`LongTensor`): The index tensor of second sparse matrix.
+        valueB (:class:`Tensor`): The value tensor of second sparse matrix.
+        m (int): The first dimension of first sparse matrix.
+        k (int): The second dimension of first sparse matrix and first
+            dimension of second sparse matrix.
+        n (int): The second dimension of second sparse matrix.
+
+    :rtype: (:class:`LongTensor`, :class:`Tensor`)
+    """
 
     @staticmethod
     def forward(ctx, indexA, valueA, indexB, valueB, m, k, n):

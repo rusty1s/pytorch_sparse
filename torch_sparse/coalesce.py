@@ -3,7 +3,23 @@ import torch_scatter
 
 
 def coalesce(index, value, m, n, op='add', fill_value=0):
-    """Row-wise reorders and removes duplicate entries in sparse matrix."""
+    """Row-wise sorts :obj:`value` and removes duplicate entries. Duplicate
+    entries are removed by scattering them together. For scattering, any
+    operation of `"torch_scatter"<https://github.com/rusty1s/pytorch_scatter>`_
+    can be used.
+
+    Args:
+        index (:class:`LongTensor`): The index tensor of sparse matrix.
+        value (:class:`Tensor`): The value tensor of sparse matrix.
+        m (int): The first dimension of sparse matrix.
+        n (int): The second dimension of sparse matrix.
+        op (string, optional): The scatter operation to use. (default:
+            :obj:`"add"`)
+        fill_value (int, optional): The initial fill value of scatter
+            operation. (default: :obj:`0`)
+
+    :rtype: (:class:`LongTensor`, :class:`Tensor`)
+    """
 
     row, col = index
 

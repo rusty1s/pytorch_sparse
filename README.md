@@ -63,15 +63,15 @@ For scattering, any operation of [`torch_scatter`](https://github.com/rusty1s/py
 
 * **index** *(LongTensor)* - The index tensor of sparse matrix.
 * **value** *(Tensor)* - The value tensor of sparse matrix.
-* **m** *(int)* - First dimension of sparse matrix.
-* **n** *(int)* - Second dimension of sparse matrix.
-* **op** *(string, optional)* - Scatter operation to use. (default: `"add"`)
-* **fill_value** *(int, optional)* - Initial fill value of scatter operation. (default: `0`)
+* **m** *(int)* - The first dimension of sparse matrix.
+* **n** *(int)* - The second dimension of sparse matrix.
+* **op** *(string, optional)* - The scatter operation to use. (default: `"add"`)
+* **fill_value** *(int, optional)* - The initial fill value of scatter operation. (default: `0`)
 
 ### Returns
 
-* **index** *(LongTensor)* - Coalesced index tensor of sparse matrix.
-* **value** *(Tensor)* - Coalesced value tensor of sparse matrix.
+* **index** *(LongTensor)* - The coalesced index tensor of sparse matrix.
+* **value** *(Tensor)* - The coalesced value tensor of sparse matrix.
 
 ### Example
 
@@ -105,13 +105,13 @@ Transposes dimensions 0 and 1 of a sparse matrix.
 
 * **index** *(LongTensor)* - The index tensor of sparse matrix.
 * **value** *(Tensor)* - The value tensor of sparse matrix.
-* **m** *(int)* - First dimension of sparse matrix.
-* **n** *(int)* - Second dimension of sparse matrix.
+* **m** *(int)* - The first dimension of sparse matrix.
+* **n** *(int)* - The second dimension of sparse matrix.
 
 ### Returns
 
-* **index** *(LongTensor)* - Transposed index tensor of sparse matrix.
-* **value** *(Tensor)* - Transposed value tensor of sparse matrix.
+* **index** *(LongTensor)* - The transposed index tensor of sparse matrix.
+* **value** *(Tensor)* - The transposed value tensor of sparse matrix.
 
 ### Example
 
@@ -122,7 +122,7 @@ index = torch.tensor([[1, 0, 1, 0, 2, 1],
                       [0, 1, 1, 1, 0, 0]])
 value = torch.tensor([[1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7]])
 
-index, value = transpose(index, value, m=3, n=2)
+index, value = transpose(index, value, 3, 2)
 ```
 
 ```
@@ -148,12 +148,12 @@ Matrix product of a sparse matrix with a dense matrix.
 
 * **index** *(LongTensor)* - The index tensor of sparse matrix.
 * **value** *(Tensor)* - The value tensor of sparse matrix.
-* **m** *(int)* - First dimension of sparse matrix.
-* **matrix** *(int)* - Dense matrix.
+* **m** *(int)* - The first dimension of sparse matrix.
+* **matrix** *(Tensor)* - The dense matrix.
 
 ### Returns
 
-* **out** *(Tensor)* - Dense output matrix.
+* **out** *(Tensor)* - The dense output matrix.
 
 ### Example
 
@@ -190,14 +190,14 @@ Both input sparse matrices need to be **coalesced**.
 * **valueA** *(Tensor)* - The value tensor of first sparse matrix.
 * **indexB** *(LongTensor)* - The index tensor of second sparse matrix.
 * **valueB** *(Tensor)* - The value tensor of second sparse matrix.
-* **m** *(int)* - First dimension of first sparse matrix.
-* **k** *(int)* - Second dimension of first sparse matrix and first dimension of second sparse matrix.
-* **n** *(int)* - Second dimension of second sparse matrix.
+* **m** *(int)* - The first dimension of first sparse matrix.
+* **k** *(int)* - The second dimension of first sparse matrix and first dimension of second sparse matrix.
+* **n** *(int)* - The second dimension of second sparse matrix.
 
 ### Returns
 
-* **index** *(LongTensor)* - Output index tensor of sparse matrix.
-* **value** *(Tensor)* - Output value tensor of sparse matrix.
+* **index** *(LongTensor)* - The output index tensor of sparse matrix.
+* **value** *(Tensor)* - The output value tensor of sparse matrix.
 
 ### Example
 
