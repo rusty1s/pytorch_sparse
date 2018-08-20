@@ -13,8 +13,11 @@ cmdclass = {}
 
 if torch.cuda.is_available():
     ext_modules += [
-        CUDAExtension('spspmm_cuda',
-                      ['cuda/spspmm.cpp', 'cuda/spspmm_kernel.cu'])
+        CUDAExtension(
+            'spspmm_cuda', ['cuda/spspmm.cpp', 'cuda/spspmm_kernel.cu'],
+            extra_compile_args={
+                'nvcc': ['-lcusparse']
+            })
     ]
     cmdclass['build_ext'] = BuildExtension
 
