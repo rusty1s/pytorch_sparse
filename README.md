@@ -48,6 +48,7 @@ pip install torch-scatter torch-sparse
 ```
 
 If you are running into any installation problems, please create an [issue](https://github.com/rusty1s/pytorch_sparse/issues).
+Be sure to import `torch` first before using this package to resolve symbols the dynamic linker must see.
 
 ## Coalesce
 
