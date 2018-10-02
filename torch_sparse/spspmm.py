@@ -81,11 +81,13 @@ def from_scipy(A):
 
 
 def lift(indexA, valueA, indexB, n):  # pragma: no cover
-    indexA = indexA[0] * n + indexA[1]
-    indexB = indexB[0] * n + indexB[1]
+    idxA = indexA[0] * n + indexA[1]
+    idxB = indexB[0] * n + indexB[1]
 
-    value = valueA.new_zeros(indexB.max().item() + 1)
-    value[indexA] = valueA
-    value = value[indexB]
+    max_value = max(idxA.max().item(), idxB.max().item()) + 1
+    valueB = valueA.new_zeros(max_value)
 
-    return value
+    valueB[idxA] = valueA
+    valueB = valueB[idxB]
+
+    return valueB
