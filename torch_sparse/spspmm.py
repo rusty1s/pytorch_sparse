@@ -7,7 +7,7 @@ if torch.cuda.is_available():
     import spspmm_cuda
 
 
-class SpSpMM(torch.autograd.Function):
+def spspmm(indexA, valueA, indexB, valueB, m, k, n):
     """Matrix product of two sparse tensors. Both input sparse matrices need to
     be coalesced.
 
@@ -23,7 +23,10 @@ class SpSpMM(torch.autograd.Function):
 
     :rtype: (:class:`LongTensor`, :class:`Tensor`)
     """
+    return SpSpMM.apply(indexA, valueA, indexB, valueB, m, k, n)
 
+
+class SpSpMM(torch.autograd.Function):
     @staticmethod
     def forward(ctx, indexA, valueA, indexB, valueB, m, k, n):
         indexC, valueC = mm(indexA, valueA, indexB, valueB, m, k, n)
@@ -51,9 +54,6 @@ class SpSpMM(torch.autograd.Function):
             grad_valueB = lift(grad_indexB, grad_valueB, indexB, n)
 
         return None, grad_valueA, None, grad_valueB, None, None, None
-
-
-spspmm = SpSpMM.apply
 
 
 def mm(indexA, valueA, indexB, valueB, m, k, n):
