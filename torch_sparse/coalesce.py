@@ -1,6 +1,8 @@
 import torch
 import torch_scatter
 
+from .utils.unique import unique
+
 
 def coalesce(index, value, m, n, op='add', fill_value=0):
     """Row-wise sorts :obj:`value` and removes duplicate entries. Duplicate
@@ -23,16 +25,20 @@ def coalesce(index, value, m, n, op='add', fill_value=0):
 
     row, col = index
 
-    unique, inv = torch.unique(row * n + col, sorted=True, return_inverse=True)
+    if value is None:
+        _, perm = unique(row * n + col)
+        index = torch.stack([row[perm], col[perm]], dim=0)
+        return index, value
+
+    uniq, inv = torch.unique(row * n + col, sorted=True, return_inverse=True)
 
     perm = torch.arange(inv.size(0), dtype=inv.dtype, device=inv.device)
-    perm = inv.new_empty(unique.size(0)).scatter_(0, inv, perm)
+    perm = inv.new_empty(uniq.size(0)).scatter_(0, inv, perm)
     index = torch.stack([row[perm], col[perm]], dim=0)
 
-    if value is not None:
-        op = getattr(torch_scatter, 'scatter_{}'.format(op))
-        value = op(value, inv, 0, None, perm.size(0), fill_value)
-        if isinstance(value, tuple):
-            value = value[0]
+    op = getattr(torch_scatter, 'scatter_{}'.format(op))
+    value = op(value, inv, 0, None, perm.size(0), fill_value)
+    if isinstance(value, tuple):
+        value = value[0]
 
     return index, value
