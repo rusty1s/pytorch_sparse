@@ -2,6 +2,15 @@ import torch
 from torch_sparse import coalesce
 
 
+def test_coalesce():
+    row = torch.tensor([1, 0, 1, 0, 2, 1])
+    col = torch.tensor([0, 1, 1, 1, 0, 0])
+    index = torch.stack([row, col], dim=0)
+
+    index, _ = coalesce(index, None, m=3, n=2)
+    assert index.tolist() == [[0, 1, 1, 2], [1, 0, 1, 0]]
+
+
 def test_coalesce_add():
     row = torch.tensor([1, 0, 1, 0, 2, 1])
     col = torch.tensor([0, 1, 1, 1, 0, 0])
