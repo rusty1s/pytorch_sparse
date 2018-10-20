@@ -13,7 +13,7 @@
 
 --------------------------------------------------------------------------------
 
-[PyTorch](http://pytorch.org/) (<= 0.4.1) completely lacks autograd support and operations such as sparse sparse matrix multiplication, but is heavily working on improvement (*cf.* [this issue](https://github.com/pytorch/pytorch/issues/9674)).
+[PyTorch](http://pytorch.org/) completely lacks autograd support and operations such as sparse sparse matrix multiplication, but is heavily working on improvement (*cf.* [this issue](https://github.com/pytorch/pytorch/issues/9674)).
 In the meantime, this package consists of a small extension library of optimized sparse matrix operations with autograd support.
 This package currently consists of the following methods:
 
