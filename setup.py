@@ -17,7 +17,9 @@ if torch.cuda.is_available():
             'spspmm_cuda',
             ['cuda/spspmm.cpp', 'cuda/spspmm_kernel.cu'],
             extra_link_args=['-lcusparse', '-l', 'cusparse'],
-        )
+        ),
+        CUDAExtension('unique_cuda',
+                      ['cuda/unique.cpp', 'cuda/unique_kernel.cu']),
     ]
     cmdclass['build_ext'] = BuildExtension
 
