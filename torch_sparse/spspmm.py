@@ -37,7 +37,7 @@ class SpSpMM(torch.autograd.Function):
     @staticmethod
     def backward(ctx, grad_indexC, grad_valueC):
         m, k, n = ctx.m, ctx.k, ctx.n
-        indexA, valueA, indexB, valueB, indexC = ctx.saved_variables
+        indexA, valueA, indexB, valueB, indexC = ctx.saved_tensors
 
         grad_valueA = grad_valueB = None
 
