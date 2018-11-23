@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 import torch
-from torch.utils.cpp_extension import BuildExtension, CUDAExtension
+from torch.utils.cpp_extension import BuildExtension, CUDAExtension, CUDA_HOME
 
 __version__ = '0.2.2'
 url = 'https://github.com/rusty1s/pytorch_sparse'
@@ -11,7 +11,7 @@ tests_require = ['pytest', 'pytest-cov']
 ext_modules = []
 cmdclass = {}
 
-if torch.cuda.is_available():
+if CUDA_HOME is not None:
     ext_modules += [
         CUDAExtension(
             'spspmm_cuda',
