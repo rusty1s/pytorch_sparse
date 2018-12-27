@@ -1,3 +1,4 @@
+import platform
 from setuptools import setup, find_packages
 from torch.utils.cpp_extension import BuildExtension, CUDAExtension, CUDA_HOME
 
@@ -11,12 +12,15 @@ ext_modules = []
 cmdclass = {}
 
 if CUDA_HOME is not None:
+    if platform.system() == 'Windows':
+        extra_link_args = ['cusparse.lib'],
+    else:
+        extra_link_args = ['-lcusparse', '-l', 'cusparse'],
+
     ext_modules += [
         CUDAExtension(
-            'spspmm_cuda',
-            ['cuda/spspmm.cpp', 'cuda/spspmm_kernel.cu'],
-            extra_link_args=['-lcusparse', '-l', 'cusparse'],
-        ),
+            'spspmm_cuda', ['cuda/spspmm.cpp', 'cuda/spspmm_kernel.cu'],
+            extra_link_args=extra_link_args),
         CUDAExtension('unique_cuda',
                       ['cuda/unique.cpp', 'cuda/unique_kernel.cu']),
     ]
@@ -37,5 +41,4 @@ setup(
     tests_require=tests_require,
     ext_modules=ext_modules,
     cmdclass=cmdclass,
-    packages=find_packages(),
-)
+    packages=find_packages(), )
