@@ -13,7 +13,7 @@ cmdclass = {}
 
 if CUDA_HOME is not None:
     if platform.system() == 'Windows':
-        extra_link_args = ['cusparse.lib'],
+        extra_link_args = 'cusparse.lib'
     else:
         extra_link_args = ['-lcusparse', '-l', 'cusparse'],
 
@@ -41,4 +41,5 @@ setup(
     tests_require=tests_require,
     ext_modules=ext_modules,
     cmdclass=cmdclass,
-    packages=find_packages(), )
+    packages=find_packages(),
+)
