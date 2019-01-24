@@ -13,15 +13,16 @@ cmdclass = {}
 
 if CUDA_HOME is not None:
     if platform.system() == 'Windows':
-        extra_link_args = 'cusparse.lib'
+        extra_link_args = ['cusparse.lib']
     else:
         extra_link_args = ['-lcusparse', '-l', 'cusparse']
 
     ext_modules += [
         CUDAExtension(
-            'spspmm_cuda', ['cuda/spspmm.cpp', 'cuda/spspmm_kernel.cu'],
+            'torch_sparse.spspmm_cuda',
+            ['cuda/spspmm.cpp', 'cuda/spspmm_kernel.cu'],
             extra_link_args=extra_link_args),
-        CUDAExtension('unique_cuda',
+        CUDAExtension('torch_sparse.unique_cuda',
                       ['cuda/unique.cpp', 'cuda/unique_kernel.cu']),
     ]
     cmdclass['build_ext'] = BuildExtension
@@ -29,8 +30,8 @@ if CUDA_HOME is not None:
 setup(
     name='torch_sparse',
     version=__version__,
-    description='PyTorch Extension Library of Optimized Autograd Sparse '
-    'Matrix Operations',
+    description=('PyTorch Extension Library of Optimized Autograd Sparse '
+                 'Matrix Operations'),
     author='Matthias Fey',
     author_email='matthias.fey@tu-dortmund.de',
     url=url,
@@ -41,4 +42,5 @@ setup(
     tests_require=tests_require,
     ext_modules=ext_modules,
     cmdclass=cmdclass,
-    packages=find_packages(), )
+    packages=find_packages(),
+)

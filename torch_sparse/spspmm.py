@@ -4,7 +4,7 @@ import scipy.sparse
 from torch_sparse import transpose
 
 if torch.cuda.is_available():
-    import spspmm_cuda
+    import torch_sparse.spspmm_cuda
 
 
 def spspmm(indexA, valueA, indexB, valueB, m, k, n):
@@ -60,7 +60,8 @@ def mm(indexA, valueA, indexB, valueB, m, k, n):
     assert valueA.dtype == valueB.dtype
 
     if indexA.is_cuda:
-        return spspmm_cuda.spspmm(indexA, valueA, indexB, valueB, m, k, n)
+        return torch_sparse.spspmm_cuda.spspmm(indexA, valueA, indexB, valueB,
+                                               m, k, n)
 
     A = to_scipy(indexA, valueA, m, k)
     B = to_scipy(indexB, valueB, k, n)
