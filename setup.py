@@ -2,7 +2,7 @@ import platform
 from setuptools import setup, find_packages
 from torch.utils.cpp_extension import BuildExtension, CUDAExtension, CUDA_HOME
 
-__version__ = '0.2.3'
+__version__ = '0.2.4'
 url = 'https://github.com/rusty1s/pytorch_sparse'
 
 install_requires = ['scipy']

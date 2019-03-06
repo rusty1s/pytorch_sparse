@@ -16,6 +16,7 @@ __global__ void unique_cuda_kernel(scalar_t *__restrict__ src, uint8_t *mask,
 }
 
 std::tuple<at::Tensor, at::Tensor> unique_cuda(at::Tensor src) {
+  cudaSetDevice(src.get_device());
   at::Tensor perm;
   std::tie(src, perm) = src.sort();
 

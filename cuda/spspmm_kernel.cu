@@ -30,6 +30,7 @@ static void init_cusparse() {
 std::tuple<at::Tensor, at::Tensor>
 spspmm_cuda(at::Tensor indexA, at::Tensor valueA, at::Tensor indexB,
             at::Tensor valueB, int m, int k, int n) {
+  cudaSetDevice(indexA.get_device());
   init_cusparse();
 
   indexA = indexA.contiguous();
