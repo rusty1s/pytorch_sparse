@@ -23,7 +23,8 @@ def spspmm(indexA, valueA, indexB, valueB, m, k, n):
 
     :rtype: (:class:`LongTensor`, :class:`Tensor`)
     """
-    return SpSpMM.apply(indexA, valueA, indexB, valueB, m, k, n)
+    index, value = SpSpMM.apply(indexA, valueA, indexB, valueB, m, k, n)
+    return index.detach(), value
 
 
 class SpSpMM(torch.autograd.Function):
