@@ -81,7 +81,7 @@ from torch_sparse import coalesce
 
 index = torch.tensor([[1, 0, 1, 0, 2, 1],
                       [0, 1, 1, 1, 0, 0]])
-value = torch.tensor([[1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7]])
+value = torch.Tensor([[1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7]])
 
 index, value = coalesce(index, value, m=3, n=2)
 ```
@@ -91,7 +91,10 @@ print(index)
 tensor([[0, 1, 1, 2],
         [1, 0, 1, 0]])
 print(value)
-tensor([[6, 8], [7, 9], [3, 4], [5, 6]])
+tensor([[6.0, 8.0],
+        [7.0, 9.0],
+        [3.0, 4.0],
+        [5.0, 6.0]])
 ```
 
 ## Transpose
@@ -121,7 +124,7 @@ from torch_sparse import transpose
 
 index = torch.tensor([[1, 0, 1, 0, 2, 1],
                       [0, 1, 1, 1, 0, 0]])
-value = torch.tensor([[1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7]])
+value = torch.Tensor([[1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7]])
 
 index, value = transpose(index, value, 3, 2)
 ```
@@ -131,10 +134,10 @@ print(index)
 tensor([[0, 0, 1, 1],
         [1, 2, 0, 1]])
 print(value)
-tensor([[7, 9],
-        [5, 6],
-        [6, 8],
-        [3, 4]])
+tensor([[7.0, 9.0],
+        [5.0, 6.0],
+        [6.0, 8.0],
+        [3.0, 4.0]])
 ```
 
 ## Sparse Dense Matrix Multiplication
@@ -163,8 +166,8 @@ from torch_sparse import spmm
 
 index = torch.tensor([[0, 0, 1, 2, 2],
                       [0, 2, 1, 0, 1]])
-value = torch.tensor([1, 2, 4, 1, 3], dtype=torch.float)
-matrix = torch.tensor([[1, 4], [2, 5], [3, 6]], dtype=torch.float)
+value = torch.Tensor([1, 2, 4, 1, 3])
+matrix = torch.Tensor([[1, 4], [2, 5], [3, 6]])
 
 out = spmm(index, value, 3, matrix)
 ```
@@ -206,10 +209,10 @@ Both input sparse matrices need to be **coalesced**.
 from torch_sparse import spspmm
 
 indexA = torch.tensor([[0, 0, 1, 2, 2], [1, 2, 0, 0, 1]])
-valueA = torch.tensor([1, 2, 3, 4, 5], dtype=torch.float)
+valueA = torch.Tensor([1, 2, 3, 4, 5])
 
 indexB = torch.tensor([[0, 2], [1, 0]])
-valueB = torch.tensor([2, 4], dtype=torch.float)
+valueB = torch.Tensor([2, 4])
 
 indexC, valueC = spspmm(indexA, valueA, indexB, valueB, 3, 3, 2)
 ```
