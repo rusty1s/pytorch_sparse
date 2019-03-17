@@ -1,5 +1,6 @@
 import torch
 from torch import from_numpy
+import numpy as np
 import scipy.sparse
 from torch_sparse import transpose
 
@@ -77,8 +78,9 @@ def to_scipy(index, value, m, n):
 
 
 def from_scipy(A):
-    row, col, value = from_numpy(A.row), from_numpy(A.col), from_numpy(A.data)
-    index = torch.stack([row, col], dim=0).to(torch.long)
+    row, col, value = A.row.astype(np.int64), A.col.astype(np.int64), A.data
+    row, col, value = from_numpy(row), from_numpy(col), from_numpy(value)
+    index = torch.stack([row, col], dim=0)
     return index, value
 
 
