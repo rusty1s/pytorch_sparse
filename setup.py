@@ -3,14 +3,8 @@ from setuptools import setup, find_packages
 import torch
 from torch.utils.cpp_extension import CppExtension, CUDAExtension, CUDA_HOME
 
-__version__ = '0.3.0'
-url = 'https://github.com/rusty1s/pytorch_sparse'
-
-install_requires = ['scipy']
-setup_requires = ['pytest-runner']
-tests_require = ['pytest', 'pytest-cov']
 ext_modules = [CppExtension('torch_sparse.spspmm_cpu', ['cpu/spspmm.cpp'])]
-cmdclass = {}
+cmdclass = {'build_ext': torch.utils.cpp_extension.BuildExtension}
 
 if CUDA_HOME is not None:
     if platform.system() == 'Windows':
@@ -26,7 +20,13 @@ if CUDA_HOME is not None:
         CUDAExtension('torch_sparse.unique_cuda',
                       ['cuda/unique.cpp', 'cuda/unique_kernel.cu']),
     ]
-    cmdclass['build_ext'] = torch.utils.cpp_extension.BuildExtension
+
+__version__ = '0.3.0'
+url = 'https://github.com/rusty1s/pytorch_sparse'
+
+install_requires = ['scipy']
+setup_requires = ['pytest-runner']
+tests_require = ['pytest', 'pytest-cov']
 
 setup(
     name='torch_sparse',
