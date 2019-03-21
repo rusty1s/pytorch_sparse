@@ -1,8 +1,7 @@
 import torch
-from torch import from_numpy
-import numpy as np
-import scipy.sparse
-from torch_sparse import transpose
+from torch_sparse import transpose_matrix, to_scipy, from_scipy
+
+import torch_sparse.spspmm_cpu
 
 if torch.cuda.is_available():
     import torch_sparse.spspmm_cuda
@@ -38,22 +37,39 @@ class SpSpMM(torch.autograd.Function):
 
     @staticmethod
     def backward(ctx, grad_indexC, grad_valueC):
-        m, k, n = ctx.m, ctx.k, ctx.n
+        m, k = ctx.m, ctx.k
+        n = ctx.n
         indexA, valueA, indexB, valueB, indexC = ctx.saved_tensors
 
         grad_valueA = grad_valueB = None
 
-        if ctx.needs_input_grad[1]:
-            indexB_T, valueB_T = transpose(indexB, valueB, k, n)
-            grad_indexA, grad_valueA = mm(indexC, grad_valueC, indexB_T,
-                                          valueB_T, m, n, k)
-            grad_valueA = lift(grad_indexA, grad_valueA, indexA, k)
+        if not grad_valueC.is_cuda:
+            if ctx.needs_input_grad[1] or ctx.needs_input_grad[1]:
+                grad_valueC = grad_valueC.clone()
 
-        if ctx.needs_input_grad[3]:
-            indexA_T, valueA_T = transpose(indexA, valueA, m, k)
-            grad_indexB, grad_valueB = mm(indexA_T, valueA_T, indexC,
-                                          grad_valueC, k, m, n)
-            grad_valueB = lift(grad_indexB, grad_valueB, indexB, n)
+            if ctx.needs_input_grad[1]:
+                grad_valueA = torch_sparse.spspmm_cpu.spspmm_bw(
+                    indexA, indexC.detach(), grad_valueC, indexB.detach(),
+                    valueB, m, k)
+
+            if ctx.needs_input_grad[3]:
+                indexA, valueA = transpose_matrix(indexA, valueA, m, k)
+                indexC, grad_valueC = transpose_matrix(indexC, grad_valueC, m,
+                                                       n)
+                grad_valueB = torch_sparse.spspmm_cpu.spspmm_bw(
+                    indexB, indexA.detach(), valueA, indexC.detach(),
+                    grad_valueC, k, n)
+        else:
+            if ctx.needs_input_grad[1]:
+                grad_valueA = torch_sparse.spspmm_cuda.spspmm_bw(
+                    indexA, indexC.detach(), grad_valueC.clone(),
+                    indexB.detach(), valueB, m, k)
+
+            if ctx.needs_input_grad[3]:
+                indexA_T, valueA_T = transpose_matrix(indexA, valueA, m, k)
+                grad_indexB, grad_valueB = mm(indexA_T, valueA_T, indexC,
+                                              grad_valueC, k, m, n)
+                grad_valueB = lift(grad_indexB, grad_valueB, indexB, n)
 
         return None, grad_valueA, None, grad_valueB, None, None, None
 
@@ -67,21 +83,9 @@ def mm(indexA, valueA, indexB, valueB, m, k, n):
 
     A = to_scipy(indexA, valueA, m, k)
     B = to_scipy(indexB, valueB, k, n)
-    indexC, valueC = from_scipy(A.tocsr().dot(B.tocsr()).tocoo())
-
+    C = A.dot(B).tocoo().tocsr().tocoo()  # Force coalesce.
+    indexC, valueC = from_scipy(C)
     return indexC, valueC
-
-
-def to_scipy(index, value, m, n):
-    (row, col), data = index.detach(), value.detach()
-    return scipy.sparse.coo_matrix((data, (row, col)), (m, n))
-
-
-def from_scipy(A):
-    row, col, value = A.row.astype(np.int64), A.col.astype(np.int64), A.data
-    row, col, value = from_numpy(row), from_numpy(col), from_numpy(value)
-    index = torch.stack([row, col], dim=0)
-    return index, value
 
 
 def lift(indexA, valueA, indexB, n):  # pragma: no cover

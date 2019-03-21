@@ -1,14 +1,15 @@
 import platform
 from setuptools import setup, find_packages
-from torch.utils.cpp_extension import BuildExtension, CUDAExtension, CUDA_HOME
+import torch
+from torch.utils.cpp_extension import CppExtension, CUDAExtension, CUDA_HOME
 
-__version__ = '0.2.4'
+__version__ = '0.3.0'
 url = 'https://github.com/rusty1s/pytorch_sparse'
 
 install_requires = ['scipy']
 setup_requires = ['pytest-runner']
 tests_require = ['pytest', 'pytest-cov']
-ext_modules = []
+ext_modules = [CppExtension('torch_sparse.spspmm_cpu', ['cpu/spspmm.cpp'])]
 cmdclass = {}
 
 if CUDA_HOME is not None:
@@ -25,7 +26,7 @@ if CUDA_HOME is not None:
         CUDAExtension('torch_sparse.unique_cuda',
                       ['cuda/unique.cpp', 'cuda/unique_kernel.cu']),
     ]
-    cmdclass['build_ext'] = BuildExtension
+    cmdclass['build_ext'] = torch.utils.cpp_extension.BuildExtension
 
 setup(
     name='torch_sparse',
