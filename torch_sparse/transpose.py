@@ -35,10 +35,10 @@ def transpose_matrix(index, value, m, n):
 
     assert value.dim() == 1
 
-    if not index.is_cuda:
+    if index.is_cuda:
+        return transpose(index, value, m, n)
+    else:
         mat = to_scipy(index, value, m, n).tocsc()
         (col, row), value = from_scipy(mat)
         index = torch.stack([row, col], dim=0)
         return index, value
-    else:
-        return transpose(index, value, m, n)
