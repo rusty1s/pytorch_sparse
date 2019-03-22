@@ -1,5 +1,5 @@
 import torch
-from torch_sparse import transpose_matrix, to_scipy, from_scipy
+from torch_sparse import transpose, to_scipy, from_scipy
 
 import torch_sparse.spspmm_cpu
 
@@ -53,9 +53,8 @@ class SpSpMM(torch.autograd.Function):
                     valueB, m, k)
 
             if ctx.needs_input_grad[3]:
-                indexA, valueA = transpose_matrix(indexA, valueA, m, k)
-                indexC, grad_valueC = transpose_matrix(indexC, grad_valueC, m,
-                                                       n)
+                indexA, valueA = transpose(indexA, valueA, m, k)
+                indexC, grad_valueC = transpose(indexC, grad_valueC, m, n)
                 grad_valueB = torch_sparse.spspmm_cpu.spspmm_bw(
                     indexB, indexA.detach(), valueA, indexC.detach(),
                     grad_valueC, k, n)
@@ -66,7 +65,7 @@ class SpSpMM(torch.autograd.Function):
                     indexB.detach(), valueB, m, k)
 
             if ctx.needs_input_grad[3]:
-                indexA_T, valueA_T = transpose_matrix(indexA, valueA, m, k)
+                indexA_T, valueA_T = transpose(indexA, valueA, m, k)
                 grad_indexB, grad_valueB = mm(indexA_T, valueA_T, indexC,
                                               grad_valueC, k, m, n)
                 grad_valueB = lift(grad_indexB, grad_valueB, indexB, n)

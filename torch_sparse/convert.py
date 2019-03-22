@@ -4,6 +4,14 @@ import torch
 from torch import from_numpy
 
 
+def to_torch_sparse(index, value, m, n):
+    return torch.sparse_coo_tensor(index.detach(), value, torch.Size([m, n]))
+
+
+def from_torch_sparse(A):
+    return A.indices().detach(), A.values()
+
+
 def to_scipy(index, value, m, n):
     assert not index.is_cuda and not value.is_cuda
     (row, col), data = index.detach(), value.detach()
