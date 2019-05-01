@@ -21,7 +21,7 @@ if CUDA_HOME is not None:
                       ['cuda/unique.cpp', 'cuda/unique_kernel.cu']),
     ]
 
-__version__ = '0.3.0'
+__version__ = '0.4.0'
 url = 'https://github.com/rusty1s/pytorch_sparse'
 
 install_requires = ['scipy']

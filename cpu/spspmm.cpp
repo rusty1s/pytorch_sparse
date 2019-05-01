@@ -31,7 +31,7 @@ at::Tensor spspmm_bw(at::Tensor index, at::Tensor indexA, at::Tensor valueA,
   int64_t *rowB_data = rowB.data<int64_t>();
   int64_t *colB_data = colB.data<int64_t>();
 
-  AT_DISPATCH_FLOATING_TYPES(valueA.type(), "spspmm_bw", [&] {
+  AT_DISPATCH_FLOATING_TYPES(valueA.scalar_type(), "spspmm_bw", [&] {
     scalar_t *value_data = value.data<scalar_t>();
     scalar_t *valueA_data = valueA.data<scalar_t>();
     scalar_t *valueB_data = valueB.data<scalar_t>();
