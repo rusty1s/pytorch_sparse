@@ -15,6 +15,7 @@ def spmm(index, value, m, matrix):
 
     row, col = index
     matrix = matrix if matrix.dim() > 1 else matrix.unsqueeze(-1)
+    assert ((col.max() + 1) == matrix.size(0)), "Argument #3 (dense matrix): Expected dim 0 size {}, got {}".format((col.max() + 1), matrix.size(0))
 
     out = matrix[col]
     out = out * value.unsqueeze(-1)
