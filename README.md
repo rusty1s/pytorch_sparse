@@ -153,6 +153,7 @@ Matrix product of a sparse matrix with a dense matrix.
 * **index** *(LongTensor)* - The index tensor of sparse matrix.
 * **value** *(Tensor)* - The value tensor of sparse matrix.
 * **m** *(int)* - The first dimension of sparse matrix.
+* **n** *(int)* - The second dimension of sparse matrix.
 * **matrix** *(Tensor)* - The dense matrix.
 
 ### Returns
@@ -169,7 +170,7 @@ index = torch.tensor([[0, 0, 1, 2, 2],
 value = torch.Tensor([1, 2, 4, 1, 3])
 matrix = torch.Tensor([[1, 4], [2, 5], [3, 6]])
 
-out = spmm(index, value, 3, matrix)
+out = spmm(index, value, 3, 3, matrix)
 ```
 
 ```

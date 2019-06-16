@@ -18,5 +18,5 @@ def test_spmm_spspmm(dtype, device):
     value = value.requires_grad_(True)
 
     out_index, out_value = spspmm(index, value, index, value, 3, 3, 3)
-    out = spmm(out_index, out_value, 3, x)
+    out = spmm(out_index, out_value, 3, 3, x)
     assert out.size() == (3, 2)

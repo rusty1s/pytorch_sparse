@@ -15,5 +15,5 @@ def test_spmm(dtype, device):
     value = tensor([1, 2, 4, 1, 3], dtype, device)
     x = tensor([[1, 4], [2, 5], [3, 6]], dtype, device)
 
-    out = spmm(index, value, 3, x)
+    out = spmm(index, value, 3, 3, x)
     assert out.tolist() == [[7, 16], [8, 20], [7, 19]]
