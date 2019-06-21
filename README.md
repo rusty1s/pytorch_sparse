@@ -56,7 +56,7 @@ Be sure to import `torch` first before using this package to resolve symbols the
 torch_sparse.coalesce(index, value, m, n, op="add", fill_value=0) -> (torch.LongTensor, torch.Tensor)
 ```
 
-Row-wise sorts `value` and removes duplicate entries.
+Row-wise sorts `index` and removes duplicate entries.
 Duplicate entries are removed by scattering them together.
 For scattering, any operation of [`torch_scatter`](https://github.com/rusty1s/pytorch_scatter) can be used.
 
@@ -64,8 +64,8 @@ For scattering, any operation of [`torch_scatter`](https://github.com/rusty1s/py
 
 * **index** *(LongTensor)* - The index tensor of sparse matrix.
 * **value** *(Tensor)* - The value tensor of sparse matrix.
-* **m** *(int)* - The first dimension of sparse matrix.
-* **n** *(int)* - The second dimension of sparse matrix.
+* **m** *(int)* - The first dimension of corresponding dense matrix.
+* **n** *(int)* - The second dimension of corresponding dense matrix.
 * **op** *(string, optional)* - The scatter operation to use. (default: `"add"`)
 * **fill_value** *(int, optional)* - The initial fill value of scatter operation. (default: `0`)
 
@@ -109,8 +109,8 @@ Transposes dimensions 0 and 1 of a sparse matrix.
 
 * **index** *(LongTensor)* - The index tensor of sparse matrix.
 * **value** *(Tensor)* - The value tensor of sparse matrix.
-* **m** *(int)* - The first dimension of sparse matrix.
-* **n** *(int)* - The second dimension of sparse matrix.
+* **m** *(int)* - The first dimension of corresponding dense matrix.
+* **n** *(int)* - The second dimension of corresponding dense matrix.
 
 ### Returns
 
@@ -143,7 +143,7 @@ tensor([[7.0, 9.0],
 ## Sparse Dense Matrix Multiplication
 
 ```
-torch_sparse.spmm(index, value, m, matrix) -> torch.Tensor
+torch_sparse.spmm(index, value, m, n, matrix) -> torch.Tensor
 ```
 
 Matrix product of a sparse matrix with a dense matrix.
@@ -152,8 +152,8 @@ Matrix product of a sparse matrix with a dense matrix.
 
 * **index** *(LongTensor)* - The index tensor of sparse matrix.
 * **value** *(Tensor)* - The value tensor of sparse matrix.
-* **m** *(int)* - The first dimension of sparse matrix.
-* **n** *(int)* - The second dimension of sparse matrix.
+* **m** *(int)* - The first dimension of corresponding dense matrix.
+* **n** *(int)* - The second dimension of corresponding dense matrix.
 * **matrix** *(Tensor)* - The dense matrix.
 
 ### Returns
@@ -195,9 +195,9 @@ Both input sparse matrices need to be **coalesced**.
 * **valueA** *(Tensor)* - The value tensor of first sparse matrix.
 * **indexB** *(LongTensor)* - The index tensor of second sparse matrix.
 * **valueB** *(Tensor)* - The value tensor of second sparse matrix.
-* **m** *(int)* - The first dimension of first sparse matrix.
-* **k** *(int)* - The second dimension of first sparse matrix and first dimension of second sparse matrix.
-* **n** *(int)* - The second dimension of second sparse matrix.
+* **m** *(int)* - The first dimension of first corresponding dense matrix.
+* **k** *(int)* - The second dimension of first corresponding dense matrix and first dimension of second corresponding dense matrix.
+* **n** *(int)* - The second dimension of second corresponding dense matrix.
 
 ### Returns
 
