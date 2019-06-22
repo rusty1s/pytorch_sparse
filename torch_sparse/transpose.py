@@ -11,7 +11,7 @@ def transpose(index, value, m, n, coalesced=True):
         m (int): The first dimension of corresponding dense matrix.
         n (int): The second dimension of corresponding dense matrix.
         coalesced (bool, optional): If set to :obj:`False`, will not coalesce
-            the output (default: :obj:`True`)
+            the output. (default: :obj:`True`)
     :rtype: (:class:`LongTensor`, :class:`Tensor`)
     """
 
