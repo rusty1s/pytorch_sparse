@@ -112,6 +112,7 @@ Transposes dimensions 0 and 1 of a sparse matrix.
 * **value** *(Tensor)* - The value tensor of sparse matrix.
 * **m** *(int)* - The first dimension of corresponding dense matrix.
 * **n** *(int)* - The second dimension of corresponding dense matrix.
+* **coalesce** *(bool, optional)* - To return coalesced index and value or not (default: `True`)
 
 ### Returns
 
