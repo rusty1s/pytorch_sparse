@@ -17,8 +17,8 @@ def spspmm(indexA, valueA, indexB, valueB, m, k, n):
         indexB (:class:`LongTensor`): The index tensor of second sparse matrix.
         valueB (:class:`Tensor`): The value tensor of second sparse matrix.
         m (int): The first dimension of first corresponding dense matrix.
-        k (int): The second dimension of first corresponding dense matrix and first
-            dimension of second corresponding dense matrix.
+        k (int): The second dimension of first corresponding dense matrix and
+            first dimension of second corresponding dense matrix.
         n (int): The second dimension of second corresponding dense matrix.
 
     :rtype: (:class:`LongTensor`, :class:`Tensor`)

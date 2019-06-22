@@ -2,7 +2,7 @@ import torch
 from torch_sparse import to_scipy, from_scipy, coalesce
 
 
-def transpose(index, value, m, nm coalesce=True):
+def transpose(index, value, m, n, coalesced=True):
     """Transposes dimensions 0 and 1 of a sparse tensor.
 
     Args:
@@ -10,7 +10,8 @@ def transpose(index, value, m, nm coalesce=True):
         value (:class:`Tensor`): The value tensor of sparse matrix.
         m (int): The first dimension of corresponding dense matrix.
         n (int): The second dimension of corresponding dense matrix.
-        coalesce (bool, optional): To return coalesced index and value or not (default: :obj:`True`) 
+        coalesced (bool, optional): If set to :obj:`False`, will not coalesce
+            the output (default: :obj:`True`)
     :rtype: (:class:`LongTensor`, :class:`Tensor`)
     """
 
