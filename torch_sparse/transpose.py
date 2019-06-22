@@ -8,8 +8,8 @@ def transpose(index, value, m, n):
     Args:
         index (:class:`LongTensor`): The index tensor of sparse matrix.
         value (:class:`Tensor`): The value tensor of sparse matrix.
-        m (int): The first dimension of sparse matrix.
-        n (int): The second dimension of sparse matrix.
+        m (int): The first dimension of corresponding dense matrix.
+        n (int): The second dimension of corresponding dense matrix.
 
     :rtype: (:class:`LongTensor`, :class:`Tensor`)
     """

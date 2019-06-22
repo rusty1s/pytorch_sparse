@@ -5,7 +5,7 @@ def eye(m, dtype=None, device=None):
     """Returns a sparse matrix with ones on the diagonal and zeros elsewhere.
 
     Args:
-        m (int): The first dimension of sparse matrix.
+        m (int): The first dimension of corresponding dense matrix.
         dtype (`torch.dtype`, optional): The desired data type of returned
             value vector. (default is set by `torch.set_default_tensor_type()`)
         device (`torch.device`, optional): The desired device of returned
