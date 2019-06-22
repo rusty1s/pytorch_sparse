@@ -77,6 +77,7 @@ For scattering, any operation of [`torch_scatter`](https://github.com/rusty1s/py
 ### Example
 
 ```python
+import torch
 from torch_sparse import coalesce
 
 index = torch.tensor([[1, 0, 1, 0, 2, 1],
@@ -120,6 +121,7 @@ Transposes dimensions 0 and 1 of a sparse matrix.
 ### Example
 
 ```python
+import torch
 from torch_sparse import transpose
 
 index = torch.tensor([[1, 0, 1, 0, 2, 1],
@@ -163,6 +165,7 @@ Matrix product of a sparse matrix with a dense matrix.
 ### Example
 
 ```python
+import torch
 from torch_sparse import spmm
 
 index = torch.tensor([[0, 0, 1, 2, 2],
@@ -207,6 +210,7 @@ Both input sparse matrices need to be **coalesced**.
 ### Example
 
 ```python
+import torch
 from torch_sparse import spspmm
 
 indexA = torch.tensor([[0, 0, 1, 2, 2], [1, 2, 0, 0, 1]])
@@ -219,10 +223,10 @@ indexC, valueC = spspmm(indexA, valueA, indexB, valueB, 3, 3, 2)
 ```
 
 ```
-print(index)
+print(indexC)
 tensor([[0, 1, 2],
         [0, 1, 1]])
-print(value)
+print(valueC)
 tensor([8.0, 6.0, 8.0])
 ```
 
