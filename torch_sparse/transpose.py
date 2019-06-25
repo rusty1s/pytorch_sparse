@@ -23,6 +23,6 @@ def transpose(index, value, m, n, coalesced=True):
 
     row, col = index
     index = torch.stack([col, row], dim=0)
-    if coalesce:
+    if coalesced:
         index, value = coalesce(index, value, n, m)
     return index, value
