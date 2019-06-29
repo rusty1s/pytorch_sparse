@@ -3,7 +3,6 @@ sudo: required
 dist: trusty
 matrix:
   include:
-    - python: 2.7
     - python: 3.5
     - python: 3.6
 addons:
@@ -24,8 +23,8 @@ install:
   - pip install codecov
   - pip install torch-scatter
 script:
-  - if [[ $TRAVIS_PYTHON_VERSION != 2.7 ]]; then pycodestyle .; fi
-  - if [[ $TRAVIS_PYTHON_VERSION != 2.7 ]]; then flake8 .; fi
+  - pycodestyle .
+  - flake8 .
   - python setup.py install
   - python setup.py test
 after_success:
