@@ -37,7 +37,12 @@ setup(
     author_email='matthias.fey@tu-dortmund.de',
     url=url,
     download_url='{}/archive/{}.tar.gz'.format(url, __version__),
-    keywords=['pytorch', 'sparse', 'autograd', 'deep-learning'],
+    keywords=[
+        'pytorch',
+        'sparse',
+        'sparse-matrices',
+        'autograd',
+    ],
     install_requires=install_requires,
     setup_requires=setup_requires,
     tests_require=tests_require,
