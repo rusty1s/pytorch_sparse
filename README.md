@@ -191,7 +191,7 @@ torch_sparse.spspmm(indexA, valueA, indexB, valueB, m, k, n) -> (torch.LongTenso
 ```
 
 Matrix product of two sparse tensors.
-Both input sparse matrices need to be **coalesced**.
+Both input sparse matrices need to be **coalesced** (use the `coalesce` attribute to force).
 
 ### Parameters
 
