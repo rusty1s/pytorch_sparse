@@ -20,8 +20,8 @@ def spspmm(indexA, valueA, indexB, valueB, m, k, n, coalesced=False):
         k (int): The second dimension of first corresponding dense matrix and
             first dimension of second corresponding dense matrix.
         n (int): The second dimension of second corresponding dense matrix.
-        coalesced (bool, optional): If set to :obj:`False`, will coalesce both
-            input sparse matrices (default: :obj:`True`).
+        coalesced (bool, optional): If set to :obj:`True`, will coalesce both
+            input sparse matrices (default: :obj:`False`).
 
     :rtype: (:class:`LongTensor`, :class:`Tensor`)
     """
