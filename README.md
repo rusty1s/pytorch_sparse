@@ -202,7 +202,7 @@ Both input sparse matrices need to be **coalesced** (use the `coalesced` attribu
 * **m** *(int)* - The first dimension of first corresponding dense matrix.
 * **k** *(int)* - The second dimension of first corresponding dense matrix and first dimension of second corresponding dense matrix.
 * **n** *(int)* - The second dimension of second corresponding dense matrix.
-* **coalesced** *(bool, optional)*: If set to `True`, will coalesce both input sparse matrices (default: `False`).
+* **coalesced** *(bool, optional)*: If set to `True`, will coalesce both input sparse matrices. (default: `False`)
 
 ### Returns
 
