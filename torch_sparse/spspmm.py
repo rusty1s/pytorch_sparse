@@ -9,7 +9,7 @@ if torch.cuda.is_available():
 
 def spspmm(indexA, valueA, indexB, valueB, m, k, n, coalesced=False):
     """Matrix product of two sparse tensors. Both input sparse matrices need to
-    be coalesced (use the :obj:`coalesce` attribute to force).
+    be coalesced (use the :obj:`coalesced` attribute to force).
 
     Args:
         indexA (:class:`LongTensor`): The index tensor of first sparse matrix.
