@@ -1,6 +1,7 @@
 #include <ATen/ATen.h>
-
 #include <cusparse.h>
+
+#include "compat.cuh"
 
 #define THREADS 1024
 #define BLOCKS(N) (N + THREADS - 1) / THREADS
@@ -51,18 +52,18 @@ spspmm_cuda(at::Tensor indexA, at::Tensor valueA, at::Tensor indexB,
 
   // Convert A to CSR format.
   auto row_ptrA = at::empty(m + 1, indexA.options());
-  cusparseXcoo2csr(cusparse_handle, indexA[0].data<int>(), nnzA, k,
-                   row_ptrA.data<int>(), CUSPARSE_INDEX_BASE_ZERO);
+  cusparseXcoo2csr(cusparse_handle, indexA[0].DATA_PTR<int>(), nnzA, k,
+                   row_ptrA.DATA_PTR<int>(), CUSPARSE_INDEX_BASE_ZERO);
   auto colA = indexA[1];
-  cudaMemcpy(row_ptrA.data<int>() + m, &nnzA, sizeof(int),
+  cudaMemcpy(row_ptrA.DATA_PTR<int>() + m, &nnzA, sizeof(int),
              cudaMemcpyHostToDevice);
 
   // Convert B to CSR format.
   auto row_ptrB = at::empty(k + 1, indexB.options());
-  cusparseXcoo2csr(cusparse_handle, indexB[0].data<int>(), nnzB, k,
-                   row_ptrB.data<int>(), CUSPARSE_INDEX_BASE_ZERO);
+  cusparseXcoo2csr(cusparse_handle, indexB[0].DATA_PTR<int>(), nnzB, k,
+                   row_ptrB.DATA_PTR<int>(), CUSPARSE_INDEX_BASE_ZERO);
   auto colB = indexB[1];
-  cudaMemcpy(row_ptrB.data<int>() + k, &nnzB, sizeof(int),
+  cudaMemcpy(row_ptrB.DATA_PTR<int>() + k, &nnzB, sizeof(int),
              cudaMemcpyHostToDevice);
 
   cusparseMatDescr_t descr = 0;
@@ -74,22 +75,23 @@ spspmm_cuda(at::Tensor indexA, at::Tensor valueA, at::Tensor indexB,
   auto row_ptrC = at::empty(m + 1, indexB.options());
   cusparseXcsrgemmNnz(cusparse_handle, CUSPARSE_OPERATION_NON_TRANSPOSE,
                       CUSPARSE_OPERATION_NON_TRANSPOSE, m, n, k, descr, nnzA,
-                      row_ptrA.data<int>(), colA.data<int>(), descr, nnzB,
-                      row_ptrB.data<int>(), colB.data<int>(), descr,
-                      row_ptrC.data<int>(), &nnzC);
+                      row_ptrA.DATA_PTR<int>(), colA.DATA_PTR<int>(), descr,
+                      nnzB, row_ptrB.DATA_PTR<int>(), colB.DATA_PTR<int>(),
+                      descr, row_ptrC.DATA_PTR<int>(), &nnzC);
   auto colC = at::empty(nnzC, indexA.options());
   auto valueC = at::empty(nnzC, valueA.options());
 
   CSRGEMM(valueC.scalar_type(), cusparse_handle,
           CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE, m,
-          n, k, descr, nnzA, valueA.data<scalar_t>(), row_ptrA.data<int>(),
-          colA.data<int>(), descr, nnzB, valueB.data<scalar_t>(),
-          row_ptrB.data<int>(), colB.data<int>(), descr,
-          valueC.data<scalar_t>(), row_ptrC.data<int>(), colC.data<int>());
+          n, k, descr, nnzA, valueA.DATA_PTR<scalar_t>(),
+          row_ptrA.DATA_PTR<int>(), colA.DATA_PTR<int>(), descr, nnzB,
+          valueB.DATA_PTR<scalar_t>(), row_ptrB.DATA_PTR<int>(),
+          colB.DATA_PTR<int>(), descr, valueC.DATA_PTR<scalar_t>(),
+          row_ptrC.DATA_PTR<int>(), colC.DATA_PTR<int>());
 
   auto rowC = at::empty(nnzC, indexA.options());
-  cusparseXcsr2coo(cusparse_handle, row_ptrC.data<int>(), nnzC, m,
-                   rowC.data<int>(), CUSPARSE_INDEX_BASE_ZERO);
+  cusparseXcsr2coo(cusparse_handle, row_ptrC.DATA_PTR<int>(), nnzC, m,
+                   rowC.DATA_PTR<int>(), CUSPARSE_INDEX_BASE_ZERO);
 
   auto indexC = at::stack({rowC, colC}, 0).toType(at::kLong);
 
@@ -154,9 +156,10 @@ at::Tensor spspmm_bw_cuda(at::Tensor index, at::Tensor indexA,
 
   AT_DISPATCH_FLOATING_TYPES(valueA.scalar_type(), "spspmm_bw", [&] {
     spspmm_bw_kernel<scalar_t><<<BLOCKS(value.numel()), THREADS>>>(
-        index.data<int64_t>(), value.data<scalar_t>(), rowA.data<int64_t>(),
-        colA.data<int64_t>(), valueA.data<scalar_t>(), rowB.data<int64_t>(),
-        colB.data<int64_t>(), valueB.data<scalar_t>(), value.numel());
+        index.DATA_PTR<int64_t>(), value.DATA_PTR<scalar_t>(),
+        rowA.DATA_PTR<int64_t>(), colA.DATA_PTR<int64_t>(),
+        valueA.DATA_PTR<scalar_t>(), rowB.DATA_PTR<int64_t>(),
+        colB.DATA_PTR<int64_t>(), valueB.DATA_PTR<scalar_t>(), value.numel());
   });
 
   return value;

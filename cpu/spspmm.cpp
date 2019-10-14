@@ -1,5 +1,7 @@
 #include <torch/extension.h>
 
+#include "compat.h"
+
 at::Tensor degree(at::Tensor row, int64_t num_nodes) {
   auto zero = at::zeros(num_nodes, row.options());
   auto one = at::ones(row.size(0), row.options());
@@ -18,23 +20,23 @@ at::Tensor spspmm_bw(at::Tensor index, at::Tensor indexA, at::Tensor valueA,
                      at::Tensor indexB, at::Tensor valueB, size_t rowA_max,
                      size_t rowB_max) {
 
-  int64_t *index_data = index.data<int64_t>();
+  int64_t *index_data = index.DATA_PTR<int64_t>();
   auto value = at::zeros(index.size(1), valueA.options());
 
   at::Tensor rowA, colA;
   std::tie(rowA, colA) = to_csr(indexA[0], indexA[1], rowA_max);
-  int64_t *rowA_data = rowA.data<int64_t>();
-  int64_t *colA_data = colA.data<int64_t>();
+  int64_t *rowA_data = rowA.DATA_PTR<int64_t>();
+  int64_t *colA_data = colA.DATA_PTR<int64_t>();
 
   at::Tensor rowB, colB;
   std::tie(rowB, colB) = to_csr(indexB[0], indexB[1], rowB_max);
-  int64_t *rowB_data = rowB.data<int64_t>();
-  int64_t *colB_data = colB.data<int64_t>();
+  int64_t *rowB_data = rowB.DATA_PTR<int64_t>();
+  int64_t *colB_data = colB.DATA_PTR<int64_t>();
 
   AT_DISPATCH_FLOATING_TYPES(valueA.scalar_type(), "spspmm_bw", [&] {
-    scalar_t *value_data = value.data<scalar_t>();
-    scalar_t *valueA_data = valueA.data<scalar_t>();
-    scalar_t *valueB_data = valueB.data<scalar_t>();
+    scalar_t *value_data = value.DATA_PTR<scalar_t>();
+    scalar_t *valueA_data = valueA.DATA_PTR<scalar_t>();
+    scalar_t *valueB_data = valueB.DATA_PTR<scalar_t>();
 
     for (int64_t e = 0; e < value.size(0); e++) {
       int64_t i = index_data[e], j = index_data[value.size(0) + e];

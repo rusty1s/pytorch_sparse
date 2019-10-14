@@ -1,5 +1,7 @@
 #include <ATen/ATen.h>
 
+#include "compat.cuh"
+
 #define THREADS 1024
 #define BLOCKS(N) (N + THREADS - 1) / THREADS
 
@@ -23,7 +25,7 @@ std::tuple<at::Tensor, at::Tensor> unique_cuda(at::Tensor src) {
   auto mask = at::zeros(src.numel(), src.options().dtype(at::kByte));
   AT_DISPATCH_ALL_TYPES(src.scalar_type(), "grid_cuda_kernel", [&] {
     unique_cuda_kernel<scalar_t><<<BLOCKS(src.numel()), THREADS>>>(
-        src.data<scalar_t>(), mask.data<uint8_t>(), src.numel());
+        src.DATA_PTR<scalar_t>(), mask.DATA_PTR<uint8_t>(), src.numel());
   });
 
   src = src.masked_select(mask);
