@@ -30,6 +30,10 @@ if CUDA_HOME is not None and GPU:
         extra_link_args = ['-lcusparse', '-l', 'cusparse']
 
     ext_modules += [
+        CUDAExtension('torch_sparse.spmm_cuda',
+                      ['cuda/spmm.cpp', 'cuda/spmm_kernel.cu'],
+                      extra_link_args=extra_link_args,
+                      extra_compile_args=extra_compile_args),
         CUDAExtension('torch_sparse.spspmm_cuda',
                       ['cuda/spspmm.cpp', 'cuda/spspmm_kernel.cu'],
                       extra_link_args=extra_link_args,

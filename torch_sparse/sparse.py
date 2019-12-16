@@ -59,11 +59,11 @@ class SparseTensor(object):
         return self._index, self._value
 
     def csr(self):
-        return self._col, self._rowptr, self._value
+        return self._rowptr, self._col, self._value
 
     def csc(self):
         perm = self._arg_csr_to_csc
-        return self._row[perm], self._colptr, self._value[perm]
+        return self._colptr, self._row[perm], self._value[perm]
 
     def is_quadratic(self):
         return self.sparse_size[0] == self.sparse_size[1]
@@ -103,24 +103,26 @@ class SparseTensor(object):
         return self.__class__.from_storage(storage)
 
     def matmul(self, mat2):
-        pass
+        raise NotImplementedError
 
     def coalesce(self, reduce='add'):
-        pass
+        raise NotImplementedError
 
     def is_coalesced(self):
-        pass
+        raise NotImplementedError
 
     def add(self, layout=None):
         # sub, mul, div
         # can take scalars, tensors and other sparse matrices
         # inplace variants can only take scalars or tensors
-        pass
+        raise NotImplementedError
+
+    # TODO: Slicing, (sum|max|min|prod|...), standard operators, masing, perm
 
     def to_dense(self, dtype=None):
         dtype = dtype or self.dtype
         mat = torch.zeros(self.size(), dtype=dtype, device=self.device)
-        mat[self._row, self._col] = self._value or 1
+        mat[self._row, self._col] = self._value if self.has_value else 1
         return mat
 
     def to_scipy(self):
@@ -128,8 +130,6 @@ class SparseTensor(object):
 
     def to_torch_sparse_coo_tensor(self):
         raise NotImplementedError
-
-    # TODO: Slicing, (sum|max|min|prod|...), standard operators, masing, perm
 
     def __repr__(self):
         i = ' ' * 6
