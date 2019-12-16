@@ -41,7 +41,7 @@ class SparseStorage(object):
             rowptr = torch.cat([row.new_zeros(1), out_deg.cumsum(0)], dim=0)
         else:
             assert rowptr.dtype == torch.long and rowptr.device == row.device
-            assert rowptr.dim() == 1 and rowptr.size(0) == sparse_size[0] - 1
+            assert rowptr.dim() == 1 and rowptr.numel() - 1 == sparse_size[0]
 
         if colptr is None:
             ones = torch.ones_like(col) if ones is None else ones
@@ -49,24 +49,24 @@ class SparseStorage(object):
             colptr = torch.cat([col.new_zeros(1), in_deg.cumsum(0)], dim=0)
         else:
             assert colptr.dtype == torch.long and colptr.device == col.device
-            assert colptr.dim() == 1 and colptr.size(0) == sparse_size[1] - 1
+            assert colptr.dim() == 1 and colptr.numel() - 1 == sparse_size[1]
 
         if arg_csr_to_csc is None:
             idx = sparse_size[0] * col + row
             arg_csr_to_csc = idx.argsort()
         else:
-            assert arg_csr_to_csc == torch.long
+            assert arg_csr_to_csc.dtype == torch.long
             assert arg_csr_to_csc.device == row.device
             assert arg_csr_to_csc.dim() == 1
-            assert arg_csr_to_csc.size(0) == row.size(0)
+            assert arg_csr_to_csc.numel() == row.numel()
 
         if arg_csc_to_csr is None:
             arg_csc_to_csr = arg_csr_to_csc.argsort()
         else:
-            assert arg_csc_to_csr == torch.long
+            assert arg_csc_to_csr.dtype == torch.long
             assert arg_csc_to_csr.device == row.device
             assert arg_csc_to_csr.dim() == 1
-            assert arg_csc_to_csr.size(0) == row.size(0)
+            assert arg_csc_to_csr.numel() == row.numel()
 
         self.__row = row
         self.__col = col
@@ -85,6 +85,7 @@ class SparseStorage(object):
     def _col(self):
         return self.__col
 
+    @property
     def _index(self):
         return torch.stack([self.__row, self.__col], dim=0)
 
@@ -120,6 +121,9 @@ class SparseStorage(object):
         size += () if self.__value is None else self.__value.size()[1:]
         return size if dim is None else size[dim]
 
+    def dim(self):
+        return len(self.size())
+
     @property
     def shape(self):
         return self.size()
@@ -129,20 +133,46 @@ class SparseStorage(object):
         self.__sparse_size == sizes
         return self
 
+    def nnz(self):
+        return self.__row.size(0)
+
+    def density(self):
+        return self.nnz() / (self.__sparse_size[0] * self.__sparse_size[1])
+
+    def sparsity(self):
+        return 1 - self.density()
+
+    def avg_row_length(self):
+        return self.nnz() / self.__sparse_size[0]
+
+    def avg_col_length(self):
+        return self.nnz() / self.__sparse_size[1]
+
+    def numel(self):
+        return self.nnz() if self.__value is None else self.__value.numel()
+
     def clone(self):
-        return self.__apply(lambda x: x.clone())
+        return self._apply(lambda x: x.clone())
 
     def __copy__(self):
         return self.clone()
 
+    def __deepcopy__(self, memo):
+        memo = memo.setdefault('SparseStorage', {})
+        if self._cdata in memo:
+            return memo[self._cdata]
+        new_storage = self.clone()
+        memo[self._cdata] = new_storage
+        return new_storage
+
     def pin_memory(self):
-        return self.__apply(lambda x: x.pin_memory())
+        return self._apply(lambda x: x.pin_memory())
 
     def is_pinned(self):
         return all([x.is_pinned for x in self.__attributes])
 
     def share_memory_(self):
-        return self.__apply_(lambda x: x.share_memory_())
+        return self._apply_(lambda x: x.share_memory_())
 
     def is_shared(self):
         return all([x.is_shared for x in self.__attributes])
@@ -152,10 +182,10 @@ class SparseStorage(object):
         return self.__row.device
 
     def cpu(self):
-        return self.__apply(lambda x: x.cpu())
+        return self._apply(lambda x: x.cpu())
 
     def cuda(self, device=None, non_blocking=False, **kwargs):
-        return self.__apply(lambda x: x.cuda(device, non_blocking, **kwargs))
+        return self._apply(lambda x: x.cuda(device, non_blocking, **kwargs))
 
     @property
     def is_cuda(self):
@@ -167,11 +197,12 @@ class SparseStorage(object):
 
     def to(self, *args, **kwargs):
         if 'device' in kwargs:
-            out = self.__apply(lambda x: x.to(kwargs['device']))
+            out = self._apply(lambda x: x.to(kwargs['device'], **kwargs))
             del kwargs['device']
+
         for arg in args[:]:
             if isinstance(arg, str) or isinstance(arg, torch.device):
-                out = self.__apply(lambda x: x.to(arg))
+                out = self._apply(lambda x: x.to(arg, **kwargs))
                 args.remove(arg)
 
         if len(args) > 0 and len(kwargs) > 0:
@@ -180,72 +211,70 @@ class SparseStorage(object):
         return out
 
     def type(self, dtype=None, non_blocking=False, **kwargs):
-        return self.dtype if dtype is None else self.__apply_value(
+        return self.dtype if dtype is None else self._apply_value(
             lambda x: x.type(dtype, non_blocking, **kwargs))
 
     def is_floating_point(self):
         return self.__value is None or torch.is_floating_point(self.__value)
 
     def bfloat16(self):
-        return self.__apply_value(lambda x: x.bfloat16())
+        return self._apply_value(lambda x: x.bfloat16())
 
     def bool(self):
-        return self.__apply_value(lambda x: x.bool())
+        return self._apply_value(lambda x: x.bool())
 
     def byte(self):
-        return self.__apply_value(lambda x: x.byte())
+        return self._apply_value(lambda x: x.byte())
 
     def char(self):
-        return self.__apply_value(lambda x: x.char())
+        return self._apply_value(lambda x: x.char())
 
     def half(self):
-        return self.__apply_value(lambda x: x.half())
+        return self._apply_value(lambda x: x.half())
 
     def float(self):
-        return self.__apply_value(lambda x: x.float())
+        return self._apply_value(lambda x: x.float())
 
     def double(self):
-        return self.__apply_value(lambda x: x.double())
+        return self._apply_value(lambda x: x.double())
 
     def short(self):
-        return self.__apply_value(lambda x: x.short())
+        return self._apply_value(lambda x: x.short())
 
     def int(self):
-        return self.__apply_value(lambda x: x.int())
+        return self._apply_value(lambda x: x.int())
 
     def long(self):
-        return self.__apply_value(lambda x: x.long())
-
-    ###########################################################################
-
-    def __keys(self):
-        return inspect.getfullargspec(self.__init__)[0][1:-1]
+        return self._apply_value(lambda x: x.long())
 
     def __state(self):
         return {
             key: getattr(self, f'_{self.__class__.__name__}__{key}')
-            for key in self.__keys()
+            for key in inspect.getfullargspec(self.__init__)[0][1:-1]
         }
 
-    def __apply_value(self, func):
+    def _apply_value(self, func):
+        if self.__value is None:
+            return self
+
         state = self.__state()
         state['value'] == func(self.__value)
         return self.__class__(is_sorted=True, **state)
 
-    def __apply_value_(self, func):
+    def _apply_value_(self, func):
         self.__value = None if self.__value is None else func(self.__value)
         return self
 
-    def __apply(self, func):
-        state = {key: func(item) for key, item in self.__state().items()}
+    def _apply(self, func):
+        state = self.__state().items()
+        state = {k: func(v) if torch.is_tensor(v) else v for k, v in state}
         return self.__class__(is_sorted=True, **state)
 
-    def __apply_(self, func):
-        state = self.__state()
-        del state['value']
-        for key, item in self.__state().items():
-            setattr(self, f'_{self.__class__.__name__}__{key}', func(item))
-        return self.__apply_value_(func)
+    def _apply_(self, func):
+        for k, v in self.__state().items():
+            v = func(v) if torch.is_tensor(v) else v
+            setattr(self, f'_{self.__class__.__name__}__{k}', v)
+        return self
 
 
 if __name__ == '__main__':
