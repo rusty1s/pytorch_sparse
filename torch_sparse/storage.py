@@ -36,6 +36,7 @@ class SparseStorage(object):
 
         assert index.dtype == torch.long
         assert index.dim() == 2 and index.size(0) == 2
+        index = index.contiguous()
 
         if value is not None:
             assert value.device == index.device

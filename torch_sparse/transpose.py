@@ -26,3 +26,17 @@ def transpose(index, value, m, n, coalesced=True):
     if coalesced:
         index, value = coalesce(index, value, n, m)
     return index, value
+
+
+def t(mat):
+    ((row, col), value), perm = mat.coo(), mat._storage.csr_to_csc
+    storage = mat._storage.__class__(
+        index=torch.stack([col, row], dim=0)[:, perm],
+        value=value[perm] if mat.has_value() else None,
+        sparse_size=mat.sparse_size()[::-1],
+        rowptr=mat._storage._colptr,
+        colptr=mat._storage._rowptr,
+        csr_to_csc=mat._storage._csc_to_csr,
+        csc_to_csr=perm,
+        is_sorted=True)
+    return mat.__class__.from_storage(storage)
