@@ -163,6 +163,20 @@ class SparseStorage(object):
             setattr(self, f'_{arg}', None)
         return self
 
+    def clone(self):
+        return self.apply(lambda x: x.clone())
+
+    def __copy__(self):
+        return self.clone()
+
+    def __deepcopy__(self, memo):
+        memo = memo.setdefault('SparseStorage', {})
+        if self._cdata in memo:
+            return memo[self._cdata]
+        new_storage = self.clone()
+        memo[self._cdata] = new_storage
+        return new_storage
+
     def apply_value_(self, func):
         self._value = optional(func, self._value)
         return self
@@ -199,11 +213,13 @@ class SparseStorage(object):
 
 
 if __name__ == '__main__':
-    from torch_geometric.datasets import Reddit  # noqa
+    from torch_geometric.datasets import Reddit, Planetoid  # noqa
     import time  # noqa
+    import copy  # noqa
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    dataset = Reddit('/tmp/Reddit')
+    # dataset = Reddit('/tmp/Reddit')
+    dataset = Planetoid('/tmp/Cora', 'Cora')
     data = dataset[0].to(device)
     edge_index = data.edge_index
 
@@ -212,5 +228,15 @@ if __name__ == '__main__':
     storage.compute_cache_()
     print(time.perf_counter() - t)
     t = time.perf_counter()
+    storage.clear_cache_()
     storage.compute_cache_()
     print(time.perf_counter() - t)
+    print(storage)
+    storage = storage.clone()
+    print(storage)
+    # storage = copy.copy(storage)
+    # print(storage)
+    # storage = copy.deepcopy(storage)
+    # print(storage)
+    storage.compute_cache_()
+    storage.clear_cache_()
