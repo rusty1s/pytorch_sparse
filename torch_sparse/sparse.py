@@ -17,8 +17,8 @@ def __is_scalar__(x):
 class SparseTensor(object):
     def __init__(self, index, value=None, sparse_size=None, is_sorted=False):
         assert index.dim() == 2 and index.size(0) == 2
-        self._storage = SparseStorage(
-            index[0], index[1], value, sparse_size, is_sorted=is_sorted)
+        self._storage = SparseStorage(index[0], index[1], value, sparse_size,
+                                      is_sorted=is_sorted)
 
     @classmethod
     def from_storage(self, storage):
@@ -184,8 +184,8 @@ class SparseTensor(object):
             if self.has_value:
                 return self.set_value(self._value + other, 'coo')
             else:
-                return self.set_value(
-                    torch.full((self.nnz(), ), other + 1), 'coo')
+                return self.set_value(torch.full((self.nnz(), ), other + 1),
+                                      'coo')
         elif torch.is_tensor(other):
             if layout is None:
                 layout = 'coo'
@@ -249,9 +249,7 @@ class SparseTensor(object):
         return torch.sparse_coo_tensor(
             index,
             torch.ones_like(self._row, dtype) if value is None else value,
-            self.size(),
-            device=self.device,
-            requires_grad=requires_grad)
+            self.size(), device=self.device, requires_grad=requires_grad)
 
     def __repr__(self):
         i = ' ' * 6
@@ -292,8 +290,8 @@ if __name__ == '__main__':
     print(mat1)
     mat1 = mat1.t()
 
-    mat2 = torch.sparse_coo_tensor(
-        data.edge_index, torch.ones(data.num_edges), device=device)
+    mat2 = torch.sparse_coo_tensor(data.edge_index, torch.ones(data.num_edges),
+                                   device=device)
     mat2 = mat2.coalesce()
     mat2 = mat2.t().coalesce()
 
