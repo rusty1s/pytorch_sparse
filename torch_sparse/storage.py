@@ -37,9 +37,17 @@ class SparseStorage(object):
         'rowcount', 'rowptr', 'colcount', 'colptr', 'csr2csc', 'csc2csr'
     ]
 
-    def __init__(self, index, value=None, sparse_size=None, rowcount=None,
-                 rowptr=None, colcount=None, colptr=None, csr2csc=None,
-                 csc2csr=None, is_sorted=False):
+    def __init__(self,
+                 index,
+                 value=None,
+                 sparse_size=None,
+                 rowcount=None,
+                 rowptr=None,
+                 colcount=None,
+                 colptr=None,
+                 csr2csc=None,
+                 csc2csr=None,
+                 is_sorted=False):
 
         assert index.dtype == torch.long
         assert index.dim() == 2 and index.size(0) == 2
@@ -176,7 +184,9 @@ class SparseStorage(object):
         return self.csr2csc.argsort()
 
     def is_coalesced(self):
-        raise NotImplementedError
+        idx = self.sparse_size(1) * self.row + self.col
+        mask = idx == torch.cat([idx.new_full((1, ), -1), idx[:-1]], dim=0)
+        return not mask.any().item()
 
     def coalesce(self):
         raise NotImplementedError
