@@ -20,19 +20,26 @@ class cached_property(object):
         return value
 
 
-class SparseStorage(object):
-    layouts = ['coo', 'csr', 'csc']
-    cache_keys = ['rowptr', 'colptr', 'csr_to_csc', 'csc_to_csr']
+layouts = ['coo', 'csr', 'csc']
 
-    def __init__(self,
-                 index,
-                 value=None,
-                 sparse_size=None,
-                 rowptr=None,
-                 colptr=None,
-                 csr_to_csc=None,
-                 csc_to_csr=None,
-                 is_sorted=False):
+
+def get_layout(layout=None):
+    if layout is None:
+        layout = 'coo'
+        warnings.warn('`layout` argument unset, using default layout '
+                      '"coo". This may lead to unexpected behaviour.')
+    assert layout in layouts
+    return layout
+
+
+class SparseStorage(object):
+    cache_keys = [
+        'rowcount', 'rowptr', 'colcount', 'colptr', 'csr2csc', 'csc2csr'
+    ]
+
+    def __init__(self, index, value=None, sparse_size=None, rowcount=None,
+                 rowptr=None, colcount=None, colptr=None, csr2csc=None,
+                 csc2csr=None, is_sorted=False):
 
         assert index.dtype == torch.long
         assert index.dim() == 2 and index.size(0) == 2
@@ -46,25 +53,37 @@ class SparseStorage(object):
         if sparse_size is None:
             sparse_size = torch.Size((index.max(dim=-1)[0] + 1).tolist())
 
+        if rowcount is not None:
+            assert rowcount.dtype == torch.long
+            assert rowcount.device == index.device
+            assert rowcount.dim() == 1 and rowcount.numel() == sparse_size[0]
+
         if rowptr is not None:
-            assert rowptr.dtype == torch.long and rowptr.device == index.device
+            assert rowptr.dtype == torch.long
+            assert rowptr.device == index.device
             assert rowptr.dim() == 1 and rowptr.numel() - 1 == sparse_size[0]
 
+        if colcount is not None:
+            assert colcount.dtype == torch.long
+            assert colcount.device == index.device
+            assert colcount.dim() == 1 and colcount.numel() == sparse_size[1]
+
         if colptr is not None:
-            assert colptr.dtype == torch.long and colptr.device == index.device
+            assert colptr.dtype == torch.long
+            assert colptr.device == index.device
             assert colptr.dim() == 1 and colptr.numel() - 1 == sparse_size[1]
 
-        if csr_to_csc is not None:
-            assert csr_to_csc.dtype == torch.long
-            assert csr_to_csc.device == index.device
-            assert csr_to_csc.dim() == 1
-            assert csr_to_csc.numel() == index.size(1)
+        if csr2csc is not None:
+            assert csr2csc.dtype == torch.long
+            assert csr2csc.device == index.device
+            assert csr2csc.dim() == 1
+            assert csr2csc.numel() == index.size(1)
 
-        if csc_to_csr is not None:
-            assert csc_to_csr.dtype == torch.long
-            assert csc_to_csr.device == index.device
-            assert csc_to_csr.dim() == 1
-            assert csc_to_csr.numel() == index.size(1)
+        if csc2csr is not None:
+            assert csc2csr.dtype == torch.long
+            assert csc2csr.device == index.device
+            assert csc2csr.dim() == 1
+            assert csc2csr.numel() == index.size(1)
 
         if not is_sorted:
             idx = sparse_size[1] * index[0] + index[1]
@@ -73,18 +92,18 @@ class SparseStorage(object):
                 perm = idx.argsort()
                 index = index[:, perm]
                 value = None if value is None else value[perm]
-                rowptr = None
-                colptr = None
-                csr_to_csc = None
-                csc_to_csr = None
+                csr2csc = None
+                csc2csr = None
 
         self._index = index
         self._value = value
         self._sparse_size = sparse_size
+        self._rowcount = rowcount
         self._rowptr = rowptr
+        self._colcount = colcount
         self._colptr = colptr
-        self._csr_to_csc = csr_to_csc
-        self._csc_to_csr = csc_to_csr
+        self._csr2csc = csr2csc
+        self._csc2csr = csc2csr
 
     @property
     def index(self):
@@ -106,27 +125,17 @@ class SparseStorage(object):
         return self._value
 
     def set_value_(self, value, layout=None):
-        if layout is None:
-            layout = 'coo'
-            warnings.warn('`layout` argument unset, using default layout '
-                          '"coo". This may lead to unexpected behaviour.')
-        assert layout in self.layouts
         assert value.device == self._index.device
         assert value.size(0) == self._index.size(1)
-        if value is not None and layout == 'csc':
-            value = value[self.csc_to_csr]
+        if value is not None and get_layout(layout) == 'csc':
+            value = value[self.csc2csr]
         return self.apply_value_(lambda x: value)
 
     def set_value(self, value, layout=None):
-        if layout is None:
-            layout = 'coo'
-            warnings.warn('`layout` argument unset, using default layout '
-                          '"coo". This may lead to unexpected behaviour.')
-        assert layout in self.layouts
         assert value.device == self._index.device
         assert value.size(0) == self._index.size(1)
-        if value is not None and layout == 'csc':
-            value = value[self.csc_to_csr]
+        if value is not None and get_layout(layout) == 'csc':
+            value = value[self.csc2csr]
         return self.apply_value(lambda x: value)
 
     def sparse_size(self, dim=None):
@@ -138,27 +147,33 @@ class SparseStorage(object):
         return self
 
     @cached_property
+    def rowcount(self):
+        one = torch.ones_like(self.row)
+        return segment_add(one, self.row, dim=0, dim_size=self._sparse_size[0])
+
+    @cached_property
     def rowptr(self):
-        row = self.row
-        ones = torch.ones_like(row)
-        out_deg = segment_add(ones, row, dim=0, dim_size=self._sparse_size[0])
-        return torch.cat([row.new_zeros(1), out_deg.cumsum(0)], dim=0)
+        rowcount = self.rowcount
+        return torch.cat([rowcount.new_zeros(1), rowcount.cumsum(0)], dim=0)
+
+    @cached_property
+    def colcount(self):
+        one = torch.ones_like(self.col)
+        return scatter_add(one, self.col, dim=0, dim_size=self._sparse_size[1])
 
     @cached_property
     def colptr(self):
-        col = self.col
-        ones = torch.ones_like(col)
-        in_deg = scatter_add(ones, col, dim=0, dim_size=self._sparse_size[1])
-        return torch.cat([col.new_zeros(1), in_deg.cumsum(0)], dim=0)
+        colcount = self.colcount
+        return torch.cat([colcount.new_zeros(1), colcount.cumsum(0)], dim=0)
 
     @cached_property
-    def csr_to_csc(self):
+    def csr2csc(self):
         idx = self._sparse_size[0] * self.col + self.row
         return idx.argsort()
 
     @cached_property
-    def csc_to_csr(self):
-        return self.csr_to_csc.argsort()
+    def csc2csr(self):
+        return self.csr2csc.argsort()
 
     def is_coalesced(self):
         raise NotImplementedError
@@ -202,10 +217,12 @@ class SparseStorage(object):
             self._index,
             optional(func, self._value),
             self._sparse_size,
+            self._rowcount,
             self._rowptr,
+            self._colcount,
             self._colptr,
-            self._csr_to_csc,
-            self._csc_to_csr,
+            self._csr2csc,
+            self._csc2csr,
             is_sorted=True,
         )
 
@@ -221,10 +238,12 @@ class SparseStorage(object):
             func(self._index),
             optional(func, self._value),
             self._sparse_size,
+            optional(func, self._rowcount),
             optional(func, self._rowptr),
+            optional(func, self._colcount),
             optional(func, self._colptr),
-            optional(func, self._csr_to_csc),
-            optional(func, self._csc_to_csr),
+            optional(func, self._csr2csc),
+            optional(func, self._csc2csr),
             is_sorted=True,
         )
 

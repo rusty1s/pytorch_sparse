@@ -12,8 +12,11 @@ if (TORCH_MAJOR > 1) or (TORCH_MAJOR == 1 and TORCH_MINOR > 2):
     extra_compile_args += ['-DVERSION_GE_1_3']
 
 ext_modules = [
+    CppExtension('torch_sparse.arange_interleave_cpu',
+                 ['cpu/arange_interleave.cpp'],
+                 extra_compile_args=extra_compile_args),
     CppExtension('torch_sparse.spspmm_cpu', ['cpu/spspmm.cpp'],
-                 extra_compile_args=extra_compile_args)
+                 extra_compile_args=extra_compile_args),
 ]
 cmdclass = {'build_ext': torch.utils.cpp_extension.BuildExtension}
 

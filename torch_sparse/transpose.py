@@ -28,18 +28,21 @@ def transpose(index, value, m, n, coalesced=True):
     return index, value
 
 
-def t(mat):
-    (row, col), value = mat.coo()
-    csr_to_csc = mat._storage.csr_to_csc
+def t(src):
+    (row, col), value = src.coo()
+    csr2csc = src.storage.csr2csc
 
-    storage = mat._storage.__class__(
-        index=torch.stack([col, row], dim=0)[:, csr_to_csc],
-        value=value[csr_to_csc] if mat.has_value() else None,
-        sparse_size=mat.sparse_size()[::-1],
-        rowptr=mat._storage._colptr,
-        colptr=mat._storage._rowptr,
-        csr_to_csc=mat._storage._csc_to_csr,
-        csc_to_csr=csr_to_csc,
-        is_sorted=True)
+    storage = src.storage.__class__(
+        index=torch.stack([col, row], dim=0)[:, csr2csc],
+        value=value[csr2csc] if src.has_value() else None,
+        sparse_size=src.sparse_size()[::-1],
+        rowcount=src.storage._colcount,
+        rowptr=src.storage._colptr,
+        colcount=src.storage._rowcount,
+        colptr=src.storage._rowptr,
+        csr2csc=src.storage._csc2csr,
+        csc2csr=csr2csc,
+        is_sorted=True,
+    )
 
-    return mat.__class__.from_storage(storage)
+    return src.from_storage(storage)

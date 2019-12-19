@@ -2,9 +2,16 @@ import torch
 
 
 def narrow(src, dim, start, length):
+    dim = src.dim() - dim if dim < 0 else dim
+
     if dim == 0:
         (row, col), value = src.coo()
-        rowptr, _, _ = src.csr()
+        rowptr = src.storage.rowptr
+
+        # Maintain `rowcount`...
+        rowcount = src.storage._rowcount
+        if rowcount is not None:
+            rowcount = rowcount.narrow(0, start=start, length=length)
 
         rowptr = rowptr.narrow(0, start=start, length=length + 1)
         row_start = rowptr[0]
@@ -18,15 +25,22 @@ def narrow(src, dim, start, length):
             value = value.narrow(0, row_start, row_length)
         sparse_size = torch.Size([length, src.sparse_size(1)])
 
-        storage = src._storage.__class__(
-            index, value, sparse_size, rowptr=rowptr, is_sorted=True)
+        storage = src.storage.__class__(index, value, sparse_size,
+                                        rowcount=rowcount, rowptr=rowptr,
+                                        is_sorted=True)
 
     elif dim == 1:
-        # This is faster than accessing `csc()` in analogy to the `dim=0` case.
+        # This is faster than accessing `csc()` contrary to the `dim=0` case.
         (row, col), value = src.coo()
         mask = (col >= start) & (col < start + length)
 
-        colptr = src._storage._colptr
+        # Maintain `colcount`...
+        colcount = src.storage._colcount
+        if colcount is not None:
+            colcount = colcount.narrow(0, start=start, length=length)
+
+        # Maintain `colptr`...
+        colptr = src.storage._colptr
         if colptr is not None:
             colptr = colptr.narrow(0, start=start, length=length + 1)
             colptr = colptr - colptr[0]
@@ -36,11 +50,12 @@ def narrow(src, dim, start, length):
             value = value[mask]
         sparse_size = torch.Size([src.sparse_size(0), length])
 
-        storage = src._storage.__class__(
-            index, value, sparse_size, colptr=colptr, is_sorted=True)
+        storage = src.storage.__class__(index, value, sparse_size,
+                                        colcount=colcount, colptr=colptr,
+                                        is_sorted=True)
 
     else:
-        storage = src._storage.apply_value(lambda x: x.narrow(
-            dim - 1, start, length))
+        storage = src.storage.apply_value(
+            lambda x: x.narrow(dim - 1, start, length))
 
-    return src.__class__.from_storage(storage)
+    return src.from_storage(storage)

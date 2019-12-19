@@ -3,21 +3,24 @@ from textwrap import indent
 import torch
 import scipy.sparse
 
-from torch_sparse.storage import SparseStorage
+from torch_sparse.storage import SparseStorage, get_layout
 
 from torch_sparse.transpose import t
 from torch_sparse.narrow import narrow
+from torch_sparse.select import select
+from torch_sparse.index_select import index_select, index_select_nnz
+from torch_sparse.masked_select import masked_select, masked_select_nnz
 
 
 class SparseTensor(object):
     def __init__(self, index, value=None, sparse_size=None, is_sorted=False):
-        self._storage = SparseStorage(
-            index, value, sparse_size, is_sorted=is_sorted)
+        self.storage = SparseStorage(index, value, sparse_size,
+                                     is_sorted=is_sorted)
 
     @classmethod
     def from_storage(self, storage):
         self = SparseTensor.__new__(SparseTensor)
-        self._storage = storage
+        self.storage = storage
         return self
 
     @classmethod
@@ -32,10 +35,10 @@ class SparseTensor(object):
         return self.__class__(index, value, mat.size()[:2], is_sorted=True)
 
     def __copy__(self):
-        return self.__class__.from_storage(self._storage)
+        return self.from_storage(self.storage)
 
     def clone(self):
-        return self.__class__.from_storage(self._storage.clone())
+        return self.from_storage(self.storage.clone())
 
     def __deepcopy__(self, memo):
         new_sparse_tensor = self.clone()
@@ -45,58 +48,57 @@ class SparseTensor(object):
     # Formats #################################################################
 
     def coo(self):
-        return self._storage.index, self._storage.value
+        return self.storage.index, self.storage.value
 
     def csr(self):
-        return self._storage.rowptr, self._storage.col, self._storage.value
+        return self.storage.rowptr, self.storage.col, self.storage.value
 
     def csc(self):
-        perm = self._storage.csr_to_csc
-        return (self._storage.colptr, self._storage.row[perm],
-                self._storage.value[perm] if self.has_value() else None)
+        perm = self.storage.csr2csc
+        return (self.storage.colptr, self.storage.row[perm],
+                self.storage.value[perm] if self.has_value() else None)
 
     # Storage inheritance #####################################################
 
     def has_value(self):
-        return self._storage.has_value()
+        return self.storage.has_value()
 
     def set_value_(self, value, layout=None):
-        self._storage.set_value_(value, layout)
+        self.storage.set_value_(value, layout)
         return self
 
     def set_value(self, value, layout=None):
-        storage = self._storage.set_value(value, layout)
-        return self.__class__.from_storage(storage)
+        return self.from_storage(self.storage.set_value(value, layout))
 
     def sparse_size(self, dim=None):
-        return self._storage.sparse_size(dim)
+        return self.storage.sparse_size(dim)
 
     def sparse_resize_(self, *sizes):
-        self._storage.sparse_resize_(*sizes)
+        self.storage.sparse_resize_(*sizes)
         return self
 
     def is_coalesced(self):
-        return self._storage.is_coalesced()
+        return self.storage.is_coalesced()
 
     def coalesce(self):
-        return self.__class__.from_storage(self._storage.coalesce())
+        return self.from_storage(self.storage.coalesce())
 
     def cached_keys(self):
-        return self._storage.cached_keys()
+        return self.storage.cached_keys()
 
     def fill_cache_(self, *args):
-        self._storage.fill_cache_(*args)
+        self.storage.fill_cache_(*args)
         return self
 
     def clear_cache_(self, *args):
-        self._storage.clear_cache_(*args)
+        self.storage.clear_cache_(*args)
         return self
 
     # Utility functions #######################################################
 
     def size(self, dim=None):
         size = self.sparse_size()
-        size += self._storage.value.size()[1:] if self.has_value() else ()
+        size += self.storage.value.size()[1:] if self.has_value() else ()
         return size if dim is None else size[dim]
 
     def dim(self):
@@ -107,7 +109,7 @@ class SparseTensor(object):
         return self.size()
 
     def nnz(self):
-        return self._storage.index.size(1)
+        return self.storage.index.size(1)
 
     def density(self):
         return self.nnz() / (self.sparse_size(0) * self.sparse_size(1))
@@ -138,50 +140,47 @@ class SparseTensor(object):
         return index_sym.item() and value_sym
 
     def detach_(self):
-        self._storage.apply_(lambda x: x.detach_())
+        self.storage.apply_(lambda x: x.detach_())
         return self
 
     def detach(self):
-        storage = self._storage.apply(lambda x: x.detach())
-        return self.__class__.from_storage(storage)
+        return self.from_storage(self.storage.apply(lambda x: x.detach()))
 
     def pin_memory(self):
-        storage = self._storage.apply(lambda x: x.pin_memory())
-        return self.__class__.from_storage(storage)
+        return self.from_storage(self.storage.apply(lambda x: x.pin_memory()))
 
     def is_pinned(self):
-        return all(self._storage.map(lambda x: x.is_pinned()))
+        return all(self.storage.map(lambda x: x.is_pinned()))
 
     def share_memory_(self):
-        self._storage.apply_(lambda x: x.share_memory_())
+        self.storage.apply_(lambda x: x.share_memory_())
         return self
 
     def is_shared(self):
-        return all(self._storage.map(lambda x: x.is_shared()))
+        return all(self.storage.map(lambda x: x.is_shared()))
 
     @property
     def device(self):
-        return self._storage.index.device
+        return self.storage.index.device
 
     def cpu(self):
-        storage = self._storage.apply(lambda x: x.cpu())
-        return self.__class__.from_storage(storage)
+        return self.from_storage(self.storage.apply(lambda x: x.cpu()))
 
     def cuda(self, device=None, non_blocking=False, **kwargs):
-        storage = self._storage.apply(lambda x: x.cuda(device, non_blocking, **
-                                                       kwargs))
-        return self.__class__.from_storage(storage)
+        storage = self.storage.apply(
+            lambda x: x.cuda(device, non_blocking, **kwargs))
+        return self.from_storage(storage)
 
     @property
     def is_cuda(self):
-        return self._storage.index.is_cuda
+        return self.storage.index.is_cuda
 
     @property
     def dtype(self):
-        return self._storage.value.dtype if self.has_value() else None
+        return self.storage.value.dtype if self.has_value() else None
 
     def is_floating_point(self):
-        value = self._storage.value
+        value = self.storage.value
         return self.has_value() and torch.is_floating_point(value)
 
     def type(self, dtype=None, non_blocking=False, **kwargs):
@@ -191,9 +190,10 @@ class SparseTensor(object):
         if dtype == self.dtype:
             return self
 
-        storage = self._storage.apply_value(lambda x: x.type(
-            dtype, non_blocking, **kwargs))
-        return self.__class__.from_storage(storage)
+        storage = self.storage.apply_value(
+            lambda x: x.type(dtype, non_blocking, **kwargs))
+
+        return self.from_storage(storage)
 
     def to(self, *args, **kwargs):
         storage = None
@@ -201,17 +201,17 @@ class SparseTensor(object):
         if 'device' in kwargs:
             device = kwargs['device']
             del kwargs['device']
-            storage = self._storage.apply(lambda x: x.to(
+            storage = self.storage.apply(lambda x: x.to(
                 device, non_blocking=getattr(kwargs, 'non_blocking', False)))
 
         for arg in args[:]:
             if isinstance(arg, str) or isinstance(arg, torch.device):
-                storage = self._storage.apply(lambda x: x.to(
+                storage = self.storage.apply(lambda x: x.to(
                     arg, non_blocking=getattr(kwargs, 'non_blocking', False)))
                 args.remove(arg)
 
         if storage is not None:
-            self = self.__class__.from_storage(storage)
+            self = self.from_storage(storage)
 
         if len(args) > 0 or len(kwargs) > 0:
             self = self.type(*args, **kwargs)
@@ -260,16 +260,13 @@ class SparseTensor(object):
     def to_torch_sparse_coo_tensor(self, dtype=None, requires_grad=False):
         index, value = self.coo()
         return torch.sparse_coo_tensor(
-            index,
-            value if self.has_value() else torch.ones(
-                self.nnz(), dtype=dtype, device=self.device),
-            self.size(),
-            device=self.device,
-            requires_grad=requires_grad)
+            index, value if self.has_value() else torch.ones(
+                self.nnz(), dtype=dtype, device=self.device), self.size(),
+            device=self.device, requires_grad=requires_grad)
 
-    def to_scipy(self, dtype=None, layout='coo'):
+    def to_scipy(self, dtype=None, layout=None):
         assert self.dim() == 2
-        assert layout in self._storage.layouts
+        layout = get_layout(layout)
 
         if not self.has_value():
             ones = torch.ones(self.nnz(), dtype=dtype).numpy()
@@ -318,31 +315,18 @@ class SparseTensor(object):
 
 SparseTensor.t = t
 SparseTensor.narrow = narrow
-
-#     def set_diag(self, value):
-#         raise NotImplementedError
-
-#     def masked_select(self, mask):
-#         raise NotImplementedError
-
-#     def index_select(self, index):
-#         raise NotImplementedError
-
-#     def select(self, dim, index):
-#         raise NotImplementedError
-
-#     def filter(self, index):
-#         assert self.is_symmetric
-#         assert index.dtype == torch.long or index.dtype == torch.bool
-#         raise NotImplementedError
-
-#     def permute(self, index):
-#         assert index.dtype == torch.long
-#         return self.filter(index)
+SparseTensor.select = select
+SparseTensor.index_select = index_select
+SparseTensor.index_select_nnz = index_select_nnz
+SparseTensor.masked_select = masked_select
+SparseTensor.masked_select_nnz = masked_select_nnz
 
 #     def __getitem__(self, idx):
 #         # Convert int and slice to index tensor
 #         # Filter list into edge and sparse slice
+#         raise NotImplementedError
+
+#     def set_diag(self, value):
 #         raise NotImplementedError
 
 #     def __reduce(self, dim, reduce, only_nnz):
@@ -388,7 +372,7 @@ SparseTensor.narrow = narrow
 #                             '"coo". This may lead to unexpected behaviour.')
 #             assert layout in ['coo', 'csr', 'csc']
 #             if layout == 'csc':
-#                 other = other[self._arg_csc_to_csr]
+#                 other = other[self._arg_csc2csr]
 #             if self.has_value:
 #                 return self.set_value(self._value + other, 'coo')
 #             else:
@@ -440,10 +424,61 @@ if __name__ == '__main__':
     dataset = Planetoid('/tmp/Cora', 'Cora')
     data = dataset[0].to(device)
 
-    value = torch.randn((data.num_edges, ), device=device)
+    value = torch.randn((data.num_edges, 10), device=device)
 
     mat1 = SparseTensor(data.edge_index, value)
+
+    index = torch.tensor([0, 2])
+    mat2 = mat1.index_select(2, index)
+
+    index = torch.randperm(data.num_nodes)[:data.num_nodes - 500]
+    mask = torch.zeros(data.num_nodes, dtype=torch.bool)
+    mask[index] = True
+
+    t = time.perf_counter()
+    for _ in range(1000):
+        mat2 = mat1.index_select(0, index)
+    print(time.perf_counter() - t)
+
+    t = time.perf_counter()
+    for _ in range(1000):
+        mat2 = mat1.masked_select(0, mask)
+    print(time.perf_counter() - t)
+
+    # mat2 = mat1.narrow(1, start=0, length=3)
+    # print(mat2)
+
+    # index = torch.randperm(data.num_nodes)
+    # t = time.perf_counter()
+    # for _ in range(1000):
+    #     mat2 = mat1.index_select(0, index)
+    # print(time.perf_counter() - t)
+
+    # t = time.perf_counter()
+    # for _ in range(1000):
+    #     mat2 = mat1.index_select(1, index)
+    # print(time.perf_counter() - t)
+    # raise NotImplementedError
+
+    # t = time.perf_counter()
+    # for _ in range(1000):
+    #     mat2 = mat1.t().index_select(0, index).t()
+    # print(time.perf_counter() - t)
+
     # print(mat1)
+    # mat1.index_select((0, 1), torch.tensor([0, 1, 2, 3, 4]))
+
+    # print(mat3)
+    # print(mat3.storage.rowcount)
+
+    # print(mat1)
+
+    # (row, col), value = mat1.coo()
+    # mask = row < 3
+    # t = time.perf_counter()
+    # for _ in range(10000):
+    #     mat2 = mat1.narrow(1, start=10, length=2690)
+    # print(time.perf_counter() - t)
 
     # # print(mat1.to_dense().size())
     # print(mat1.to_torch_sparse_coo_tensor().to_dense().size())
@@ -461,24 +496,24 @@ if __name__ == '__main__':
     # print(mat1.cached_keys())
     # print('-------- NARROW ----------')
 
-    t = time.perf_counter()
-    for _ in range(100):
-        out = mat1.narrow(dim=0, start=10, length=10)
-        # out._storage.colptr
-    print(time.perf_counter() - t)
-    print(out)
-    print(out.cached_keys())
+    # t = time.perf_counter()
+    # for _ in range(100):
+    #     out = mat1.narrow(dim=0, start=10, length=10)
+    #     # out.storage.colptr
+    # print(time.perf_counter() - t)
+    # print(out)
+    # print(out.cached_keys())
 
-    t = time.perf_counter()
-    for _ in range(100):
-        out = mat1.narrow(dim=1, start=10, length=2000)
-        # out._storage.colptr
-    print(time.perf_counter() - t)
-    print(out)
-    print(out.cached_keys())
+    # t = time.perf_counter()
+    # for _ in range(100):
+    #     out = mat1.narrow(dim=1, start=10, length=2000)
+    #     # out.storage.colptr
+    # print(time.perf_counter() - t)
+    # print(out)
+    # print(out.cached_keys())
 
     # mat1 = mat1.narrow(0, start=10, length=10)
-    # mat1._storage._value = torch.randn(mat1.nnz(), 20)
+    # mat1.storage._value = torch.randn(mat1.nnz(), 20)
     # print(mat1.coo()[1].size())
     # mat1 = mat1.narrow(2, start=10, length=10)
     # print(mat1.coo()[1].size())
