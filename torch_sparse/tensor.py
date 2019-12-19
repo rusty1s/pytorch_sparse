@@ -322,6 +322,7 @@ class SparseTensor(object):
 
     def __getitem__(self, index):
         index = list(index) if isinstance(index, tuple) else [index]
+        # More than one `Ellipsis` is not allowed...
         if len([i for i in index if not torch.is_tensor(i) and i == ...]) > 1:
             raise SyntaxError()
 
