@@ -4,7 +4,9 @@ import torch
 import scipy.sparse
 
 from torch_sparse.storage import SparseStorage
+
 from torch_sparse.transpose import t
+from torch_sparse.narrow import narrow
 
 
 class SparseTensor(object):
@@ -77,8 +79,10 @@ class SparseTensor(object):
         return self._storage.is_coalesced()
 
     def coalesce(self):
-        storage = self._storage.coalesce()
-        return self.__class__.from_storage(storage)
+        return self.__class__.from_storage(self._storage.coalesce())
+
+    def cached_keys(self):
+        return self._storage.cached_keys()
 
     def fill_cache_(self, *args):
         self._storage.fill_cache_(*args)
@@ -139,7 +143,6 @@ class SparseTensor(object):
 
     def detach(self):
         storage = self._storage.apply(lambda x: x.detach())
-        print("AWDAwd")
         return self.__class__.from_storage(storage)
 
     def pin_memory(self):
@@ -265,27 +268,29 @@ class SparseTensor(object):
             requires_grad=requires_grad)
 
     def to_scipy(self, dtype=None, layout='coo'):
+        assert self.dim() == 2
         assert layout in self._storage.layouts
 
-        self = self.detach().cpu()
-
-        if self.has_value():
-            value = self._storage.value.numpy()
-            assert value.ndim == 1
-        else:
-            value = torch.ones(self.nnz(), dtype=dtype).numpy()
+        if not self.has_value():
+            ones = torch.ones(self.nnz(), dtype=dtype).numpy()
 
         if layout == 'coo':
-            (row, col), _ = self.coo()
-            row, col = row.numpy(), col.numpy()
+            (row, col), value = self.coo()
+            row = row.detach().cpu().numpy()
+            col = col.detach().cpu().numpy()
+            value = value.detach().cpu().numpy() if self.has_value() else ones
             return scipy.sparse.coo_matrix((value, (row, col)), self.size())
         elif layout == 'csr':
-            rowptr, col, _ = self.csr()
-            rowptr, col = rowptr.numpy(), col.numpy()
+            rowptr, col, value = self.csr()
+            rowptr = rowptr.detach().cpu().numpy()
+            col = col.detach().cpu().numpy()
+            value = value.detach().cpu().numpy() if self.has_value() else ones
             return scipy.sparse.csr_matrix((value, col, rowptr), self.size())
         elif layout == 'csc':
-            colptr, row, _ = self.csc()
-            colptr, row = colptr.numpy(), row.numpy()
+            colptr, row, value = self.csc()
+            colptr = colptr.detach().cpu().numpy()
+            row = row.detach().cpu().numpy()
+            value = value.detach().cpu().numpy() if self.has_value() else ones
             return scipy.sparse.csc_matrix((value, row, colptr), self.size())
 
     # String Reputation #######################################################
@@ -312,6 +317,7 @@ class SparseTensor(object):
 # Bindings ####################################################################
 
 SparseTensor.t = t
+SparseTensor.narrow = narrow
 
 #     def set_diag(self, value):
 #         raise NotImplementedError
@@ -434,33 +440,48 @@ if __name__ == '__main__':
     dataset = Planetoid('/tmp/Cora', 'Cora')
     data = dataset[0].to(device)
 
-    value = torch.ones((data.num_edges, ), device=device)
+    value = torch.randn((data.num_edges, ), device=device)
 
     mat1 = SparseTensor(data.edge_index, value)
-    print(mat1)
-    print(id(mat1))
-    mat1 = mat1.long()
-    print(id(mat1))
-    mat1 = mat1.long()
-    print(id(mat1))
-    mat1 = mat1.to(torch.bool)
-    print(mat1)
-    print(mat1.is_pinned())
+    # print(mat1)
 
-    print(mat1.to_dense().size())
+    # # print(mat1.to_dense().size())
+    # print(mat1.to_torch_sparse_coo_tensor().to_dense().size())
+    # print(mat1.to_scipy(layout='coo').todense().shape)
+    # print(mat1.to_scipy(layout='csr').todense().shape)
+    # print(mat1.to_scipy(layout='csc').todense().shape)
 
-    mat2 = mat1.to_torch_sparse_coo_tensor()
-    print(mat2)
+    # print(mat1.is_quadratic())
+    # print(mat1.is_symmetric())
 
-    print(mat1.to_scipy(layout='coo').todense().shape)
-    print(mat1.to_scipy(layout='csr').todense().shape)
-    print(mat1.to_scipy(layout='csc').todense().shape)
+    # print(mat1.cached_keys())
+    # mat1 = mat1.t()
+    # print(mat1.cached_keys())
+    # mat1 = mat1.t()
+    # print(mat1.cached_keys())
+    # print('-------- NARROW ----------')
 
-    print(mat1.is_quadratic())
-    print(mat1.is_symmetric())
+    t = time.perf_counter()
+    for _ in range(100):
+        out = mat1.narrow(dim=0, start=10, length=10)
+        # out._storage.colptr
+    print(time.perf_counter() - t)
+    print(out)
+    print(out.cached_keys())
 
-    mat1 = mat1.t()
-    print(mat1)
+    t = time.perf_counter()
+    for _ in range(100):
+        out = mat1.narrow(dim=1, start=10, length=2000)
+        # out._storage.colptr
+    print(time.perf_counter() - t)
+    print(out)
+    print(out.cached_keys())
+
+    # mat1 = mat1.narrow(0, start=10, length=10)
+    # mat1._storage._value = torch.randn(mat1.nnz(), 20)
+    # print(mat1.coo()[1].size())
+    # mat1 = mat1.narrow(2, start=10, length=10)
+    # print(mat1.coo()[1].size())
 #     mat1 = mat1.t()
 
 #   mat2 = torch.sparse_coo_tensor(data.edge_index, torch.ones(data.num_edges),

@@ -29,14 +29,17 @@ def transpose(index, value, m, n, coalesced=True):
 
 
 def t(mat):
-    ((row, col), value), perm = mat.coo(), mat._storage.csr_to_csc
+    (row, col), value = mat.coo()
+    csr_to_csc = mat._storage.csr_to_csc
+
     storage = mat._storage.__class__(
-        index=torch.stack([col, row], dim=0)[:, perm],
-        value=value[perm] if mat.has_value() else None,
+        index=torch.stack([col, row], dim=0)[:, csr_to_csc],
+        value=value[csr_to_csc] if mat.has_value() else None,
         sparse_size=mat.sparse_size()[::-1],
         rowptr=mat._storage._colptr,
         colptr=mat._storage._rowptr,
         csr_to_csc=mat._storage._csc_to_csr,
-        csc_to_csr=perm,
+        csc_to_csr=csr_to_csc,
         is_sorted=True)
+
     return mat.__class__.from_storage(storage)

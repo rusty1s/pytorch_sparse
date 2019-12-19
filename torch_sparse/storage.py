@@ -166,6 +166,12 @@ class SparseStorage(object):
     def coalesce(self):
         raise NotImplementedError
 
+    def cached_keys(self):
+        return [
+            key for key in self.cache_keys
+            if getattr(self, f'_{key}', None) is not None
+        ]
+
     def fill_cache_(self, *args):
         for arg in args or self.cache_keys:
             getattr(self, arg)
@@ -206,8 +212,8 @@ class SparseStorage(object):
     def apply_(self, func):
         self._index = func(self._index)
         self._value = optional(func, self._value)
-        for key in self.cache_keys:
-            setattr(self, f'_{key}', optional(func, getattr(self, f'_{key}')))
+        for key in self.cached_keys():
+            setattr(self, f'_{key}', func, getattr(self, f'_{key}'))
         return self
 
     def apply(self, func):
@@ -226,10 +232,7 @@ class SparseStorage(object):
         data = [func(self.index)]
         if self.has_value():
             data += [func(self.value)]
-        data += [
-            func(getattr(self, f'_{key}')) for key in self.cache_keys
-            if getattr(self, f'_{key}')
-        ]
+        data += [func(getattr(self, f'_{key}')) for key in self.cached_keys()]
         return data
 
 
