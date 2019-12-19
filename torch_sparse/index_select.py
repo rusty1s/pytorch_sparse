@@ -16,7 +16,7 @@ def arange_interleave(start, repeat):
 
 
 def index_select(src, dim, idx):
-    dim = src.dim() - dim if dim < 0 else dim
+    dim = src.dim() + dim if dim < 0 else dim
 
     assert idx.dim() == 1
     idx = idx.to(src.device)
@@ -38,8 +38,8 @@ def index_select(src, dim, idx):
 
         sparse_size = torch.Size([rowcount.size(0), src.sparse_size(1)])
 
-        storage = src.storage.__class__(index, value, sparse_size,
-                                        rowcount=rowcount, is_sorted=True)
+        storage = src.storage.__class__(
+            index, value, sparse_size, rowcount=rowcount, is_sorted=True)
 
     elif dim == 1:
         colptr, row, value = src.csc()
@@ -58,13 +58,17 @@ def index_select(src, dim, idx):
 
         sparse_size = torch.Size([src.sparse_size(0), colcount.size(0)])
 
-        storage = src.storage.__class__(index, value, sparse_size,
-                                        colcount=colcount, csc2csr=csc2csr,
-                                        is_sorted=True)
+        storage = src.storage.__class__(
+            index,
+            value,
+            sparse_size,
+            colcount=colcount,
+            csc2csr=csc2csr,
+            is_sorted=True)
 
     else:
-        storage = src.storage.apply_value(
-            lambda x: x.index_select(dim - 1, idx))
+        storage = src.storage.apply_value(lambda x: x.index_select(
+            dim - 1, idx))
 
     return src.from_storage(storage)
 
@@ -82,7 +86,7 @@ def index_select_nnz(src, idx, layout=None):
         value = value[idx]
 
     # There is no other information we can maintain...
-    storage = src.storage.__class__(index, value, src.sparse_size(),
-                                    is_sorted=True)
+    storage = src.storage.__class__(
+        index, value, src.sparse_size(), is_sorted=True)
 
     return src.from_storage(storage)

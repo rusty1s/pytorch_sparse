@@ -4,7 +4,7 @@ from torch_sparse.storage import get_layout
 
 
 def masked_select(src, dim, mask):
-    dim = src.dim() - dim if dim < 0 else dim
+    dim = src.dim() + dim if dim < 0 else dim
 
     assert mask.dim() == 1
     storage = src.storage
@@ -25,8 +25,8 @@ def masked_select(src, dim, mask):
 
         sparse_size = torch.Size([rowcount.size(0), src.sparse_size(1)])
 
-        storage = src.storage.__class__(index, value, sparse_size,
-                                        rowcount=rowcount, is_sorted=True)
+        storage = src.storage.__class__(
+            index, value, sparse_size, rowcount=rowcount, is_sorted=True)
 
     elif dim == 1:
         csr2csc = src.storage.csr2csc
@@ -48,14 +48,18 @@ def masked_select(src, dim, mask):
 
         sparse_size = torch.Size([src.sparse_size(0), colcount.size(0)])
 
-        storage = src.storage.__class__(index, value, sparse_size,
-                                        colcount=colcount, csc2csr=csc2csr,
-                                        is_sorted=True)
+        storage = src.storage.__class__(
+            index,
+            value,
+            sparse_size,
+            colcount=colcount,
+            csc2csr=csc2csr,
+            is_sorted=True)
 
     else:
         idx = mask.nonzero().view(-1)
-        storage = src.storage.apply_value(
-            lambda x: x.index_select(dim - 1, idx))
+        storage = src.storage.apply_value(lambda x: x.index_select(
+            dim - 1, idx))
 
     return src.from_storage(storage)
 
@@ -73,7 +77,7 @@ def masked_select_nnz(src, mask, layout=None):
         value = value[mask]
 
     # There is no other information we can maintain...
-    storage = src.storage.__class__(index, value, src.sparse_size(),
-                                    is_sorted=True)
+    storage = src.storage.__class__(
+        index, value, src.sparse_size(), is_sorted=True)
 
     return src.from_storage(storage)

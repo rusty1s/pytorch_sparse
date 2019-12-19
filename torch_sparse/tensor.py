@@ -318,6 +318,48 @@ class SparseTensor(object):
             value = value.detach().cpu().numpy() if self.has_value() else ones
             return scipy.sparse.csc_matrix((value, row, colptr), self.size())
 
+    # Standard Operators ######################################################
+
+    def __getitem__(self, index):
+        index = list(index) if isinstance(index, tuple) else [index]
+        if len([i for i in index if not torch.is_tensor(i) and i == ...]) > 1:
+            raise SyntaxError()
+
+        dim = 0
+        out = self
+        while len(index) > 0:
+            item = index.pop(0)
+            if isinstance(item, int):
+                out = out.select(dim, item)
+                dim += 1
+            elif isinstance(item, slice):
+                if item.step is not None:
+                    raise ValueError('Step parameter not yet supported.')
+
+                start = 0 if item.start is None else item.start
+                start = self.size(dim) + start if start < 0 else start
+
+                stop = self.size(dim) if item.stop is None else item.stop
+                stop = self.size(dim) + stop if stop < 0 else stop
+
+                out = out.narrow(dim, start, max(stop - start, 0))
+                dim += 1
+            elif torch.is_tensor(item):
+                if item.dtype == torch.bool:
+                    out = out.masked_select(dim, item)
+                    dim += 1
+                elif item.dtype == torch.long:
+                    out = out.index_select(dim, item)
+                    dim += 1
+            elif item == Ellipsis:
+                if self.dim() - len(index) < dim:
+                    raise SyntaxError()
+                dim = self.dim() - len(index)
+            else:
+                raise SyntaxError()
+
+        return out
+
     # String Reputation #######################################################
 
     def __repr__(self):
@@ -457,18 +499,34 @@ if __name__ == '__main__':
     dataset = Planetoid('/tmp/Cora', 'Cora')
     data = dataset[0].to(device)
 
-    value = torch.randn((data.num_edges, ), device=device)
+    value = torch.randn(data.num_edges, 10)
+    mat = SparseTensor(data.edge_index, value)
 
-    mat1 = SparseTensor(data.edge_index, value)
+    index = torch.tensor([0, 1, 2])
+    mask = torch.zeros(data.num_nodes, dtype=torch.bool)
+    mask[:3] = True
 
-    mat1 = SparseTensor.from_dense(mat1.to_dense())
+    print(mat[1].size())
+    print(mat[1, 1].size())
+    print(mat[..., -1].size())
+    print(mat[:10, ..., -1].size())
+    print(mat[:, -1].size())
+    print(mat[1, :, -1].size())
+    print(mat[1:4, 1:4].size())
+    print(mat[index].size())
+    print(mat[index, index].size())
+    print(mat[mask, index].size())
+    # mat[::-1]
+    # mat[::2]
 
-    print(mat1)
-    mat = SparseTensor.from_torch_sparse_coo_tensor(
-        mat1.to_torch_sparse_coo_tensor())
+    # mat1 = SparseTensor.from_dense(mat1.to_dense())
 
-    mat = SparseTensor.from_scipy(mat.to_scipy(layout='csc'))
-    print(mat)
+    # print(mat1)
+    # mat = SparseTensor.from_torch_sparse_coo_tensor(
+    #     mat1.to_torch_sparse_coo_tensor())
+
+    # mat = SparseTensor.from_scipy(mat.to_scipy(layout='csc'))
+    # print(mat)
 
     # index = torch.tensor([0, 2])
     # mat2 = mat1.index_select(2, index)
