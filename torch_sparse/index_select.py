@@ -4,7 +4,7 @@ from torch_sparse.storage import get_layout
 import torch_sparse.arange_interleave_cpu as arange_interleave_cpu
 
 
-def __arange_interleave__(start, repeat):
+def arange_interleave(start, repeat):
     assert start.device == repeat.device
     assert repeat.dtype == torch.long
     assert start.dim() == 1
@@ -29,7 +29,7 @@ def index_select(src, dim, idx):
         rowcount = rowcount[idx]
         tmp = torch.arange(rowcount.size(0), device=rowcount.device)
         row = tmp.repeat_interleave(rowcount)
-        perm = __arange_interleave__(rowptr[idx], rowcount)
+        perm = arange_interleave(rowptr[idx], rowcount)
         col = col[perm]
         index = torch.stack([row, col], dim=0)
 
@@ -48,7 +48,7 @@ def index_select(src, dim, idx):
         colcount = colcount[idx]
         tmp = torch.arange(colcount.size(0), device=row.device)
         col = tmp.repeat_interleave(colcount)
-        perm = __arange_interleave__(colptr[idx], colcount)
+        perm = arange_interleave(colptr[idx], colcount)
         row = row[perm]
         csc2csr = (colcount.size(0) * row + col).argsort()
         index = torch.stack([row, col], dim=0)[:, csc2csr]

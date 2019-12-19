@@ -326,6 +326,9 @@ SparseTensor.masked_select_nnz = masked_select_nnz
 #         # Filter list into edge and sparse slice
 #         raise NotImplementedError
 
+# def remove_diag(self):
+#     raise NotImplementedError
+
 #     def set_diag(self, value):
 #         raise NotImplementedError
 
@@ -357,6 +360,8 @@ SparseTensor.masked_select_nnz = masked_select_nnz
 #             raise NotImplementedError
 #         raise ValueError('Argument needs to be of type `torch.tensor` or '
 #                          'type `torch_sparse.SparseTensor`.')
+
+# def add_nnz(self):
 
 #     def add(self, other, layout=None):
 #         if __is_scalar__(other):
