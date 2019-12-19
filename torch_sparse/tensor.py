@@ -14,8 +14,8 @@ from torch_sparse.masked_select import masked_select, masked_select_nnz
 
 class SparseTensor(object):
     def __init__(self, index, value=None, sparse_size=None, is_sorted=False):
-        self.storage = SparseStorage(index, value, sparse_size,
-                                     is_sorted=is_sorted)
+        self.storage = SparseStorage(
+            index, value, sparse_size, is_sorted=is_sorted)
 
     @classmethod
     def from_storage(self, storage):
@@ -32,7 +32,32 @@ class SparseTensor(object):
 
         index = index.t().contiguous()
         value = mat[index[0], index[1]]
-        return self.__class__(index, value, mat.size()[:2], is_sorted=True)
+        return SparseTensor(index, value, mat.size()[:2], is_sorted=True)
+
+    @classmethod
+    def from_torch_sparse_coo_tensor(self, mat, is_sorted=False):
+        return SparseTensor(
+            mat._indices(), mat._values(), mat.size()[:2], is_sorted=is_sorted)
+
+    @classmethod
+    def from_scipy(self, mat):
+        colptr = None
+        if isinstance(mat, scipy.sparse.csc_matrix):
+            colptr = torch.from_numpy(mat.indptr).to(torch.long)
+
+        mat = mat.tocsr()
+        rowptr = torch.from_numpy(mat.indptr).to(torch.long)
+        mat = mat.tocoo()
+        row = torch.from_numpy(mat.row).to(torch.long)
+        col = torch.from_numpy(mat.col).to(torch.long)
+        index = torch.stack([row, col], dim=0)
+        value = torch.from_numpy(mat.data)
+        size = mat.shape
+
+        storage = SparseStorage(
+            index, value, size, rowptr=rowptr, colptr=colptr, is_sorted=True)
+
+        return SparseTensor.from_storage(storage)
 
     def __copy__(self):
         return self.from_storage(self.storage)
@@ -167,8 +192,8 @@ class SparseTensor(object):
         return self.from_storage(self.storage.apply(lambda x: x.cpu()))
 
     def cuda(self, device=None, non_blocking=False, **kwargs):
-        storage = self.storage.apply(
-            lambda x: x.cuda(device, non_blocking, **kwargs))
+        storage = self.storage.apply(lambda x: x.cuda(device, non_blocking, **
+                                                      kwargs))
         return self.from_storage(storage)
 
     @property
@@ -190,8 +215,8 @@ class SparseTensor(object):
         if dtype == self.dtype:
             return self
 
-        storage = self.storage.apply_value(
-            lambda x: x.type(dtype, non_blocking, **kwargs))
+        storage = self.storage.apply_value(lambda x: x.type(
+            dtype, non_blocking, **kwargs))
 
         return self.from_storage(storage)
 
@@ -260,9 +285,12 @@ class SparseTensor(object):
     def to_torch_sparse_coo_tensor(self, dtype=None, requires_grad=False):
         index, value = self.coo()
         return torch.sparse_coo_tensor(
-            index, value if self.has_value() else torch.ones(
-                self.nnz(), dtype=dtype, device=self.device), self.size(),
-            device=self.device, requires_grad=requires_grad)
+            index,
+            value if self.has_value() else torch.ones(
+                self.nnz(), dtype=dtype, device=self.device),
+            self.size(),
+            device=self.device,
+            requires_grad=requires_grad)
 
     def to_scipy(self, dtype=None, layout=None):
         assert self.dim() == 2
@@ -429,26 +457,35 @@ if __name__ == '__main__':
     dataset = Planetoid('/tmp/Cora', 'Cora')
     data = dataset[0].to(device)
 
-    value = torch.randn((data.num_edges, 10), device=device)
+    value = torch.randn((data.num_edges, ), device=device)
 
     mat1 = SparseTensor(data.edge_index, value)
 
-    index = torch.tensor([0, 2])
-    mat2 = mat1.index_select(2, index)
+    mat1 = SparseTensor.from_dense(mat1.to_dense())
 
-    index = torch.randperm(data.num_nodes)[:data.num_nodes - 500]
-    mask = torch.zeros(data.num_nodes, dtype=torch.bool)
-    mask[index] = True
+    print(mat1)
+    mat = SparseTensor.from_torch_sparse_coo_tensor(
+        mat1.to_torch_sparse_coo_tensor())
 
-    t = time.perf_counter()
-    for _ in range(1000):
-        mat2 = mat1.index_select(0, index)
-    print(time.perf_counter() - t)
+    mat = SparseTensor.from_scipy(mat.to_scipy(layout='csc'))
+    print(mat)
 
-    t = time.perf_counter()
-    for _ in range(1000):
-        mat2 = mat1.masked_select(0, mask)
-    print(time.perf_counter() - t)
+    # index = torch.tensor([0, 2])
+    # mat2 = mat1.index_select(2, index)
+
+    # index = torch.randperm(data.num_nodes)[:data.num_nodes - 500]
+    # mask = torch.zeros(data.num_nodes, dtype=torch.bool)
+    # mask[index] = True
+
+    # t = time.perf_counter()
+    # for _ in range(1000):
+    #     mat2 = mat1.index_select(0, index)
+    # print(time.perf_counter() - t)
+
+    # t = time.perf_counter()
+    # for _ in range(1000):
+    #     mat2 = mat1.masked_select(0, mask)
+    # print(time.perf_counter() - t)
 
     # mat2 = mat1.narrow(1, start=0, length=3)
     # print(mat2)
