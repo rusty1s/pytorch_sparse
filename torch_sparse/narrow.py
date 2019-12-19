@@ -22,7 +22,7 @@ def narrow(src, dim, start, length):
             index, value, sparse_size, rowptr, is_sorted=True)
 
     elif dim == 1:
-        # This is faster than accessing `csc()` in analogy to thr `dim=0` case.
+        # This is faster than accessing `csc()` in analogy to the `dim=0` case.
         (row, col), value = src.coo()
         mask = (col >= start) & (col < start + length)
 
