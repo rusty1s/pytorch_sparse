@@ -487,23 +487,36 @@ if __name__ == '__main__':
     import time  # noqa
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # device = 'cpu'
 
     # dataset = Reddit('/tmp/Reddit')
-    dataset = Planetoid('/tmp/Cora', 'Cora')
+    dataset = Planetoid('/tmp/PubMed', 'PubMed')
     data = dataset[0].to(device)
 
-    value = torch.randn(data.num_edges, 10)
-    mat = SparseTensor(data.edge_index, value)
+    # value = torch.randn(data.num_edges, 10)
+    mat = SparseTensor(data.edge_index)
+    perm = torch.arange(data.num_nodes)
+    perm = torch.randperm(data.num_nodes)
 
-    index = torch.tensor([
-        [0, 1, 1, 2, 2],
-        [1, 2, 2, 2, 3],
-    ])
-    value = torch.tensor([1, 2, 3, 4, 5])
+    for _ in range(10):
+        x = torch.randn(1000, 1000, device=device).sum()
 
-    mat = SparseTensor(index, value)
-    print(mat)
-    print(mat.coalesce())
+    torch.cuda.synchronize()
+    t = time.perf_counter()
+    for _ in range(100):
+        mat[perm]
+    torch.cuda.synchronize()
+    print(time.perf_counter() - t)
+
+    # index = torch.tensor([
+    #     [0, 1, 1, 2, 2],
+    #     [1, 2, 2, 2, 3],
+    # ])
+    # value = torch.tensor([1, 2, 3, 4, 5])
+
+    # mat = SparseTensor(index, value)
+    # print(mat)
+    # print(mat.coalesce())
 
     # index = torch.tensor([0, 1, 2])
     # mask = torch.zeros(data.num_nodes, dtype=torch.bool)
