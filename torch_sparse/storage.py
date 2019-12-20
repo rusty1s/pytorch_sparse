@@ -1,6 +1,7 @@
 import warnings
 
 import torch
+import torch_scatter
 from torch_scatter import scatter_add, segment_add
 
 
@@ -37,17 +38,9 @@ class SparseStorage(object):
         'rowcount', 'rowptr', 'colcount', 'colptr', 'csr2csc', 'csc2csr'
     ]
 
-    def __init__(self,
-                 index,
-                 value=None,
-                 sparse_size=None,
-                 rowcount=None,
-                 rowptr=None,
-                 colcount=None,
-                 colptr=None,
-                 csr2csc=None,
-                 csc2csr=None,
-                 is_sorted=False):
+    def __init__(self, index, value=None, sparse_size=None, rowcount=None,
+                 rowptr=None, colcount=None, colptr=None, csr2csc=None,
+                 csc2csr=None, is_sorted=False):
 
         assert index.dtype == torch.long
         assert index.dim() == 2 and index.size(0) == 2
@@ -185,11 +178,27 @@ class SparseStorage(object):
 
     def is_coalesced(self):
         idx = self.sparse_size(1) * self.row + self.col
-        mask = idx == torch.cat([idx.new_full((1, ), -1), idx[:-1]], dim=0)
-        return not mask.any().item()
+        mask = idx > torch.cat([idx.new_full((1, ), -1), idx[:-1]], dim=0)
+        return mask.all().item()
 
-    def coalesce(self):
-        raise NotImplementedError
+    def coalesce(self, reduce='add'):
+        idx = self.sparse_size(1) * self.row + self.col
+        mask = idx > torch.cat([idx.new_full((1, ), -1), idx[:-1]], dim=0)
+
+        if mask.all():  # Already coalesced
+            return self
+
+        index = self.index[:, mask]
+
+        value = self.value
+        if self.has_value():
+            assert reduce in ['add', 'mean', 'min', 'max']
+            idx = mask.cumsum(0) - 1
+            op = getattr(torch_scatter, f'scatter_{reduce}')
+            value = op(value, idx, dim=0, dim_size=idx[-1].item() + 1)
+            value = value[0] if isinstance(value, tuple) else value
+
+        return self.__class__(index, value, self.sparse_size(), is_sorted=True)
 
     def cached_keys(self):
         return [
