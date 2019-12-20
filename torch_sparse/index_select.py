@@ -57,8 +57,8 @@ def index_select(src, dim, idx):
         sparse_size = torch.Size([src.sparse_size(0), colcount.size(0)])
 
         storage = src.storage.__class__(index, value, sparse_size,
-                                        colcount=colcount, csc2csr=csc2csr,
-                                        is_sorted=True)
+                                        colcount=colcount, colptr=colptr,
+                                        csc2csr=csc2csr, is_sorted=True)
 
     else:
         storage = src.storage.apply_value(
