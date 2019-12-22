@@ -38,17 +38,9 @@ class SparseStorage(object):
         'rowcount', 'rowptr', 'colcount', 'colptr', 'csr2csc', 'csc2csr'
     ]
 
-    def __init__(self,
-                 index,
-                 value=None,
-                 sparse_size=None,
-                 rowcount=None,
-                 rowptr=None,
-                 colcount=None,
-                 colptr=None,
-                 csr2csc=None,
-                 csc2csr=None,
-                 is_sorted=False):
+    def __init__(self, index, value=None, sparse_size=None, rowcount=None,
+                 rowptr=None, colcount=None, colptr=None, csr2csc=None,
+                 csc2csr=None, is_sorted=False):
 
         assert index.dtype == torch.long
         assert index.dim() == 2 and index.size(0) == 2
@@ -97,7 +89,7 @@ class SparseStorage(object):
         if not is_sorted:
             idx = sparse_size[1] * index[0] + index[1]
             # Only sort if necessary...
-            if (idx <= torch.cat([idx.new_zeros(1), idx[:-1]], dim=0)).any():
+            if (idx < torch.cat([idx.new_zeros(1), idx[:-1]], dim=0)).any():
                 perm = idx.argsort()
                 index = index[:, perm]
                 value = None if value is None else value[perm]
@@ -164,7 +156,7 @@ class SparseStorage(object):
 
     def sparse_resize_(self, *sizes):
         assert len(sizes) == 2
-        self._sparse_size == sizes
+        self._sparse_size = sizes
         return self
 
     @cached_property
@@ -269,7 +261,7 @@ class SparseStorage(object):
         self._index = func(self._index)
         self._value = optional(func, self._value)
         for key in self.cached_keys():
-            setattr(self, f'_{key}', func, getattr(self, f'_{key}'))
+            setattr(self, f'_{key}', func(getattr(self, f'_{key}')))
         return self
 
     def apply(self, func):
@@ -292,34 +284,3 @@ class SparseStorage(object):
             data += [func(self.value)]
         data += [func(getattr(self, f'_{key}')) for key in self.cached_keys()]
         return data
-
-
-if __name__ == '__main__':
-    from torch_geometric.datasets import Reddit, Planetoid  # noqa
-    import time  # noqa
-    import copy  # noqa
-
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    # dataset = Reddit('/tmp/Reddit')
-    dataset = Planetoid('/tmp/Cora', 'Cora')
-    data = dataset[0].to(device)
-    edge_index = data.edge_index
-
-    storage = SparseStorage(edge_index, is_sorted=True)
-    t = time.perf_counter()
-    storage.fill_cache_()
-    print(time.perf_counter() - t)
-    t = time.perf_counter()
-    storage.clear_cache_()
-    storage.fill_cache_()
-    print(time.perf_counter() - t)
-    print(storage)
-    # storage = storage.clone()
-    # print(storage)
-    storage = copy.copy(storage)
-    print(storage)
-    print(id(storage))
-    storage = copy.deepcopy(storage)
-    print(storage)
-    storage.fill_cache_()
-    storage.clear_cache_()

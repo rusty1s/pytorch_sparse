@@ -10,7 +10,6 @@ from .utils import dtypes, devices, tensor
 
 @pytest.mark.parametrize('dtype,device', product(dtypes, devices))
 def test_sparse_add(dtype, device):
-    print()
     index = tensor([[0, 0, 1], [0, 1, 2]], torch.long, device)
     mat1 = SparseTensor(index)
 
