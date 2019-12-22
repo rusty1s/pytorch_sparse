@@ -130,4 +130,16 @@ def test_utility(dtype, device):
 
 @pytest.mark.parametrize('dtype,device', product(dtypes, devices))
 def test_coalesce(dtype, device):
-    pass
+    index = tensor([[0, 0, 0, 1, 1], [0, 1, 1, 0, 1]], torch.long, device)
+    value = tensor([1, 1, 1, 3, 4], dtype, device)
+    storage = SparseStorage(index, value)
+
+    assert storage.index.tolist() == index.tolist()
+    assert storage.value.tolist() == value.tolist()
+
+    assert not storage.is_coalesced()
+    storage = storage.coalesce()
+    assert storage.is_coalesced()
+
+    assert storage.index.tolist() == [[0, 0, 1, 1], [0, 1, 0, 1]]
+    assert storage.value.tolist() == [1, 2, 3, 4]
