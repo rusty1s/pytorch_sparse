@@ -10,12 +10,13 @@ from torch_sparse.narrow import narrow
 from torch_sparse.select import select
 from torch_sparse.index_select import index_select, index_select_nnz
 from torch_sparse.masked_select import masked_select, masked_select_nnz
+from torch_sparse.add import add, add_nnz
 
 
 class SparseTensor(object):
     def __init__(self, index, value=None, sparse_size=None, is_sorted=False):
-        self.storage = SparseStorage(index, value, sparse_size,
-                                     is_sorted=is_sorted)
+        self.storage = SparseStorage(
+            index, value, sparse_size, is_sorted=is_sorted)
 
     @classmethod
     def from_storage(self, storage):
@@ -36,8 +37,8 @@ class SparseTensor(object):
 
     @classmethod
     def from_torch_sparse_coo_tensor(self, mat, is_sorted=False):
-        return SparseTensor(mat._indices(), mat._values(),
-                            mat.size()[:2], is_sorted=is_sorted)
+        return SparseTensor(
+            mat._indices(), mat._values(), mat.size()[:2], is_sorted=is_sorted)
 
     @classmethod
     def from_scipy(self, mat):
@@ -54,8 +55,8 @@ class SparseTensor(object):
         value = torch.from_numpy(mat.data)
         size = mat.shape
 
-        storage = SparseStorage(index, value, size, rowptr=rowptr,
-                                colptr=colptr, is_sorted=True)
+        storage = SparseStorage(
+            index, value, size, rowptr=rowptr, colptr=colptr, is_sorted=True)
 
         return SparseTensor.from_storage(storage)
 
@@ -192,8 +193,8 @@ class SparseTensor(object):
         return self.from_storage(self.storage.apply(lambda x: x.cpu()))
 
     def cuda(self, device=None, non_blocking=False, **kwargs):
-        storage = self.storage.apply(
-            lambda x: x.cuda(device, non_blocking, **kwargs))
+        storage = self.storage.apply(lambda x: x.cuda(device, non_blocking, **
+                                                      kwargs))
         return self.from_storage(storage)
 
     @property
@@ -215,8 +216,8 @@ class SparseTensor(object):
         if dtype == self.dtype:
             return self
 
-        storage = self.storage.apply_value(
-            lambda x: x.type(dtype, non_blocking, **kwargs))
+        storage = self.storage.apply_value(lambda x: x.type(
+            dtype, non_blocking, **kwargs))
 
         return self.from_storage(storage)
 
@@ -285,9 +286,12 @@ class SparseTensor(object):
     def to_torch_sparse_coo_tensor(self, dtype=None, requires_grad=False):
         index, value = self.coo()
         return torch.sparse_coo_tensor(
-            index, value if self.has_value() else torch.ones(
-                self.nnz(), dtype=dtype, device=self.device), self.size(),
-            device=self.device, requires_grad=requires_grad)
+            index,
+            value if self.has_value() else torch.ones(
+                self.nnz(), dtype=dtype, device=self.device),
+            self.size(),
+            device=self.device,
+            requires_grad=requires_grad)
 
     def to_scipy(self, dtype=None, layout=None):
         assert self.dim() == 2
@@ -388,6 +392,8 @@ SparseTensor.index_select = index_select
 SparseTensor.index_select_nnz = index_select_nnz
 SparseTensor.masked_select = masked_select
 SparseTensor.masked_select_nnz = masked_select_nnz
+SparseTensor.add = add
+SparseTensor.add_nnz = add_nnz
 
 # def remove_diag(self):
 #     raise NotImplementedError
@@ -423,40 +429,6 @@ SparseTensor.masked_select_nnz = masked_select_nnz
 #             raise NotImplementedError
 #         raise ValueError('Argument needs to be of type `torch.tensor` or '
 #                          'type `torch_sparse.SparseTensor`.')
-
-# def add_nnz(self):
-
-#     def add(self, other, layout=None):
-#         if __is_scalar__(other):
-#             if self.has_value:
-#                 return self.set_value(self._value + other, 'coo')
-#             else:
-#                 return self.set_value(torch.full((self.nnz(), ), other + 1),
-#                                       'coo')
-#         elif torch.is_tensor(other):
-#             if layout is None:
-#                 layout = 'coo'
-#               warnings.warn('`layout` argument unset, using default layout '
-#                             '"coo". This may lead to unexpected behaviour.')
-#             assert layout in ['coo', 'csr', 'csc']
-#             if layout == 'csc':
-#                 other = other[self._arg_csc2csr]
-#             if self.has_value:
-#                 return self.set_value(self._value + other, 'coo')
-#             else:
-#                 return self.set_value(other + 1, 'coo')
-#         elif isinstance(other, self.__class__):
-#             raise NotImplementedError
-#         raise ValueError('Argument needs to be of type `int`, `float`, '
-#                          '`torch.tensor` or `torch_sparse.SparseTensor`.')
-
-#     def add_(self, other, layout=None):
-#         if isinstance(other, int) or isinstance(other, float):
-#             raise NotImplementedError
-#         elif torch.is_tensor(other):
-#             raise NotImplementedError
-#         raise ValueError('Argument needs to be a scalar or of type '
-#                          '`torch.tensor`.')
 
 #     def __add__(self, other):
 #         return self.add(other)
@@ -497,6 +469,12 @@ if __name__ == '__main__':
     mat = SparseTensor(data.edge_index)
     perm = torch.arange(data.num_nodes)
     perm = torch.randperm(data.num_nodes)
+
+    mat1 = SparseTensor(torch.tensor([[0, 1], [0, 1]]))
+    mat2 = SparseTensor(torch.tensor([[0, 0, 1], [0, 1, 0]]))
+    add(mat1, mat2)
+    # print(mat2)
+    raise NotImplementedError
 
     for _ in range(10):
         x = torch.randn(1000, 1000, device=device).sum()

@@ -38,9 +38,17 @@ class SparseStorage(object):
         'rowcount', 'rowptr', 'colcount', 'colptr', 'csr2csc', 'csc2csr'
     ]
 
-    def __init__(self, index, value=None, sparse_size=None, rowcount=None,
-                 rowptr=None, colcount=None, colptr=None, csr2csc=None,
-                 csc2csr=None, is_sorted=False):
+    def __init__(self,
+                 index,
+                 value=None,
+                 sparse_size=None,
+                 rowcount=None,
+                 rowptr=None,
+                 colcount=None,
+                 colptr=None,
+                 csr2csc=None,
+                 csc2csr=None,
+                 is_sorted=False):
 
         assert index.dtype == torch.long
         assert index.dim() == 2 and index.size(0) == 2
@@ -130,14 +138,26 @@ class SparseStorage(object):
         assert value.size(0) == self._index.size(1)
         if value is not None and get_layout(layout) == 'csc':
             value = value[self.csc2csr]
-        return self.apply_value_(lambda x: value)
+        self._value = value
+        return self
 
     def set_value(self, value, layout=None):
         assert value.device == self._index.device
         assert value.size(0) == self._index.size(1)
         if value is not None and get_layout(layout) == 'csc':
             value = value[self.csc2csr]
-        return self.apply_value(lambda x: value)
+        return self.__class__(
+            self._index,
+            value,
+            self._sparse_size,
+            self._rowcount,
+            self._rowptr,
+            self._colcount,
+            self._colptr,
+            self._csr2csc,
+            self._csc2csr,
+            is_sorted=True,
+        )
 
     def sparse_size(self, dim=None):
         return self._sparse_size if dim is None else self._sparse_size[dim]
