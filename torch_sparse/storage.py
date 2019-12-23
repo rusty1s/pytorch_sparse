@@ -40,7 +40,7 @@ class cached_property(object):
         value = getattr(obj, f'_{self.func.__name__}', None)
         if value is None:
             value = self.func(obj)
-            if __cache_flag__['enabled']:
+            if is_cache_enabled():
                 setattr(obj, f'_{self.func.__name__}', value)
         return value
 
