@@ -4,9 +4,32 @@ import torch
 import torch_scatter
 from torch_scatter import scatter_add, segment_add
 
+__cache_flag__ = {'enabled': True}
 
-def optional(func, src):
-    return func(src) if src is not None else src
+
+def is_cache_enabled():
+    return __cache_flag__['enabled']
+
+
+def set_cache_enabled(mode):
+    __cache_flag__['enabled'] = mode
+
+
+class no_cache(object):
+    def __enter__(self):
+        self.prev = is_cache_enabled()
+        set_cache_enabled(False)
+
+    def __exit__(self, *args):
+        set_cache_enabled(self.prev)
+        return False
+
+    def __call__(self, func):
+        def decorate_no_cache(*args, **kwargs):
+            with self:
+                return func(*args, **kwargs)
+
+        return decorate_no_cache
 
 
 class cached_property(object):
@@ -17,8 +40,13 @@ class cached_property(object):
         value = getattr(obj, f'_{self.func.__name__}', None)
         if value is None:
             value = self.func(obj)
-            setattr(obj, f'_{self.func.__name__}', value)
+            if __cache_flag__['enabled']:
+                setattr(obj, f'_{self.func.__name__}', value)
         return value
+
+
+def optional(func, src):
+    return func(src) if src is not None else src
 
 
 layouts = ['coo', 'csr', 'csc']

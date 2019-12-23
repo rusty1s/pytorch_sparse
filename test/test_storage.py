@@ -3,7 +3,7 @@ from itertools import product
 
 import pytest
 import torch
-from torch_sparse.storage import SparseStorage
+from torch_sparse.storage import SparseStorage, no_cache
 
 from .utils import dtypes, devices, tensor
 
@@ -75,6 +75,17 @@ def test_caching(dtype, device):
     assert storage._colcount is None
     assert storage._colptr is None
     assert storage._csr2csc is None
+    assert storage.cached_keys() == []
+
+    with no_cache():
+        storage.fill_cache_()
+    assert storage.cached_keys() == []
+
+    @no_cache()
+    def do_something(storage):
+        return storage.fill_cache_()
+
+    storage = do_something(storage)
     assert storage.cached_keys() == []
 
 
