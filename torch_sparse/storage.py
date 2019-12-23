@@ -4,15 +4,15 @@ import torch
 import torch_scatter
 from torch_scatter import scatter_add, segment_add
 
-__cache_flag__ = {'enabled': True}
+__cache__ = {'enabled': True}
 
 
 def is_cache_enabled():
-    return __cache_flag__['enabled']
+    return __cache__['enabled']
 
 
 def set_cache_enabled(mode):
-    __cache_flag__['enabled'] = mode
+    __cache__['enabled'] = mode
 
 
 class no_cache(object):
