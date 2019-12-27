@@ -195,7 +195,9 @@ class SparseStorage(object):
     @cached_property
     def rowptr(self):
         rowcount = self.rowcount
-        return torch.cat([rowcount.new_zeros(1), rowcount.cumsum(0)], dim=0)
+        rowptr = rowcount.new_zeros(rowcount.numel() + 1)
+        torch.cumsum(rowcount, dim=0, out=rowptr[1:])
+        return rowptr
 
     @cached_property
     def colcount(self):
@@ -205,7 +207,9 @@ class SparseStorage(object):
     @cached_property
     def colptr(self):
         colcount = self.colcount
-        return torch.cat([colcount.new_zeros(1), colcount.cumsum(0)], dim=0)
+        colptr = colcount.new_zeros(colcount.numel() + 1)
+        torch.cumsum(colcount, dim=0, out=colptr[1:])
+        return colptr
 
     @cached_property
     def csr2csc(self):
