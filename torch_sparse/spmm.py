@@ -1,4 +1,4 @@
-import torch
+# import torch
 from torch_scatter import scatter_add
 
 # from torch_sparse.tensor import SparseTensor
@@ -17,7 +17,8 @@ from torch_scatter import scatter_add
 #     if reduce in ['add', 'mean']:
 #         return torch_sparse.spmm_cuda.spmm(rowptr, col, value, mat, reduce)
 #     else:
-#         return torch_sparse.spmm_cuda.spmm_arg(rowptr, col, value, mat, reduce)
+#         return torch_sparse.spmm_cuda.spmm_arg(
+# rowptr, col, value, mat, reduce)
 
 
 def spmm(index, value, m, n, matrix):
