@@ -14,7 +14,8 @@ def __reduce__(src, dim=None, reduce='add', deterministic=False):
         value = src.nnz() if reduce == 'add' else 1
         return torch.tensor(value, device=src.device)
 
-    dims = [dim] if isinstance(dim, int) else sorted(list(dim))
+    dims = [dim] if isinstance(dim, int) else dim
+    dims = sorted([src.dim() + dim if dim < 0 else dim for dim in dims])
     assert dims[-1] < src.dim()
 
     rowptr, col, value = src.csr()
