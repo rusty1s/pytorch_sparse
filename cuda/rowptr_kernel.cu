@@ -11,18 +11,18 @@ __global__ void rowptr_kernel(const int64_t *row_data, int64_t *out_data,
   int64_t thread_idx = blockDim.x * blockIdx.x + threadIdx.x;
 
   if (thread_idx == 0) {
-    for (int64_t i = 0; i < row_data[0]; i++)
+    for (int64_t i = 0; i <= row_data[0]; i++)
       out_data[i] = 0;
-  } else if (thread_idx == numel) {
-    for (int64_t i = row_data[numel - 1]; i < size + 1; i++)
-      out_data[i] = size;
-  } else {
+  } else if (thread_idx < numel) {
     for (int64_t i = row_data[thread_idx - 1]; i < row_data[thread_idx]; i++)
-      out_data[i] = thread_idx - 1;
+      out_data[i + 1] = thread_idx;
+  } else if (thread_idx == numel) {
+    for (int64_t i = row_data[numel - 1] + 1; i < size + 1; i++)
+      out_data[i] = numel;
   }
 }
 
-at::Tensor rowptr_cuda(at::Tensor row, size_t size) {
+at::Tensor rowptr_cuda(at::Tensor row, int64_t size) {
   AT_ASSERTM(row.dim() == 1, "Row needs to be one-dimensional");
 
   auto out = at::empty(size + 1, row.options());
