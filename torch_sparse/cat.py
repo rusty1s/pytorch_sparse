@@ -38,8 +38,7 @@ def cat(tensors, dim):
             value=torch.cat(values, dim=0) if has_value else None,
             sparse_size=sparse_size,
             rowcount=torch.cat(rowcounts) if has_rowcount else None,
-            rowptr=torch.cat(rowptrs) if has_rowptr else None,
-            is_sorted=True)
+            rowptr=torch.cat(rowptrs) if has_rowptr else None, is_sorted=True)
 
     if dim == 1:
         raise NotImplementedError

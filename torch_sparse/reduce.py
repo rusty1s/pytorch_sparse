@@ -61,8 +61,8 @@ def __reduce__(src, dim=None, reduce='add', deterministic=False):
     deterministic = src.storage._csr2csc is not None or deterministic
 
     if sparse_dims[0] == 0 and deterministic and src.has_value():
-        csr2csc, colptr = src.storage.csr2csc, src.storage.colptr
-        out = segment_csr(value[csr2csc], colptr)
+        csr2csc = src.storage.csr2csc
+        out = segment_csr(value[csr2csc], src.storage.colptr)
         out = out[0] if len(dense_dims) > 0 and isinstance(out, tuple) else out
         return out
 

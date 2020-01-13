@@ -81,7 +81,7 @@ class SparseTensor(object):
         return self.storage.rowptr, self.storage.col, self.storage.value
 
     def csc(self):
-        perm = self.storage.csr2csc
+        perm = self.storage.csr2csc  # Compute `csr2csc` first.
         return (self.storage.colptr, self.storage.row[perm],
                 self.storage.value[perm] if self.has_value() else None)
 
