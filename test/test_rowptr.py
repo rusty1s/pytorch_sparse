@@ -29,10 +29,7 @@ tests = [
 
 
 def rowptr(row, size):
-    if row.is_cuda:
-        return rowptr_cuda.rowptr(row, size)
-    else:
-        return rowptr_cpu.rowptr(row, size)
+    return (rowptr_cuda if row.is_cuda else rowptr_cpu).rowptr(row, size)
 
 
 @pytest.mark.parametrize('test,device', product(tests, devices))
