@@ -70,9 +70,11 @@ def cat(tensors, dim):
             value=torch.cat(values, dim=0) if has_value else None,
             sparse_size=sparse_size,
             colcount=torch.cat(colcounts) if has_colcount else None,
-            colptr=torch.cat(colptrs) if has_colptr else None, is_sorted=False)
+            colptr=torch.cat(colptrs) if has_colptr else None,
+            is_sorted=False,
+        )
 
-    elif dim == (0, 1) or (1, 0):
+    elif dim == (0, 1) or dim == (1, 0):
         for tensor in tensors:
             (row, col), value = tensor.coo()
             rows += [row + sparse_size[0]]
@@ -115,21 +117,26 @@ def cat(tensors, dim):
             colptr=torch.cat(colptrs) if has_colptr else None,
             csr2csc=torch.cat(csr2cscs) if has_csr2csc else None,
             csc2csr=torch.cat(csc2csrs) if has_csc2csr else None,
-            is_sorted=True)
+            is_sorted=True,
+        )
 
     elif isinstance(dim, int) and dim > 1 and dim < tensors[0].dim():
         for tensor in tensors:
             values += [tensor.storage.value]
-            sparse_size[0] = max(sparse_size[0], tensor.sparse_size(0))
-            sparse_size[1] = max(sparse_size[1], tensor.sparse_size(1))
 
         old_storage = tensors[0].storage
-        storage = old_storage.storage.__class__(
-            tensors[0].storage.index, value=torch.cat(values, dim=dim - 1),
-            sparse_size=sparse_size, rowcount=old_storage._rowcount,
-            rowptr=old_storage._rowcount, colcount=old_storage._rowcount,
-            colptr=old_storage._rowcount, csr2csc=old_storage._csr2csc,
-            csc2csr=old_storage._csc2csr, is_sorted=True)
+        storage = old_storage.__class__(
+            tensors[0].storage.index,
+            value=torch.cat(values, dim=dim - 1),
+            sparse_size=old_storage.sparse_size(),
+            rowcount=old_storage._rowcount,
+            rowptr=old_storage._rowptr,
+            colcount=old_storage._colcount,
+            colptr=old_storage._colptr,
+            csr2csc=old_storage._csr2csc,
+            csc2csr=old_storage._csc2csr,
+            is_sorted=True,
+        )
 
     else:
         raise IndexError(
