@@ -58,7 +58,7 @@ def cat(tensors, dim):
             if has_colcount:
                 colcounts += [tensor.storage.colcount]
 
-            if has colptr:
+            if has_colptr:
                 colptr = tensor.storage.colptr
                 colptr = colptr if len(colptrs) == 0 else colptr[1:]
                 colptrs += [colptr + nnzs]
@@ -125,16 +125,11 @@ def cat(tensors, dim):
 
         old_storage = tensors[0].storage
         storage = old_storage.storage.__class__(
-            tensors[0].storage.index,
-            value=torch.cat(values, dim=dim - 1),
-            sparse_size=sparse_size,
-            rowcount=old_storage._rowcount,
-            rowptr=old_storage._rowcount,
-            colcount=old_storage._rowcount,
-            colptr=old_storage._rowcount,
-            csr2csc=old_storage._csr2csc,
-            csc2csr=old_storage._csc2csr,
-            is_sorted=True)
+            tensors[0].storage.index, value=torch.cat(values, dim=dim - 1),
+            sparse_size=sparse_size, rowcount=old_storage._rowcount,
+            rowptr=old_storage._rowcount, colcount=old_storage._rowcount,
+            colptr=old_storage._rowcount, csr2csc=old_storage._csr2csc,
+            csc2csr=old_storage._csc2csr, is_sorted=True)
 
     else:
         raise IndexError(
