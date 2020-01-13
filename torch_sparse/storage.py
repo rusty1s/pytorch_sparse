@@ -212,7 +212,7 @@ class SparseStorage(object):
 
     @cached_property
     def colcount(self):
-        if self._colptr is not None:
+        if self.has_colptr():
             colptr = self.colptr
             return colptr[1:] - colptr[:-1]
         else:
