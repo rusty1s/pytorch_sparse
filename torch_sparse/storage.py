@@ -3,6 +3,11 @@ import warnings
 import torch
 from torch_scatter import segment_csr
 
+from torch_sparse import rowptr_cpu
+
+if torch.cuda.is_available():
+    from torch_sparse import rowptr_cuda
+
 __cache__ = {'enabled': True}
 
 
@@ -196,31 +201,23 @@ class SparseStorage(object):
 
     @cached_property
     def rowcount(self):
-        # TODO
-        one = torch.ones_like(self.row)
-        return segment_add(one, self.row, dim=0, dim_size=self._sparse_size[0])
+        rowptr = self.rowptr
+        return rowptr[1:] - rowptr[:-1]
 
     @cached_property
     def rowptr(self):
-        # TODO
-        rowcount = self.rowcount
-        rowptr = rowcount.new_zeros(rowcount.numel() + 1)
-        torch.cumsum(rowcount, dim=0, out=rowptr[1:])
-        return rowptr
+        func = rowptr_cuda if self.index.is_cuda else rowptr_cpu
+        return func.rowptr(self.row, self.sparse_size(0))
 
     @cached_property
     def colcount(self):
-        # TODO
-        one = torch.ones_like(self.col)
-        return scatter_add(one, self.col, dim=0, dim_size=self._sparse_size[1])
+        colptr = self.colptr
+        return colptr[1:] - colptr[:-1]
 
     @cached_property
     def colptr(self):
-        # TODO
-        colcount = self.colcount
-        colptr = colcount.new_zeros(colcount.numel() + 1)
-        torch.cumsum(colcount, dim=0, out=colptr[1:])
-        return colptr
+        func = rowptr_cuda if self.index.is_cuda else rowptr_cpu
+        return func.rowptr(self.col[self.csr2csc], self.sparse_size(1))
 
     @cached_property
     def csr2csc(self):
