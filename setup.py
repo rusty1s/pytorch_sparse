@@ -21,9 +21,8 @@ cmdclass = {'build_ext': torch.utils.cpp_extension.BuildExtension}
 ext_modules = []
 exts = [e.split(osp.sep)[-1][:-4] for e in glob(osp.join('cpu', '*.cpp'))]
 ext_modules += [
-    CppExtension(
-        f'torch_sparse.{ext}_cpu', [f'cpu/{ext}.cpp'],
-        extra_compile_args=cxx_extra_compile_args) for ext in exts
+    CppExtension(f'torch_sparse.{ext}_cpu', [f'cpu/{ext}.cpp'],
+                 extra_compile_args=cxx_extra_compile_args) for ext in exts
 ]
 
 if CUDA_HOME is not None and '--cpu' not in argv:
@@ -44,6 +43,8 @@ if CUDA_HOME is not None and '--cpu' not in argv:
             extra_link_args=extra_link_args,
         ) for ext in exts
     ]
+if '--cpu' in argv:
+    argv.remove('--cpu')
 
 __version__ = '0.4.3'
 url = 'https://github.com/rusty1s/pytorch_sparse'
