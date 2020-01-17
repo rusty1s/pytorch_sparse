@@ -3,7 +3,7 @@ import torch_scatter
 from torch_scatter import segment_csr
 
 
-def __reduce__(src, dim=None, reduce='add', deterministic=False):
+def reduction(src, dim=None, reduce='add', deterministic=False):
     assert reduce in ['add', 'mean', 'min', 'max']
 
     if dim is None and src.has_value():
@@ -84,16 +84,16 @@ def __reduce__(src, dim=None, reduce='add', deterministic=False):
 
 
 def sum(src, dim=None, deterministic=False):
-    return __reduce__(src, dim, reduce='add', deterministic=deterministic)
+    return reduction(src, dim, reduce='add', deterministic=deterministic)
 
 
 def mean(src, dim=None, deterministic=False):
-    return __reduce__(src, dim, reduce='mean', deterministic=deterministic)
+    return reduction(src, dim, reduce='mean', deterministic=deterministic)
 
 
 def min(src, dim=None, deterministic=False):
-    return __reduce__(src, dim, reduce='min', deterministic=deterministic)
+    return reduction(src, dim, reduce='min', deterministic=deterministic)
 
 
 def max(src, dim=None, deterministic=False):
-    return __reduce__(src, dim, reduce='max', deterministic=deterministic)
+    return reduction(src, dim, reduce='max', deterministic=deterministic)
