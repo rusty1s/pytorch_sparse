@@ -1,6 +1,3 @@
-import torch
-
-
 def add_diag(src, value=None, k=0):
     pass
 
@@ -9,13 +6,15 @@ def remove_diag(src, k=0):
     index, value = src.coo()
     row, col = index
 
-    mask = row == col if k == 0 else row == (col + k)
-    inv_mask = ~mask
+    inv_mask = row != col if k == 0 else row != (col - k)
 
     index = index[:, inv_mask]
 
     if src.has_value():
         value = value[inv_mask]
+
+    if src.storage.has_rowcount() or src.storage.has_colcount():
+        mask = ~inv_mask
 
     rowcount = None
     if src.storage.has_rowcount():
