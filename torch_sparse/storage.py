@@ -269,8 +269,7 @@ class SparseStorage(object):
         value = self.value
         if self.has_value():
             idx = mask.cumsum(0) - 1
-            dim_size = idx[-1].item() + 1
-            value = segment_csr(idx, value, dim_size=dim_size, reduce=reduce)
+            value = segment_csr(idx, value, reduce=reduce)
             value = value[0] if isinstance(value, tuple) else value
 
         return self.__class__(index, value, self.sparse_size(), is_sorted=True)
