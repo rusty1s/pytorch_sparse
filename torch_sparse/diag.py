@@ -46,7 +46,6 @@ def set_diag(src, value=None, k=0):
 
     func = diag_cuda if index.is_cuda else diag_cpu
     mask = func.non_diag_mask(index, src.size(0), src.size(1), k)
-
     inv_mask = ~mask
 
     new_index = index.new_empty((2, mask.size(0)))
@@ -76,7 +75,7 @@ def set_diag(src, value=None, k=0):
         colcount = src.storage.colcount.clone()
         colcount[start + k:start + num_diag + k] += 1
 
-    storage = src.storage.__class__(index, value,
+    storage = src.storage.__class__(new_index, new_value,
                                     sparse_size=src.sparse_size(),
                                     rowcount=rowcount, colcount=colcount,
                                     is_sorted=True)
