@@ -52,7 +52,7 @@ def test_set_diag(dtype, device):
     print()
     k = -8
     print("k = ", k)
-    mat = mat.remove_diag(k)
+    mat = mat.set_diag(k)
     print(mat.to_dense())
 
     # row, col = mat.storage.index

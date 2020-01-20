@@ -61,6 +61,41 @@ class SparseTensor(object):
 
         return SparseTensor.from_storage(storage)
 
+    @classmethod
+    def eye(self, m, n=None, device=None, no_value=True, fill_cache=False):
+        n = m if n is None else n
+
+        index = torch.empty((2, min(m, n)), dtype=torch.long, device=device)
+        torch.arange(index.size(1), out=index[0])
+        torch.arange(index.size(1), out=index[1])
+
+        value = None
+        if not no_value:
+            value = torch.ones(index.size(1), device=device)
+
+        rowcount = rowptr = colcount = colptr = csr2csc = csc2csr = None
+        if fill_cache:
+            rowcount = index.new_ones(m)
+            rowptr = torch.arange(m + 1, device=device)
+            colcount = index.new_ones(n)
+            colptr = torch.arange(n + 1, device=device)
+            csr2csc = torch.arange(index.size(1), device=device)
+            csc2csr = torch.arange(index.size(1), device=device)
+
+        storage = SparseStorage(
+            index,
+            value,
+            torch.Size([m, n]),
+            rowcount=rowcount,
+            rowptr=rowptr,
+            colcount=colcount,
+            colptr=colptr,
+            csr2csc=csr2csc,
+            csc2csr=csc2csr,
+            is_sorted=True,
+        )
+        return SparseTensor.from_storage(storage)
+
     def __copy__(self):
         return self.from_storage(self.storage)
 

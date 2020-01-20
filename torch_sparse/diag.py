@@ -39,7 +39,10 @@ def remove_diag(src, k=0):
     return src.__class__.from_storage(storage)
 
 
-def set_diag(src, value=None, k=0):
+def set_diag(src, values=None, k=0):
+    if values is not None and not src.has_value():
+        raise ValueError('Sparse matrix has no values')
+
     src = src.remove_diag(k=0)
 
     index, value = src.coo()
@@ -63,7 +66,7 @@ def set_diag(src, value=None, k=0):
     if src.has_value():
         new_value = torch.new_empty((mask.size(0), ) + mask.size()[1:])
         new_value[mask] = value
-        new_value[inv_mask] = 1
+        new_value[inv_mask] = values if values is not None else 1
 
     rowcount = None
     if src.storage.has_rowcount():
