@@ -100,9 +100,8 @@ class SparseTensor(object):
     def sparse_size(self, dim=None):
         return self.storage.sparse_size(dim)
 
-    def sparse_resize_(self, *sizes):
-        self.storage.sparse_resize_(*sizes)
-        return self
+    def sparse_resize(self, *sizes):
+        return self.from_storage(self.storage.sparse_resize(*sizes))
 
     def is_coalesced(self):
         return self.storage.is_coalesced()

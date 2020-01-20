@@ -54,13 +54,22 @@ def add(src, other):
                      '`torch.tensor` or `torch_sparse.SparseTensor`.')
 
 
+def add_(src, other):
+    pass
+
+
 def add_nnz(src, other, layout=None):
     if isinstance(other, int) or isinstance(other, float):
-        return src.set_value(src.storage.value + other if src.has_value(
-        ) else torch.full((src.nnz(), ), 1 + other, device=src.device))
+        return src.set_value(src.storage.value +
+                             other if src.has_value() else torch.full((
+                                 src.nnz(), ), 1 + other, device=src.device))
     elif torch.is_tensor(other):
         return src.set_value(src.storage.value +
                              other if src.has_value() else other + 1)
 
     raise ValueError('Argument `other` needs to be of type `int`, `float` or '
                      '`torch.tensor`.')
+
+
+def add_nnz_(src, other, layout=None):
+    pass

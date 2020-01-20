@@ -5,8 +5,10 @@ from torch_scatter import segment_csr, scatter_add
 
 from torch_sparse import rowptr_cpu
 
-if torch.cuda.is_available():
+try:
     from torch_sparse import rowptr_cuda
+except ImportError:
+    rowptr_cuda = None
 
 __cache__ = {'enabled': True}
 
@@ -190,10 +192,48 @@ class SparseStorage(object):
     def sparse_size(self, dim=None):
         return self._sparse_size if dim is None else self._sparse_size[dim]
 
-    def sparse_resize_(self, *sizes):
+    def sparse_resize(self, *sizes):
         assert len(sizes) == 2
-        self._sparse_size = sizes
-        return self
+        old_sizes, nnz = self.sparse_size(), self.nnz()
+
+        diff_0 = sizes[0] - old_sizes[0]
+        rowcount, rowptr = self._rowcount, self._rowptr
+        if diff_0 > 0:
+            if self.has_rowcount():
+                rowcount = torch.cat([rowcount, rowcount.new_zeros(diff_0)])
+            if self.has_rowptr():
+                rowptr = torch.cat([rowptr, rowptr.new_full((diff_0, ), nnz)])
+        else:
+            if self.has_rowcount():
+                rowcount = rowcount[:-diff_0]
+            if self.has_rowptr():
+                rowptr = rowptr[:-diff_0]
+
+        diff_1 = sizes[1] - old_sizes[1]
+        colcount, colptr = self._colcount, self._colptr
+        if diff_1 > 0:
+            if self.has_colcount():
+                colcount = torch.cat([colcount, colcount.new_zeros(diff_1)])
+            if self.has_colptr():
+                colptr = torch.cat([colptr, colptr.new_full((diff_1, ), nnz)])
+        else:
+            if self.has_colcount():
+                colcount = colcount[:-diff_1]
+            if self.has_colptr():
+                colptr = colptr[:-diff_1]
+
+        return self.__class__(
+            self._index,
+            self._value,
+            sizes,
+            rowcount=rowcount,
+            rowptr=rowptr,
+            colcount=colcount,
+            colptr=colptr,
+            csr2csc=self._csr2csc,
+            csc2csr=self._csc2csr,
+            is_sorted=True,
+        )
 
     def has_rowcount(self):
         return self._rowcount is not None
