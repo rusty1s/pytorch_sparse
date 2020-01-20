@@ -62,30 +62,37 @@ class SparseTensor(object):
         return SparseTensor.from_storage(storage)
 
     @classmethod
-    def eye(self, m, n=None, device=None, no_value=True, fill_cache=False):
-        n = m if n is None else n
+    def eye(self, M, N=None, device=None, dtype=None, no_value=False,
+            fill_cache=False):
+        N = M if N is None else N
 
-        index = torch.empty((2, min(m, n)), dtype=torch.long, device=device)
+        index = torch.empty((2, min(M, N)), dtype=torch.long, device=device)
         torch.arange(index.size(1), out=index[0])
         torch.arange(index.size(1), out=index[1])
 
         value = None
         if not no_value:
-            value = torch.ones(index.size(1), device=device)
+            value = torch.ones(index.size(1), dtype=dtype, device=device)
 
         rowcount = rowptr = colcount = colptr = csr2csc = csc2csr = None
         if fill_cache:
-            rowcount = index.new_ones(m)
-            rowptr = torch.arange(m + 1, device=device)
-            colcount = index.new_ones(n)
-            colptr = torch.arange(n + 1, device=device)
+            rowcount = index.new_ones(M)
+            rowptr = torch.arange(M + 1, device=device)
+            if M > N:
+                rowcount[index.size(1):] = 0
+                rowptr[index.size(1) + 1:] = index.size(1)
+            colcount = index.new_ones(N)
+            colptr = torch.arange(N + 1, device=device)
+            if N > M:
+                colcount[index.size(1):] = 0
+                colptr[index.size(1) + 1:] = index.size(1)
             csr2csc = torch.arange(index.size(1), device=device)
             csc2csr = torch.arange(index.size(1), device=device)
 
         storage = SparseStorage(
             index,
             value,
-            torch.Size([m, n]),
+            torch.Size([M, N]),
             rowcount=rowcount,
             rowptr=rowptr,
             colcount=colcount,
