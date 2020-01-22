@@ -109,7 +109,7 @@ spmm(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
   at::optional<at::Tensor> arg_out = at::nullopt;
   int64_t *arg_out_data = nullptr;
   if (reduce2REDUCE.at(reduce) == MIN || reduce2REDUCE.at(reduce) == MAX) {
-    arg_out = at::full_like(out, -1, rowptr.options());
+    arg_out = at::full_like(out, col.numel(), rowptr.options());
     arg_out_data = arg_out.value().DATA_PTR<int64_t>();
   }
 

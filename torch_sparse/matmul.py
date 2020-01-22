@@ -34,6 +34,12 @@ class SPMM(torch.autograd.Function):
         data = ctx.saved_tensors
         index, rowcount, rowptr, colptr, csr2csc, value, mat, arg_out = data
 
+        invalid_arg_mask = arg_out_ind = None
+        if ctx.reduce in ['min', 'max'] and (ctx.needs_input_grad[5]
+                                             or ctx.needs_input_grad[6]):
+            invalid_arg_mask = arg_out == index.size(1)
+            arg_out_ind = arg_out.masked_fill(invalid_arg_mask, -1)
+
         grad_value = None
         if ctx.needs_input_grad[5]:
             if ctx.reduce in ['sum', 'add']:
@@ -45,12 +51,12 @@ class SPMM(torch.autograd.Function):
                     rowptr, index[1], mat, grad_out, ctx.reduce)
 
             elif ctx.reduce in ['min', 'max']:
-                col = index[1][arg_out.flatten()].view_as(arg_out)
+                col = index[1][arg_out_ind.flatten()].view_as(arg_out)
                 out = mat.gather(-2, col).mul_(grad_out)
-                out.masked_fill_(arg_out == -1, 0)
-                col = col.add_(rowptr[:-1].view(-1, 1))
-                grad_value = scatter_add(out.flatten(), col.flatten(), dim=0,
-                                         dim_size=value.numel())
+                out.masked_fill_(invalid_arg_mask, 0)
+                grad_value = scatter_add(out.flatten(), arg_out.flatten(),
+                                         dim=0, dim_size=value.numel() + 1)
+                grad_value = grad_value[:-1]
 
         grad_mat = None
         if ctx.needs_input_grad[6]:
@@ -70,12 +76,12 @@ class SPMM(torch.autograd.Function):
 
             elif ctx.reduce in ['min', 'max']:
                 if value is not None:
-                    value = value[arg_out.flatten()].view_as(arg_out)
+                    value = value[arg_out_ind.flatten()].view_as(arg_out)
                     value = value.mul_(grad_out)
                 else:
                     value = grad_out
-                value.masked_fill_(arg_out == -1, 0)
-                col = index[1][arg_out.flatten()].view_as(arg_out)
+                value.masked_fill_(invalid_arg_mask, 0)
+                col = index[1][arg_out_ind.flatten()].view_as(arg_out)
                 grad_mat = scatter_add(value, col, dim=-2,
                                        dim_size=mat.size(-2))
 
@@ -89,13 +95,13 @@ def matmul(src, other, reduce='sum'):
         assert reduce in ['sum', 'add', 'mean', 'min', 'max']
         (index, value), rowptr = src.coo(), src.storage.rowptr
 
-        csr2csc = colptr = None
-        if other.requires_grad and reduce in ['sum', 'add', 'mean']:
-            csr2csc, colptr = src.storage.csr2csc, src.storage.colptr
-
         rowcount = None
         if other.requires_grad and reduce in ['mean']:
             rowcount = src.storage.rowcount
+
+        csr2csc = colptr = None
+        if other.requires_grad and reduce in ['sum', 'add', 'mean']:
+            csr2csc, colptr = src.storage.csr2csc, src.storage.colptr
 
         return SPMM.apply(index, rowcount, rowptr, colptr, csr2csc, value,
                           other, reduce)
