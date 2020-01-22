@@ -101,7 +101,6 @@ spmm(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
   if (value_opt.has_value())
     AT_ASSERTM(value_opt.value().dim() == 1);
   AT_ASSERTM(mat.dim() >= 2, "Input mismatch");
-  AT_ASSERTM(rowptr.numel() - 1 == mat.size(-2), "Input mismatch");
 
   auto sizes = mat.sizes().vec();
   sizes[mat.dim() - 2] = rowptr.numel() - 1;
@@ -110,26 +109,26 @@ spmm(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
   at::optional<at::Tensor> arg_out = at::nullopt;
   int64_t *arg_out_data = nullptr;
   if (reduce2REDUCE.at(reduce) == MIN || reduce2REDUCE.at(reduce) == MAX) {
-    arg_out = at::full_like(out, mat.size(-2), rowptr.options());
+    arg_out = at::full_like(out, -1, rowptr.options());
     arg_out_data = arg_out.value().DATA_PTR<int64_t>();
   }
 
   auto rowptr_data = rowptr.DATA_PTR<int64_t>();
   auto col_data = col.DATA_PTR<int64_t>();
 
-  int N = rowptr.numel() - 1;
-  int M = mat.size(-2);
-  int K = mat.size(-1);
-  int B = mat.numel() / (M * K);
+  auto N = rowptr.numel() - 1;
+  auto M = mat.size(-2);
+  auto K = mat.size(-1);
+  auto B = mat.numel() / (M * K);
 
   AT_DISPATCH_ALL_TYPES(mat.scalar_type(), "spmm", [&] {
     scalar_t *value_data = nullptr;
-    auto mat_data = out.DATA_PTR<scalar_t>();
-    auto out_data = mat.DATA_PTR<scalar_t>();
+    auto mat_data = mat.DATA_PTR<scalar_t>();
+    auto out_data = out.DATA_PTR<scalar_t>();
 
     scalar_t val;
     std::vector<scalar_t> vals(K);
-    int64_t row_start, row_end, col_idx;
+    int64_t row_start, row_end, c;
     std::vector<int64_t> args(K);
 
     AT_DISPATCH_REDUCTION_TYPES(reduce, [&] {
@@ -147,18 +146,17 @@ spmm(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
 
             int offset = b * M * K;
             for (int e = row_start; e < row_end; e++) {
-              col_idx = col_data[e];
+              c = col_data[e];
               if (HAS_VAL)
                 val = value_data[e];
               for (int k = 0; k < K; k++) {
                 if (HAS_VAL)
                   Reducer<scalar_t, REDUCE>::update(
-                      &vals[k], val * mat_data[offset + col_idx * K + k],
-                      &args[k], e);
+                      &vals[k], val * mat_data[offset + c * K + k], &args[k],
+                      e);
                 else
                   Reducer<scalar_t, REDUCE>::update(
-                      &vals[k], mat_data[offset + col_idx * K + k], &args[k],
-                      e);
+                      &vals[k], mat_data[offset + c * K + k], &args[k], e);
               }
             }
             offset = b * N * K + n * K;
@@ -175,6 +173,56 @@ spmm(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
   return std::make_tuple(out, arg_out);
 }
 
+at::Tensor spmm_val_bw(at::Tensor rowptr, at::Tensor col, at::Tensor mat,
+                       at::Tensor grad, std::string reduce) {
+  CHECK_CPU(rowptr);
+  CHECK_CPU(col);
+  CHECK_CPU(mat);
+  CHECK_CPU(grad);
+
+  mat = mat.contiguous();
+
+  auto M = rowptr.numel() - 1;
+  auto N = mat.size(-2);
+  auto K = mat.size(-1);
+  auto B = mat.numel() / (N * K);
+
+  auto out = at::zeros(col.sizes(), grad.options());
+
+  auto rowptr_data = rowptr.DATA_PTR<int64_t>();
+  auto col_data = col.DATA_PTR<int64_t>();
+  AT_DISPATCH_ALL_TYPES(mat.scalar_type(), "spmm_val_bw", [&] {
+    auto mat_data = mat.DATA_PTR<scalar_t>();
+    auto grad_data = grad.DATA_PTR<scalar_t>();
+    auto out_data = out.DATA_PTR<scalar_t>();
+
+    scalar_t val;
+    int64_t row_start, row_end, c;
+    AT_DISPATCH_REDUCTION_TYPES(reduce, [&] {
+      for (int b = 0; b < B; b++) {
+        for (int m = 0; m < M; m++) {
+          row_start = rowptr_data[m], row_end = rowptr_data[m + 1];
+
+          for (int e = row_start; e < row_end; e++) {
+            c = col_data[e], val = (scalar_t)0;
+            for (int k = 0; k < K; k++) {
+              val += mat_data[b * N * K + c * K + k] *
+                     grad_data[b * M * K + m * K + k];
+            }
+            if (REDUCE == MEAN)
+              val = val / (scalar_t)(row_end - row_start);
+            out_data[e] += val;
+          }
+        }
+      }
+    });
+  });
+
+  return out;
+}
+
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("spmm", &spmm, "Sparse-Dense Matrix Multiplication (CPU)");
+  m.def("spmm_val_bw", &spmm_val_bw,
+        "Sparse-Dense Matrix Multiplication Value Backward (CPU)");
 }

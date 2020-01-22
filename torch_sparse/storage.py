@@ -164,8 +164,9 @@ class SparseStorage(object):
             value = torch.full((self.nnz(), ), device=self.index.device)
         elif torch.is_tensor(value) and get_layout(layout) == 'csc':
             value = value[self.csc2csr]
-        assert value.device == self.index.device
-        assert value.size(0) == self.index.size(1)
+        if torch.is_tensor(value):
+            assert value.device == self.index.device
+            assert value.size(0) == self.index.size(1)
         self._value = value
         return self
 
@@ -268,7 +269,7 @@ class SparseStorage(object):
 
     @cached_property
     def colptr(self):
-        if self._csr2csc:
+        if self.has_csr2csc():
             func = rowptr_cuda if self.index.is_cuda else rowptr_cpu
             return func.rowptr(self.col[self.csr2csc], self.sparse_size(1))
         else:

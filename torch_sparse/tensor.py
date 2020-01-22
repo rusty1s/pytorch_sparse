@@ -214,6 +214,15 @@ class SparseTensor(object):
     def detach(self):
         return self.from_storage(self.storage.apply(lambda x: x.detach()))
 
+    @property
+    def requires_grad(self):
+        return self.storage.value.requires_grad if self.has_value() else False
+
+    def requires_grad_(self, requires_grad=True):
+        if self.has_value():
+            self.storage.value.requires_grad_(requires_grad)
+        return self
+
     def pin_memory(self):
         return self.from_storage(self.storage.apply(lambda x: x.pin_memory()))
 
