@@ -9,19 +9,18 @@ import torch_scatter
 
 from .utils import devices, grad_dtypes
 
-devices = ['cpu']
+devices = ['cpu', 'cuda']
 grad_dtypes = [torch.float]
-
 reductions = ['sum', 'mean', 'min', 'max']
-reductions = ['min']
+reductions = ['min', 'max']
 
 
 @pytest.mark.parametrize('dtype,device,reduce',
                          product(grad_dtypes, devices, reductions))
 def test_spmm(dtype, device, reduce):
     src = torch.randn((10, 8), dtype=dtype, device=device)
-    src[2, :] = 0  # Delete one row...
-    src[:, 2:4] = 0  # Delete one col...
+    src[2:4, :] = 0  # Remove multiple rows.
+    src[:, 2:4] = 0  # Remove multiple columns.
     src = SparseTensor.from_dense(src).requires_grad_()
     (row, col), value = src.coo()
 
@@ -35,7 +34,7 @@ def test_spmm(dtype, device, reduce):
     if reduce == 'min':
         expected[expected > 1000] = 0
     if reduce == 'max':
-        expected[expected < 1000] = 0
+        expected[expected < -1000] = 0
 
     grad_out = torch.randn_like(expected)
 

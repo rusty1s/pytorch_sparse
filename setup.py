@@ -8,7 +8,7 @@ import torch
 from torch.utils.cpp_extension import CppExtension, CUDAExtension, CUDA_HOME
 
 cxx_extra_compile_args = []
-nvcc_extra_compile_args = []
+nvcc_extra_compile_args = ['-arch=sm_35', '--expt-relaxed-constexpr']
 
 TORCH_MAJOR = int(torch.__version__.split('.')[0])
 TORCH_MINOR = int(torch.__version__.split('.')[1])

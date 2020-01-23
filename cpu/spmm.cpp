@@ -88,19 +88,20 @@ template <typename scalar_t, ReductionType REDUCE> struct Reducer {
 std::tuple<at::Tensor, at::optional<at::Tensor>>
 spmm(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
      at::Tensor mat, std::string reduce) {
+
   CHECK_CPU(rowptr);
   CHECK_CPU(col);
   if (value_opt.has_value())
     CHECK_CPU(value_opt.value());
   CHECK_CPU(mat);
 
-  mat = mat.contiguous();
-
   AT_ASSERTM(rowptr.dim() == 1, "Input mismatch");
   AT_ASSERTM(col.dim() == 1, "Input mismatch");
   if (value_opt.has_value())
     AT_ASSERTM(value_opt.value().dim() == 1);
   AT_ASSERTM(mat.dim() >= 2, "Input mismatch");
+
+  mat = mat.contiguous();
 
   auto sizes = mat.sizes().vec();
   sizes[mat.dim() - 2] = rowptr.numel() - 1;
@@ -116,10 +117,10 @@ spmm(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
   auto rowptr_data = rowptr.DATA_PTR<int64_t>();
   auto col_data = col.DATA_PTR<int64_t>();
 
-  auto N = rowptr.numel() - 1;
-  auto M = mat.size(-2);
+  auto M = rowptr.numel() - 1;
+  auto N = mat.size(-2);
   auto K = mat.size(-1);
-  auto B = mat.numel() / (M * K);
+  auto B = mat.numel() / (N * K);
 
   AT_DISPATCH_ALL_TYPES(mat.scalar_type(), "spmm", [&] {
     scalar_t *value_data = nullptr;
@@ -138,13 +139,13 @@ spmm(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
         }
 
         for (int b = 0; b < B; b++) {
-          for (int n = 0; n < N; n++) {
-            row_start = rowptr_data[n], row_end = rowptr_data[n + 1];
+          for (int m = 0; m < M; m++) {
+            row_start = rowptr_data[m], row_end = rowptr_data[m + 1];
 
             for (int k = 0; k < K; k++)
               vals[k] = Reducer<scalar_t, REDUCE>::init();
 
-            int offset = b * M * K;
+            int offset = b * N * K;
             for (int e = row_start; e < row_end; e++) {
               c = col_data[e];
               if (HAS_VAL)
@@ -159,7 +160,7 @@ spmm(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
                       &vals[k], mat_data[offset + c * K + k], &args[k], e);
               }
             }
-            offset = b * N * K + n * K;
+            offset = b * M * K + m * K;
             for (int k = 0; k < K; k++)
               Reducer<scalar_t, REDUCE>::write(out_data + offset + k, vals[k],
                                                arg_out_data + offset + k,
