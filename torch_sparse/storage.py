@@ -175,8 +175,9 @@ class SparseStorage(object):
             value = torch.full((self.nnz(), ), device=self.index.device)
         elif torch.is_tensor(value) and get_layout(layout) == 'csc':
             value = value[self.csc2csr]
-        assert value.device == self._index.device
-        assert value.size(0) == self._index.size(1)
+        if torch.is_tensor(value):
+            assert value.device == self._index.device
+            assert value.size(0) == self._index.size(1)
         return self.__class__(
             self._index,
             value,

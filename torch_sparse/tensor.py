@@ -274,27 +274,32 @@ class SparseTensor(object):
         return self.from_storage(storage)
 
     def to(self, *args, **kwargs):
-        storage = None
+        args = list(args)
 
+        non_blocking = getattr(kwargs, 'non_blocking', False)
+
+        storage = None
         if 'device' in kwargs:
             device = kwargs['device']
             del kwargs['device']
-            storage = self.storage.apply(lambda x: x.to(
-                device, non_blocking=getattr(kwargs, 'non_blocking', False)))
+            storage = self.storage.apply(
+                lambda x: x.to(device, non_blocking=non_blocking))
+        else:
+            for arg in args[:]:
+                if isinstance(arg, str) or isinstance(arg, torch.device):
+                    storage = self.storage.apply(
+                        lambda x: x.to(arg, non_blocking=non_blocking))
+                    args.remove(arg)
 
-        for arg in args[:]:
-            if isinstance(arg, str) or isinstance(arg, torch.device):
-                storage = self.storage.apply(lambda x: x.to(
-                    arg, non_blocking=getattr(kwargs, 'non_blocking', False)))
-                args.remove(arg)
-
-        if storage is not None:
-            self = self.from_storage(storage)
+        storage = self.storage if storage is None else storage
 
         if len(args) > 0 or len(kwargs) > 0:
-            self = self.type(*args, **kwargs)
+            storage = storage.apply_value(lambda x: x.type(*args, **kwargs))
 
-        return self
+        if storage == self.storage:  # Nothing changed...
+            return self
+        else:
+            return self.from_storage(storage)
 
     def bfloat16(self):
         return self.type(torch.bfloat16)
@@ -453,41 +458,6 @@ SparseTensor.remove_diag = remove_diag
 SparseTensor.matmul = matmul
 # SparseTensor.add = add
 # SparseTensor.add_nnz = add_nnz
-
-# def remove_diag(self):
-#     raise NotImplementedError
-
-#     def set_diag(self, value):
-#         raise NotImplementedError
-
-#     def __reduce(self, dim, reduce, only_nnz):
-#         raise NotImplementedError
-
-#     def sum(self, dim):
-#         return self.__reduce(dim, reduce='add', only_nnz=True)
-
-#     def prod(self, dim):
-#         return self.__reduce(dim, reduce='mul', only_nnz=True)
-
-#     def min(self, dim, only_nnz=False):
-#         return self.__reduce(dim, reduce='min', only_nnz=only_nnz)
-
-#     def max(self, dim, only_nnz=False):
-#         return self.__reduce(dim, reduce='min', only_nnz=only_nnz)
-
-#     def mean(self, dim, only_nnz=False):
-#         return self.__reduce(dim, reduce='mean', only_nnz=only_nnz)
-
-#     def matmul(self, mat, reduce='add'):
-#         assert self.numel() == self.nnz()  # Disallow multi-dimensional value
-#         if torch.is_tensor(mat):
-#             raise NotImplementedError
-#         elif isinstance(mat, self.__class__):
-#             assert reduce == 'add'
-#           assert mat.numel() == mat.nnz()  # Disallow multi-dimensional value
-#             raise NotImplementedError
-#         raise ValueError('Argument needs to be of type `torch.tensor` or '
-#                          'type `torch_sparse.SparseTensor`.')
 
 #     def __add__(self, other):
 #         return self.add(other)
