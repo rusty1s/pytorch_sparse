@@ -44,11 +44,11 @@ class SPMM(torch.autograd.Function):
         if ctx.needs_input_grad[5]:
             if ctx.reduce in ['sum', 'add']:
                 grad_value = spmm(grad_out.is_cuda).spmm_val_bw(
-                    rowptr, index[1], mat, grad_out, ctx.reduce)
+                    index, rowptr, mat, grad_out, ctx.reduce)
 
             if ctx.reduce == 'mean':
                 grad_value = spmm(grad_out.is_cuda).spmm_val_bw(
-                    rowptr, index[1], mat, grad_out, ctx.reduce)
+                    index, rowptr, mat, grad_out, ctx.reduce)
 
             elif ctx.reduce in ['min', 'max']:
                 col = index[1][arg_out_ind.flatten()].view_as(arg_out)
@@ -108,5 +108,6 @@ def matmul(src, other, reduce='sum'):
 
     elif isinstance(other, src.__class__):
         assert reduce in ['sum', 'add']
+        raise NotImplementedError
 
     raise ValueError

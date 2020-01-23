@@ -9,10 +9,7 @@ import torch_scatter
 
 from .utils import devices, grad_dtypes
 
-devices = ['cpu', 'cuda']
-grad_dtypes = [torch.float]
 reductions = ['sum', 'mean', 'min', 'max']
-reductions = ['min', 'max']
 
 
 @pytest.mark.parametrize('dtype,device,reduce',

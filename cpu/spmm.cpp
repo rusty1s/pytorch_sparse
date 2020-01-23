@@ -174,46 +174,56 @@ spmm(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
   return std::make_tuple(out, arg_out);
 }
 
-at::Tensor spmm_val_bw(at::Tensor rowptr, at::Tensor col, at::Tensor mat,
+at::Tensor spmm_val_bw(at::Tensor index, at::Tensor rowptr, at::Tensor mat,
                        at::Tensor grad, std::string reduce) {
+  CHECK_CPU(index);
   CHECK_CPU(rowptr);
-  CHECK_CPU(col);
   CHECK_CPU(mat);
   CHECK_CPU(grad);
 
-  mat = mat.contiguous();
+  AT_ASSERTM(index.dim() == 2, "Input mismatch");
+  AT_ASSERTM(index.size(0) == 2, "Input mismatch");
+  AT_ASSERTM(rowptr.dim() == 1, "Input mismatch");
+  AT_ASSERTM(mat.dim() >= 2, "Input mismatch");
+  AT_ASSERTM(mat.dim() == grad.dim(), "Input mismatch");
+  AT_ASSERTM(reduce2REDUCE.at(reduce) == SUM ||
+                 reduce2REDUCE.at(reduce) == MEAN,
+             "Reduce operation not supported");
 
-  auto M = rowptr.numel() - 1;
+  index = index.contiguous();
+  mat = mat.contiguous();
+  grad = grad.contiguous();
+
+  auto M = grad.size(-2);
   auto N = mat.size(-2);
+  auto E = index.size(1);
   auto K = mat.size(-1);
   auto B = mat.numel() / (N * K);
 
-  auto out = at::zeros(col.sizes(), grad.options());
+  auto out = at::zeros(index.size(1), grad.options());
 
+  auto index_data = index.DATA_PTR<int64_t>();
   auto rowptr_data = rowptr.DATA_PTR<int64_t>();
-  auto col_data = col.DATA_PTR<int64_t>();
   AT_DISPATCH_ALL_TYPES(mat.scalar_type(), "spmm_val_bw", [&] {
     auto mat_data = mat.DATA_PTR<scalar_t>();
     auto grad_data = grad.DATA_PTR<scalar_t>();
     auto out_data = out.DATA_PTR<scalar_t>();
 
     scalar_t val;
-    int64_t row_start, row_end, c;
+    int64_t row, col;
     AT_DISPATCH_REDUCTION_TYPES(reduce, [&] {
       for (int b = 0; b < B; b++) {
-        for (int m = 0; m < M; m++) {
-          row_start = rowptr_data[m], row_end = rowptr_data[m + 1];
-
-          for (int e = row_start; e < row_end; e++) {
-            c = col_data[e], val = (scalar_t)0;
-            for (int k = 0; k < K; k++) {
-              val += mat_data[b * N * K + c * K + k] *
-                     grad_data[b * M * K + m * K + k];
-            }
-            if (REDUCE == MEAN)
-              val = val / (scalar_t)(row_end - row_start);
-            out_data[e] += val;
+        for (int e = 0; e < E; e++) {
+          row = index_data[e], col = index_data[E + e], val = (scalar_t)0;
+          for (int k = 0; k < K; k++) {
+            val += mat_data[b * N * K + col * K + k] *
+                   grad_data[b * M * K + row * K + k];
           }
+          if (REDUCE == MEAN) {
+            int row_start = rowptr_data[row], row_end = rowptr_data[row + 1];
+            val /= (scalar_t)std::max(row_end - row_start, 1);
+          }
+          out_data[e] += val;
         }
       }
     });

@@ -12,6 +12,7 @@ from torch_sparse.index_select import index_select, index_select_nnz
 from torch_sparse.masked_select import masked_select, masked_select_nnz
 import torch_sparse.reduce
 from torch_sparse.diag import remove_diag
+from torch_sparse.matmul import matmul
 
 
 class SparseTensor(object):
@@ -410,6 +411,9 @@ class SparseTensor(object):
 
         return out
 
+    def __matmul__(a, b):
+        return matmul(a, b, reduce='sum')
+
     # String Reputation #######################################################
 
     def __repr__(self):
@@ -446,6 +450,7 @@ SparseTensor.mean = torch_sparse.reduce.mean
 SparseTensor.min = torch_sparse.reduce.min
 SparseTensor.max = torch_sparse.reduce.max
 SparseTensor.remove_diag = remove_diag
+SparseTensor.matmul = matmul
 # SparseTensor.add = add
 # SparseTensor.add_nnz = add_nnz
 

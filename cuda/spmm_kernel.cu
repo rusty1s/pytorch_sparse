@@ -99,12 +99,11 @@ __global__ void spmm_kernel(const int64_t *rowptr_data, const int64_t *col_data,
   // Helper arrays for warp communication.
   int mat_row, mat_rows[32];
   scalar_t val, vals[HAS_VAL ? 32 : 1];
-  int bla, blas[32];
 
   // Do not aggregate/write across the Y-axis (lane_idx < leftover).
   int leftover = K - (blockIdx.y << 5);
 
-  if (row < B * M) {
+  if (batch_idx < B) {
     int row_start = __ldg(rowptr_data + (row % M));
     int row_end = __ldg(rowptr_data + (row % M) + 1);
     int col_idx = row_start + lane_idx;
@@ -118,12 +117,10 @@ __global__ void spmm_kernel(const int64_t *rowptr_data, const int64_t *col_data,
       if (col_idx < row_end) {
         // Coalesced memory access into `col` and `val`.
         mat_row = __ldg(col_data + col_idx) * K;
-        bla = col_idx;
         if (HAS_VAL)
           val = __ldg(value_data + col_idx);
       } else {
         mat_row = -1;
-        bla = -1;
         if (HAS_VAL)
           val = (scalar_t)0;
       }
@@ -133,7 +130,6 @@ __global__ void spmm_kernel(const int64_t *rowptr_data, const int64_t *col_data,
       for (int i = 0; i < 32; i++) {
         // Communication between all threads in a warp.
         mat_rows[i] = __shfl_sync(FULL_MASK, mat_row, i);
-        blas[i] = __shfl_sync(FULL_MASK, bla, i);
         if (HAS_VAL)
           vals[i] = __shfl_sync(FULL_MASK, val, i);
       }
@@ -182,9 +178,6 @@ spmm_cuda(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
     arg_out_data = arg_out.value().DATA_PTR<int64_t>();
   }
 
-  auto rowptr_data = rowptr.DATA_PTR<int64_t>();
-  auto col_data = col.DATA_PTR<int64_t>();
-
   auto M = rowptr.numel() - 1;
   auto N = mat.size(-2);
   auto K = mat.size(-1);
@@ -193,6 +186,8 @@ spmm_cuda(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
 
   auto stream = at::cuda::getCurrentCUDAStream();
   AT_DISPATCH_ALL_TYPES(mat.scalar_type(), "spmm_kernel", [&] {
+    auto rowptr_data = rowptr.DATA_PTR<int64_t>();
+    auto col_data = col.DATA_PTR<int64_t>();
     auto mat_data = mat.DATA_PTR<scalar_t>();
     auto out_data = out.DATA_PTR<scalar_t>();
 
@@ -211,4 +206,85 @@ spmm_cuda(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
   });
 
   return std::make_tuple(out, arg_out);
+}
+
+template <typename scalar_t, ReductionType REDUCE>
+__global__ void
+spmm_val_bw_kernel(const int64_t *index_data, const int64_t *rowptr_data,
+                   const scalar_t *mat_data, const scalar_t *grad_data,
+                   scalar_t *out_data, int B, int M, int N, int E, int K) {
+  int thread_idx = blockDim.x * blockIdx.x + threadIdx.x;
+
+  int index_idx = (thread_idx >> 5);    // thread_idx / 32
+  int lane_idx = thread_idx & (32 - 1); // thread_idx % 32
+
+  if (index_idx < E) {
+    int row = __ldg(index_data + index_idx);
+    int col = __ldg(index_data + E + index_idx);
+
+    scalar_t val = (scalar_t)0;
+    for (int b = 0; b < B; b++) {
+      for (int k = lane_idx; k < K; k += 32) {
+        val += mat_data[b * N * K + col * K + k] *
+               grad_data[b * M * K + row * K + k];
+      }
+    }
+
+#pragma unroll
+    for (int i = 32 / 2; i > 0; i /= 2) { // Parallel reduction inside a warp.
+      val += __shfl_down_sync(FULL_MASK, val, i);
+    }
+
+    if (lane_idx == 0) {
+      if (REDUCE == MEAN) {
+        int row_start = __ldg(rowptr_data + row);
+        int row_end = __ldg(rowptr_data + row + 1);
+        val /= (scalar_t)max(row_end - row_start, 1);
+      }
+      out_data[index_idx] = val;
+    }
+  }
+}
+
+at::Tensor spmm_val_bw_cuda(at::Tensor index, at::Tensor rowptr, at::Tensor mat,
+                            at::Tensor grad, std::string reduce) {
+
+  AT_ASSERTM(index.dim() == 2, "Input mismatch");
+  AT_ASSERTM(index.size(0) == 2, "Input mismatch");
+  AT_ASSERTM(rowptr.dim() == 1, "Input mismatch");
+  AT_ASSERTM(mat.dim() >= 2, "Input mismatch");
+  AT_ASSERTM(mat.dim() == grad.dim(), "Input mismatch");
+  AT_ASSERTM(reduce2REDUCE.at(reduce) == SUM ||
+                 reduce2REDUCE.at(reduce) == MEAN,
+             "Reduce operation not supported");
+
+  index = index.contiguous();
+  mat = mat.contiguous();
+  grad = grad.contiguous();
+
+  auto M = grad.size(-2);
+  auto N = mat.size(-2);
+  auto E = index.size(1);
+  auto K = mat.size(-1);
+  auto B = mat.numel() / (N * K);
+  auto BLOCKS = dim3((E * 32 + THREADS - 1) / THREADS);
+
+  auto out = at::empty(index.size(1), grad.options());
+
+  auto stream = at::cuda::getCurrentCUDAStream();
+  AT_DISPATCH_ALL_TYPES(mat.scalar_type(), "spmm_val_bw_kernel", [&] {
+    auto index_data = index.DATA_PTR<int64_t>();
+    auto rowptr_data = rowptr.DATA_PTR<int64_t>();
+    auto mat_data = mat.DATA_PTR<scalar_t>();
+    auto grad_data = grad.DATA_PTR<scalar_t>();
+    auto out_data = out.DATA_PTR<scalar_t>();
+
+    AT_DISPATCH_REDUCTION_TYPES(reduce, [&] {
+      spmm_val_bw_kernel<scalar_t, REDUCE>
+          <<<BLOCKS, THREADS, 0, stream>>>(index_data, rowptr_data, mat_data,
+                                           grad_data, out_data, B, M, N, E, K);
+    });
+  });
+
+  return out;
 }
