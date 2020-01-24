@@ -1,5 +1,5 @@
 import torch
-
+import scipy.sparse
 from torch_sparse import spmm_cpu
 from torch_scatter import scatter_add
 
@@ -7,6 +7,11 @@ try:
     from torch_sparse import spmm_cuda
 except ImportError:
     spmm_cuda = None
+
+try:
+    from torch_sparse import spspmm_cuda
+except ImportError:
+    spspmm_cuda = None
 
 
 def spmm(is_cuda):
@@ -61,10 +66,9 @@ class SPMM(torch.autograd.Function):
         grad_mat = None
         if ctx.needs_input_grad[6]:
             if ctx.reduce in ['sum', 'add']:
-                row = index[0][csr2csc]
                 value = value[csr2csc] if value is not None else value
                 grad_mat, _ = spmm(grad_out.is_cuda).spmm(
-                    colptr, row, value, grad_out, 'sum')
+                    colptr, index[0][csr2csc], value, grad_out, 'sum')
 
             elif ctx.reduce == 'mean':
                 count = rowcount[index[0]].to(mat.dtype).clamp_(min=1)
@@ -88,9 +92,61 @@ class SPMM(torch.autograd.Function):
         return None, None, None, None, None, grad_value, grad_mat, None
 
 
+class SPSPMM(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, rowptrA, colA, valueA, rowptrB, colB, valueB, M, N, K):
+        if rowptrA.is_cuda:
+            indexC, rowptrC, valueC = spspmm_cuda.spspmm(
+                rowptrA, colA, valueA, rowptrB, colB, valueB, M, N, K)
+        else:
+            dtype = None
+            if valueA is not None:
+                dtype = valueA.dtype
+            if valueB is not None:
+                dtype = valueB.dtype
+
+            if valueA is None:
+                valueA = torch.ones(colA.numel(), dtype=dtype)
+            A = scipy.sparse.csr_matrix((valueA, colA, rowptrA), (M, N))
+
+            if valueB is None:
+                valueB = torch.ones(colB.numel(), dtype=dtype)
+            B = scipy.sparse.csr_matrix((valueB, colB, rowptrB), (N, K))
+
+            C = A @ B
+
+            valueC = torch.from_numpy(
+                C.data).to(dtype) if dtype is not None else None
+            rowptrC = torch.from_numpy(C.indptr).to(torch.int64)
+            C = C.tocoo()
+            rowC = torch.from_numpy(C.row).to(torch.int64)
+            colC = torch.from_numpy(C.col).to(torch.int64)
+            indexC = torch.stack([rowC, colC], dim=0)
+
+        # We cannot return `NoneType` in torch.autograd :(
+        if valueC is None:
+            return indexC, rowptrC
+        else:
+            return indexC, rowptrC, valueC
+
+    @staticmethod
+    def backward(ctx, grad_indexC, grad_rowptrC, *args):
+        grad_valueA = None
+        if ctx.needs_input_grad[2]:
+            raise NotImplementedError
+
+        grad_valueB = None
+        if ctx.needs_input_grad[5]:
+            raise NotImplementedError
+
+        return (None, None, grad_valueA, None, None, grad_valueB, None, None,
+                None)
+
+
 def matmul(src, other, reduce='sum'):
     assert src.dim() == 2 and src.size(-1) == other.size(-2)
 
+    # Sparse-Dense Matrix Multiplication.
     if torch.is_tensor(other):
         assert reduce in ['sum', 'add', 'mean', 'min', 'max']
         (index, value), rowptr = src.coo(), src.storage.rowptr
@@ -106,8 +162,16 @@ def matmul(src, other, reduce='sum'):
         return SPMM.apply(index, rowcount, rowptr, colptr, csr2csc, value,
                           other, reduce)
 
+    # Sparse-Sparse Matrix Multiplication.
     elif isinstance(other, src.__class__):
         assert reduce in ['sum', 'add']
-        raise NotImplementedError
+        assert src.dim() == 2 and other.dim() == 2
+        data = SPSPMM.apply(*src.csr(), *other.csr(), src.size(0), src.size(1),
+                            other.size(1))
+        data = data if len(data) == 3 else data + (None, )
+        sparse_size = torch.Size([src.size(0), other.size(1)])
+        out = src.__class__(data[0], data[2], sparse_size, is_sorted=True)
+        out.storage._rowptr = data[1]
+        return out
 
     raise ValueError

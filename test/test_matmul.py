@@ -48,3 +48,19 @@ def test_spmm(dtype, device, reduce):
     assert torch.allclose(expected, out)
     assert torch.allclose(expected_grad_value, value.grad)
     assert torch.allclose(expected_grad_other, other.grad)
+
+
+@pytest.mark.parametrize('dtype,device', product(grad_dtypes, devices))
+def test_spspmm(dtype, device):
+    src = torch.tensor([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=dtype,
+                       device=device)
+
+    src = SparseTensor.from_dense(src)
+    out = src @ src
+    assert out.size() == (3, 3)
+    assert out.has_value()
+
+    src.set_value_(None)
+    out = src @ src
+    assert out.size() == (3, 3)
+    assert not out.has_value()
