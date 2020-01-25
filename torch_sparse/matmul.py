@@ -30,6 +30,7 @@ class SPMM(torch.autograd.Function):
                               mat, arg_out)
 
         if reduce == 'min' or reduce == 'max':
+            ctx.mark_non_differentiable(arg_out)
             return out, arg_out
         else:
             return out
@@ -122,6 +123,8 @@ class SPSPMM(torch.autograd.Function):
             rowC = torch.from_numpy(C.row).to(torch.int64)
             colC = torch.from_numpy(C.col).to(torch.int64)
             indexC = torch.stack([rowC, colC], dim=0)
+
+        ctx.mark_non_differentiable(indexC, rowptrC)
 
         # We cannot return `NoneType` in torch.autograd :(
         if valueC is None:
