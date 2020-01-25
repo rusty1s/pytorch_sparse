@@ -29,21 +29,20 @@ def transpose(index, value, m, n, coalesced=True):
 
 
 def t(src):
-    index, value = src.coo()
+    row, col, value = src.coo()
     csr2csc = src.storage.csr2csc
 
-    new_index = torch.empty_like(index)
-    torch.index_select(index[1], 0, csr2csc, out=new_index[0])
-    torch.index_select(index[0], 0, csr2csc, out=new_index[1])
+    row, col = col[csr2csc], row[csr2csc]
 
     storage = src.storage.__class__(
-        index=new_index,
-        value=value[csr2csc] if src.has_value() else None,
-        sparse_size=src.sparse_size()[::-1],
-        rowcount=src.storage._colcount,
+        row=col,
         rowptr=src.storage._colptr,
-        colcount=src.storage._rowcount,
+        col=row,
+        value=value[csr2csc] if src.has_value() else None,
+        sparse_size=src.storage.sparse_size[::-1],
+        rowcount=src.storage._colcount,
         colptr=src.storage._rowptr,
+        colcount=src.storage._rowcount,
         csr2csc=src.storage._csc2csr,
         csc2csr=csr2csc,
         is_sorted=True,
