@@ -80,7 +80,7 @@ class SparseStorage(object):
         assert col.dim() == 1
 
         if sparse_size is None:
-            M = rowptr.numel() - 1 if rowptr is None else row.max().item() + 1
+            M = rowptr.numel() - 1 if row is None else row.max().item() + 1
             N = col.max().item() + 1
             sparse_size = torch.Size([M, N])
 

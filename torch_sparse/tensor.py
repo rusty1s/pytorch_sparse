@@ -355,7 +355,7 @@ class SparseTensor(object):
                                        device=self.device,
                                        requires_grad=requires_grad)
 
-    def to_scipy(self, dtype=None, layout="csr"):
+    def to_scipy(self, layout=None, dtype=None):
         assert self.dim() == 2
         layout = get_layout(layout)
 
