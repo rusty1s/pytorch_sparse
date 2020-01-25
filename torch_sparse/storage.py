@@ -3,12 +3,12 @@ import warnings
 import torch
 from torch_scatter import segment_csr, scatter_add
 
-from torch_sparse import rowptr_cpu
+from torch_sparse import convert_cpu
 
 try:
-    from torch_sparse import rowptr_cuda
+    from torch_sparse import convert_cuda
 except ImportError:
-    rowptr_cuda = None
+    convert_cuda = None
 
 __cache__ = {'enabled': True}
 
@@ -159,8 +159,8 @@ class SparseStorage(object):
     @property
     def row(self):
         if self._row is None:
-            # TODO
-            pass
+            func = convert_cuda if self.rowptr.is_cuda else convert_cpu
+            self._row = func.ptr2ind(self.rowptr, self.nnz())
         return self._row
 
     def has_rowptr(self):
@@ -169,8 +169,8 @@ class SparseStorage(object):
     @property
     def rowptr(self):
         if self._rowptr is None:
-            func = rowptr_cuda if self.row.is_cuda else rowptr_cpu
-            self._rowptr = func.rowptr(self.row, self.sparse_size[0])
+            func = convert_cuda if self.row.is_cuda else convert_cpu
+            self._rowptr = func.ind2ptr(self.row, self.sparse_size[0])
         return self._rowptr
 
     @property
@@ -258,6 +258,9 @@ class SparseStorage(object):
                               colcount=colcount, csr2csc=self._csr2csc,
                               csc2csr=self._csc2csr, is_sorted=True)
 
+    def nnz(self):
+        return self.col.numel()
+
     def has_rowcount(self):
         return self._rowcount is not None
 
@@ -271,8 +274,8 @@ class SparseStorage(object):
     @cached_property
     def colptr(self):
         if self.has_csr2csc():
-            func = rowptr_cuda if self.col.is_cuda else rowptr_cpu
-            return func.rowptr(self.col[self.csr2csc], self.sparse_size[1])
+            func = convert_cuda if self.col.is_cuda else convert_cpu
+            return func.ind2ptr(self.col[self.csr2csc], self.sparse_size[1])
         else:
             colptr = self.col.new_zeros(self.sparse_size[1] + 1)
             torch.cumsum(self.colcount, dim=0, out=colptr[1:])

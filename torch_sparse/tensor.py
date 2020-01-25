@@ -178,7 +178,7 @@ class SparseTensor(object):
         return self.size()
 
     def nnz(self):
-        return self.storage.index.size(1)
+        return self.storage.nnz()
 
     def density(self):
         return self.nnz() / (self.sparse_size(0) * self.sparse_size(1))
