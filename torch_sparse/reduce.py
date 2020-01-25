@@ -4,13 +4,13 @@ from torch_scatter import segment_csr
 
 
 def reduction(src, dim=None, reduce='sum', deterministic=False):
-    assert reduce in ['sum', 'mean', 'min', 'max']
+    assert reduce in ['sum', 'add', 'mean', 'min', 'max']
 
     if dim is None and src.has_value():
         return getattr(torch, reduce)(src.storage.value)
 
     if dim is None and not src.has_value():
-        value = src.nnz() if reduce == 'sum' else 1
+        value = src.nnz() if reduce in ['sum', 'add'] else 1
         return torch.tensor(value, device=src.device)
 
     dims = [dim] if isinstance(dim, int) else dim
@@ -26,7 +26,7 @@ def reduction(src, dim=None, reduce='sum', deterministic=False):
         return getattr(torch, reduce)(value, dim=(0, ) + dense_dims)
 
     if len(sparse_dims) == 2 and not src.has_value():
-        value = src.nnz() if reduce == 'sum' else 1
+        value = src.nnz() if reduce in ['sum', 'add'] else 1
         return torch.tensor(value, device=src.device)
 
     if len(dense_dims) > 0 and len(sparse_dims) == 0:  # src.has_value()
@@ -47,7 +47,7 @@ def reduction(src, dim=None, reduce='sum', deterministic=False):
         return out
 
     if sparse_dims[0] == 1 and not src.has_value():
-        if reduce == 'sum':
+        if reduce in ['sum', 'add']:
             return src.storage.rowcount.to(torch.get_default_dtype())
         elif reduce == 'min' or 'max':
             # Return an additional `None` arg(min|max) tensor for consistency.
@@ -71,7 +71,7 @@ def reduction(src, dim=None, reduce='sum', deterministic=False):
         return out
 
     if sparse_dims[0] == 0 and not src.has_value():
-        if reduce == 'sum':
+        if reduce in ['sum', 'add']:
             return src.storage.colcount.to(torch.get_default_dtype())
         elif reduce == 'min' or 'max':
             # Return an additional `None` arg(min|max) tensor for consistency.

@@ -433,8 +433,17 @@ class SparseTensor(object):
     def __iadd__(self, other):
         return self.add_(other)
 
-    def __matmul__(a, b):
-        return matmul(a, b, reduce='sum')
+    def __mul__(self, other):
+        return self.mul(other)
+
+    def __rmul__(self, other):
+        return self.mul(other)
+
+    def __imul__(self, other):
+        return self.mul_(other)
+
+    def __matmul__(self, other):
+        return matmul(self, other, reduce='sum')
 
     # String Reputation #######################################################
 
@@ -479,27 +488,3 @@ SparseTensor.add = add
 SparseTensor.add_ = add_
 SparseTensor.add_nnz = add_nnz
 SparseTensor.add_nnz_ = add_nnz_
-
-#     def __add__(self, other):
-#         return self.add(other)
-
-#     def __radd__(self, other):
-#         return self.add(other)
-
-#     def sub(self, layout=None):
-#         raise NotImplementedError
-
-#     def sub_(self, layout=None):
-#         raise NotImplementedError
-
-#     def mul(self, layout=None):
-#         raise NotImplementedError
-
-#     def mul_(self, layout=None):
-#         raise NotImplementedError
-
-#     def div(self, layout=None):
-#         raise NotImplementedError
-
-#     def div_(self, layout=None):
-#         raise NotImplementedError
