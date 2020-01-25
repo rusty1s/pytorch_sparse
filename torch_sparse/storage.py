@@ -99,7 +99,6 @@ class SparseStorage(object):
         if value is not None:
             assert value.device == col.device
             assert value.size(0) == col.size(0)
-            value = value.contiguous()
 
         if rowcount is not None:
             assert rowcount.dtype == torch.long
@@ -160,7 +159,7 @@ class SparseStorage(object):
     def row(self):
         if self._row is None:
             func = convert_cuda if self.rowptr.is_cuda else convert_cpu
-            self._row = func.ptr2ind(self.rowptr, self.nnz())
+            self._row = func.ptr2ind(self.rowptr, self.col.numel())
         return self._row
 
     def has_rowptr(self):
@@ -184,9 +183,9 @@ class SparseStorage(object):
     def value(self):
         return self._value
 
-    def set_value_(self, value, dtype=None, layout=None):
+    def set_value_(self, value, layout=None, dtype=None):
         if isinstance(value, int) or isinstance(value, float):
-            value = torch.full((self.nnz(), ), dtype=dtype,
+            value = torch.full((self.col.numel(), ), dtype=dtype,
                                device=self.col.device)
 
         elif torch.is_tensor(value) and get_layout(layout) == 'csc':
@@ -200,9 +199,9 @@ class SparseStorage(object):
         self._value = value
         return self
 
-    def set_value(self, value, dtype=None, layout=None):
+    def set_value(self, value, layout=None, dtype=None):
         if isinstance(value, int) or isinstance(value, float):
-            value = torch.full((self.nnz(), ), dtype=dtype,
+            value = torch.full((self.col.numel(), ), dtype=dtype,
                                device=self.col.device)
 
         elif torch.is_tensor(value) and get_layout(layout) == 'csc':
@@ -224,7 +223,7 @@ class SparseStorage(object):
         return self._sparse_size
 
     def sparse_resize(self, *sizes):
-        old_sparse_size, nnz = self.sparse_size, self.nnz()
+        old_sparse_size, nnz = self.sparse_size, self.col.numel()
 
         diff_0 = sizes[0] - old_sparse_size[0]
         rowcount, rowptr = self._rowcount, self._rowptr
@@ -257,9 +256,6 @@ class SparseStorage(object):
                               rowcount=rowcount, colptr=colptr,
                               colcount=colcount, csr2csc=self._csr2csc,
                               csc2csr=self._csc2csr, is_sorted=True)
-
-    def nnz(self):
-        return self.col.numel()
 
     def has_rowcount(self):
         return self._rowcount is not None
