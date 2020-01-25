@@ -126,13 +126,13 @@ def cat(tensors, dim):
 
         old_storage = tensors[0].storage
         storage = old_storage.__class__(
-            tensors[0].storage.index,
+            row=old_storage._row,
+            rowptr=old_storage._rowptr,
+            col=old_storage._col,
             value=torch.cat(values, dim=dim - 1),
             sparse_size=old_storage.sparse_size(),
-            rowcount=old_storage._rowcount,
-            rowptr=old_storage._rowptr,
-            colcount=old_storage._colcount,
             colptr=old_storage._colptr,
+            colcount=old_storage._colcount,
             csr2csc=old_storage._csr2csc,
             csc2csr=old_storage._csc2csr,
             is_sorted=True,
