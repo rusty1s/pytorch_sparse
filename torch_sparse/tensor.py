@@ -14,6 +14,7 @@ import torch_sparse.reduce
 from torch_sparse.diag import remove_diag, set_diag
 from torch_sparse.matmul import matmul
 from torch_sparse.add import add, add_, add_nnz, add_nnz_
+from torch_sparse.mul import mul, mul_, mul_nnz, mul_nnz_
 
 
 class SparseTensor(object):
@@ -455,7 +456,7 @@ class SparseTensor(object):
         infos += [f'col={indent(col.__repr__(), i)[len(i):]}']
 
         if self.has_value():
-            infos += [f'value={indent(value.__repr__(), i)[len(i):]}']
+            infos += [f'val={indent(value.__repr__(), i)[len(i):]}']
 
         infos += [
             f'size={tuple(self.size())}, '
@@ -482,10 +483,28 @@ SparseTensor.sum = torch_sparse.reduce.sum
 SparseTensor.mean = torch_sparse.reduce.mean
 SparseTensor.min = torch_sparse.reduce.min
 SparseTensor.max = torch_sparse.reduce.max
-SparseTensor.remove_diag = remove_diag  #TODO
-SparseTensor.set_diag = set_diag  #TODO
-SparseTensor.matmul = matmul  # TODO
+SparseTensor.remove_diag = remove_diag
+SparseTensor.set_diag = set_diag
+SparseTensor.matmul = matmul
 SparseTensor.add = add
 SparseTensor.add_ = add_
 SparseTensor.add_nnz = add_nnz
 SparseTensor.add_nnz_ = add_nnz_
+SparseTensor.mul = mul
+SparseTensor.mul_ = mul_
+SparseTensor.mul_nnz = mul_nnz
+SparseTensor.mul_nnz_ = mul_nnz_
+
+# Fix for PyTorch<=1.3 (https://github.com/pytorch/pytorch/pull/31769):
+TORCH_MAJOR = int(torch.__version__.split('.')[0])
+TORCH_MINOR = int(torch.__version__.split('.')[1])
+if (TORCH_MAJOR <= 1) or (TORCH_MAJOR == 1 and TORCH_MINOR < 4):
+
+    def add(self, other):
+        return self.add(other) if torch.is_tensor(other) else NotImplemented
+
+    def mul(self, other):
+        return self.mul(other) if torch.is_tensor(other) else NotImplemented
+
+    torch.Tensor.__add__ = add
+    torch.Tensor.__mul__ = add

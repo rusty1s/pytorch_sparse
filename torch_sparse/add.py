@@ -2,6 +2,10 @@ import torch
 from torch_scatter import gather_csr
 
 
+def is_scalar(other):
+    return isinstance(other, int) or isinstance(other, float)
+
+
 def sparse_add(matA, matB):
     nnzA, nnzB = matA.nnz(), matB.nnz()
     valA = torch.full((nnzA, ), 1, dtype=torch.uint8, device=matA.device)
@@ -38,7 +42,7 @@ def sparse_add(matA, matB):
 
 
 def add(src, other):
-    if isinstance(other, int) or isinstance(other, float):
+    if is_scalar(other):
         return add_nnz(src, other)
 
     elif torch.is_tensor(other):
@@ -65,7 +69,7 @@ def add(src, other):
 
 
 def add_(src, other):
-    if isinstance(other, int) or isinstance(other, float):
+    if is_scalar(other):
         return add_nnz_(src, other)
 
     elif torch.is_tensor(other):
@@ -98,7 +102,7 @@ def add_(src, other):
 
 
 def add_nnz(src, other, layout=None):
-    if isinstance(other, int) or isinstance(other, float):
+    if is_scalar(other):
         if src.has_value():
             value = src.storage.value + other
         else:
@@ -117,7 +121,7 @@ def add_nnz(src, other, layout=None):
 
 
 def add_nnz_(src, other, layout=None):
-    if isinstance(other, int) or isinstance(other, float):
+    if is_scalar(other):
         if src.has_value():
             value = src.storage.value.add_(other)
         else:
