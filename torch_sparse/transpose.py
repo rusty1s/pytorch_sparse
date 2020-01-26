@@ -29,16 +29,13 @@ def transpose(index, value, m, n, coalesced=True):
 
 
 def t(src):
-    row, col, value = src.coo()
     csr2csc = src.storage.csr2csc
 
-    row, col = col[csr2csc], row[csr2csc]
-
     storage = src.storage.__class__(
-        row=col,
+        row=src.storage.col[csr2csc],
         rowptr=src.storage._colptr,
-        col=row,
-        value=value[csr2csc] if src.has_value() else None,
+        col=src.storage.row[csr2csc],
+        value=src.storage.value[csr2csc] if src.has_value() else None,
         sparse_size=src.storage.sparse_size[::-1],
         rowcount=src.storage._colcount,
         colptr=src.storage._rowptr,
