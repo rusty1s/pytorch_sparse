@@ -22,7 +22,7 @@ def cat(tensors, dim):
 
     if dim == 0:
         for tensor in tensors:
-            (row, col), value = tensor.coo()
+            row, col, value = tensor.coo()
             rows += [row + sparse_size[0]]
             cols += [col]
             values += [value]
@@ -48,7 +48,7 @@ def cat(tensors, dim):
 
     elif dim == 1:
         for tensor in tensors:
-            (row, col), value = tensor.coo()
+            row, col, value = tensor.coo()
             rows += [row]
             cols += [col + sparse_size[1]]
             values += [value]
@@ -76,7 +76,7 @@ def cat(tensors, dim):
 
     elif dim == (0, 1) or dim == (1, 0):
         for tensor in tensors:
-            (row, col), value = tensor.coo()
+            row, col, value = tensor.coo()
             rows += [row + sparse_size[0]]
             cols += [col + sparse_size[1]]
             values += [value] if has_value else []

@@ -19,7 +19,7 @@ def test_spmm(dtype, device, reduce):
     src[2:4, :] = 0  # Remove multiple rows.
     src[:, 2:4] = 0  # Remove multiple columns.
     src = SparseTensor.from_dense(src).requires_grad_()
-    (row, col), value = src.coo()
+    row, col, value = src.coo()
 
     other = torch.randn((2, 8, 2), dtype=dtype, device=device,
                         requires_grad=True)

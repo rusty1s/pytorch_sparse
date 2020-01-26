@@ -40,24 +40,20 @@ class SPMM(torch.autograd.Function):
          arg_out) = ctx.saved_tensors
 
         invalid_arg_mask = arg_out_ind = None
-        if ctx.reduce in ['min', 'max'] and (ctx.needs_input_grad[5]
-                                             or ctx.needs_input_grad[6]):
-            invalid_arg_mask = arg_out == row.size(0)
+        if ctx.reduce in ['min', 'max'] and (ctx.needs_input_grad[3]
+                                             or ctx.needs_input_grad[4]):
+            invalid_arg_mask = arg_out == col.size(0)
             arg_out_ind = arg_out.masked_fill(invalid_arg_mask, -1)
 
         grad_value = None
         if ctx.needs_input_grad[3]:
-            if ctx.reduce in ['sum', 'add']:
-                grad_value = spmm(grad_out.is_cuda).spmm_val_bw(
-                    row, rowptr, col, mat, grad_out, ctx.reduce)
-
-            if ctx.reduce == 'mean':
+            if ctx.reduce in ['sum', 'add', 'mean']:
                 grad_value = spmm(grad_out.is_cuda).spmm_val_bw(
                     row, rowptr, col, mat, grad_out, ctx.reduce)
 
             elif ctx.reduce in ['min', 'max']:
-                col = col[arg_out_ind.flatten()].view_as(arg_out)
-                out = mat.gather(-2, col).mul_(grad_out)
+                col_tmp = col[arg_out_ind.flatten()].view_as(arg_out)
+                out = mat.gather(-2, col_tmp).mul_(grad_out)
                 out.masked_fill_(invalid_arg_mask, 0)
                 grad_value = scatter_add(out.flatten(), arg_out.flatten(),
                                          dim=0, dim_size=value.numel() + 1)
@@ -85,8 +81,8 @@ class SPMM(torch.autograd.Function):
                 else:
                     value = grad_out
                 value.masked_fill_(invalid_arg_mask, 0)
-                col = col[arg_out_ind.flatten()].view_as(arg_out)
-                grad_mat = scatter_add(value, col, dim=-2,
+                col_tmp = col[arg_out_ind.flatten()].view_as(arg_out)
+                grad_mat = scatter_add(value, col_tmp, dim=-2,
                                        dim_size=mat.size(-2))
 
         return None, None, None, grad_value, grad_mat, None, None, None, None
@@ -119,7 +115,7 @@ class SPSPMM(torch.autograd.Function):
             rowptrC = torch.from_numpy(C.indptr).to(torch.int64)
             colC = torch.from_numpy(C.indices).to(torch.int64)
             valueC = torch.from_numpy(C.data)
-            valueC = valueC.to(dtype) if dtype is not None else valueC
+            valueC = valueC.to(dtype) if dtype is not None else None
 
         ctx.mark_non_differentiable(rowptrC, colC)
 
@@ -152,8 +148,8 @@ def matmul(src, other, reduce='sum'):
         rowptr, col, value = src.csr()
 
         row = None
-        if reduce in ['sum', 'add'] and (src.requires_grad
-                                         or other.reuqires_grad):
+        if reduce in ['sum', 'add', 'mean'] and (src.requires_grad
+                                                 or other.reuqires_grad):
             row = src.storage.row
 
         rowcount = None
