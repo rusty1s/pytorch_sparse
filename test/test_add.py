@@ -22,21 +22,21 @@ def test_sparse_add(dtype, device):
 
     mat1 = mat[:, 0:100000]
     mat2 = mat[:, 100000:200000]
-    print(mat1.shape)
-    print(mat2.shape)
+    # print(mat1.shape)
+    # print(mat2.shape)
 
     # 0.0159 to beat
     t = time.perf_counter()
     mat = sparse_add(mat1, mat2)
-    print(time.perf_counter() - t)
-    print(mat.nnz())
+    # print(time.perf_counter() - t)
+    # print(mat.nnz())
 
     mat1 = mat_scipy[:, 0:100000]
     mat2 = mat_scipy[:, 100000:200000]
     t = time.perf_counter()
     mat = mat1 + mat2
-    print(time.perf_counter() - t)
-    print(mat.nnz)
+    # print(time.perf_counter() - t)
+    # print(mat.nnz)
 
     # mat1 + mat2
 

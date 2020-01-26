@@ -11,7 +11,7 @@ except ImportError:
 def remove_diag(src, k=0):
     row, col, value = src.coo()
     inv_mask = row != col if k == 0 else row != (col - k)
-    row, col = row[inv_mask], col[inv_mask]
+    new_row, new_col = row[inv_mask], col[inv_mask]
 
     if src.has_value():
         value = value[inv_mask]
@@ -29,7 +29,7 @@ def remove_diag(src, k=0):
         colcount = src.storage.colcount.clone()
         colcount[col[mask]] -= 1
 
-    storage = src.storage.__class__(row=row, col=col, value=value,
+    storage = src.storage.__class__(row=new_row, col=new_col, value=value,
                                     sparse_size=src.sparse_size(),
                                     rowcount=rowcount, colcount=colcount,
                                     is_sorted=True)
@@ -61,7 +61,7 @@ def set_diag(src, values=None, k=0):
 
     new_value = None
     if src.has_value():
-        new_value = torch.new_empty((mask.size(0), ) + value.size()[1:])
+        new_value = value.new_empty((mask.size(0), ) + value.size()[1:])
         new_value[mask] = value
         new_value[inv_mask] = values if values is not None else 1
 

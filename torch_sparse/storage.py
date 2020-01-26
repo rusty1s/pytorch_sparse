@@ -154,7 +154,7 @@ class SparseStorage(object):
             idx = self.col.new_zeros(col.numel() + 1)
             idx[1:] = sparse_size[1] * self.row + self.col
             if (idx[1:] < idx[:-1]).any():
-                perm = idx.argsort()
+                perm = idx[1:].argsort()
                 self._row = self.row[perm]
                 self._col = self.col[perm]
                 self._value = self.value[perm] if self.has_value() else None
@@ -313,12 +313,12 @@ class SparseStorage(object):
         return self.csr2csc.argsort()
 
     def is_coalesced(self):
-        idx = self.col.new_zeros(self.col.numel() + 1)
+        idx = self.col.new_full((self.col.numel() + 1, ), -1)
         idx[1:] = self.sparse_size[1] * self.row + self.col
         return (idx[1:] > idx[:-1]).all().item()
 
     def coalesce(self, reduce='add'):
-        idx = self.col.new_zeros(self.col.numel() + 1)
+        idx = self.col.new_full((self.col.numel() + 1, ), -1)
         idx[1:] = self.sparse_size[1] * self.row + self.col
         mask = idx[1:] > idx[:-1]
 
@@ -330,8 +330,9 @@ class SparseStorage(object):
 
         value = self.value
         if self.has_value():
-            idx = mask.cumsum(0).sub_(1)
-            value = segment_csr(idx, value, reduce=reduce)
+            ptr = mask.nonzero().flatten()
+            ptr = torch.cat([ptr, ptr.new_full((1, ), value.size(0))])
+            value = segment_csr(value, ptr, reduce=reduce)
             value = value[0] if isinstance(value, tuple) else value
 
         return self.__class__(row=row, col=col, value=value,
