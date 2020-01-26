@@ -498,7 +498,7 @@ SparseTensor.mul_nnz_ = mul_nnz_
 # Fix for PyTorch<=1.3 (https://github.com/pytorch/pytorch/pull/31769):
 TORCH_MAJOR = int(torch.__version__.split('.')[0])
 TORCH_MINOR = int(torch.__version__.split('.')[1])
-if (TORCH_MAJOR <= 1) or (TORCH_MAJOR == 1 and TORCH_MINOR < 4):
+if (TORCH_MAJOR < 1) or (TORCH_MAJOR == 1 and TORCH_MINOR < 4):
 
     def add(self, other):
         return self.add(other) if torch.is_tensor(other) else NotImplemented
