@@ -121,14 +121,10 @@ spspmm_cuda(at::Tensor rowptrA, at::Tensor colA,
                      descr, valueC_data, rowptrC_data, colC_data, info, buffer);
   });
 
-  auto rowC = at::empty_like(colC);
-  auto rowC_data = rowC.DATA_PTR<int>();
-  cusparseXcsr2coo(handle, rowptrC_data, nnzC, M, rowC_data,
-                   CUSPARSE_INDEX_BASE_ZERO);
-  cusparseDestroyCsrgemm2Info(info);
+  rowptrC = rowptrC.toType(at::kLong);
+  colC = col.toType(at::kLong);
 
-  auto indexC = at::stack({rowC.toType(at::kLong), colC.toType(at::kLong)}, 0);
-  return std::make_tuple(indexC, rowptrC.toType(at::kLong), valueC);
+  return std::make_tuple(rowptrC, colC, valueC);
 }
 
 // #define THREADS 1024

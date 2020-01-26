@@ -210,17 +210,18 @@ spmm_cuda(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
 
 template <typename scalar_t, ReductionType REDUCE>
 __global__ void
-spmm_val_bw_kernel(const int64_t *index_data, const int64_t *rowptr_data,
-                   const scalar_t *mat_data, const scalar_t *grad_data,
-                   scalar_t *out_data, int B, int M, int N, int E, int K) {
+spmm_val_bw_kernel(const int64_t *row_data, const int64_t *rowptr_data,
+                   const int64_t *col_data, const scalar_t *mat_data,
+                   const scalar_t *grad_data, scalar_t *out_data, int B, int M,
+                   int N, int E, int K) {
   int thread_idx = blockDim.x * blockIdx.x + threadIdx.x;
 
   int index_idx = (thread_idx >> 5);    // thread_idx / 32
   int lane_idx = thread_idx & (32 - 1); // thread_idx % 32
 
   if (index_idx < E) {
-    int row = __ldg(index_data + index_idx);
-    int col = __ldg(index_data + E + index_idx);
+    int row = __ldg(row_data + index_idx);
+    int col = __ldg(col_data + index_idx);
 
     scalar_t val = (scalar_t)0;
     for (int b = 0; b < B; b++) {
@@ -246,43 +247,35 @@ spmm_val_bw_kernel(const int64_t *index_data, const int64_t *rowptr_data,
   }
 }
 
-at::Tensor spmm_val_bw_cuda(at::Tensor index, at::Tensor rowptr, at::Tensor mat,
-                            at::Tensor grad, std::string reduce) {
+at::Tensor spmm_val_bw_cuda(at::Tensor row, at::Tensor rowptr, at::Tensor col,
+                            at::Tensor mat, at::Tensor grad,
+                            std::string reduce) {
 
-  AT_ASSERTM(index.dim() == 2, "Input mismatch");
-  AT_ASSERTM(index.size(0) == 2, "Input mismatch");
-  AT_ASSERTM(rowptr.dim() == 1, "Input mismatch");
-  AT_ASSERTM(mat.dim() >= 2, "Input mismatch");
-  AT_ASSERTM(mat.dim() == grad.dim(), "Input mismatch");
-  AT_ASSERTM(reduce2REDUCE.at(reduce) == SUM ||
-                 reduce2REDUCE.at(reduce) == MEAN,
-             "Reduce operation not supported");
-
-  index = index.contiguous();
   mat = mat.contiguous();
   grad = grad.contiguous();
 
   auto M = grad.size(-2);
   auto N = mat.size(-2);
-  auto E = index.size(1);
+  auto E = row.numel();
   auto K = mat.size(-1);
   auto B = mat.numel() / (N * K);
   auto BLOCKS = dim3((E * 32 + THREADS - 1) / THREADS);
 
-  auto out = at::empty(index.size(1), grad.options());
+  auto out = at::zeros(row.numel(), grad.options());
 
   auto stream = at::cuda::getCurrentCUDAStream();
   AT_DISPATCH_ALL_TYPES(mat.scalar_type(), "spmm_val_bw_kernel", [&] {
-    auto index_data = index.DATA_PTR<int64_t>();
+    auto row_data = row.DATA_PTR<int64_t>();
     auto rowptr_data = rowptr.DATA_PTR<int64_t>();
+    auto col_data = col.DATA_PTR<int64_t>();
     auto mat_data = mat.DATA_PTR<scalar_t>();
     auto grad_data = grad.DATA_PTR<scalar_t>();
     auto out_data = out.DATA_PTR<scalar_t>();
 
     AT_DISPATCH_REDUCTION_TYPES(reduce, [&] {
-      spmm_val_bw_kernel<scalar_t, REDUCE>
-          <<<BLOCKS, THREADS, 0, stream>>>(index_data, rowptr_data, mat_data,
-                                           grad_data, out_data, B, M, N, E, K);
+      spmm_val_bw_kernel<scalar_t, REDUCE><<<BLOCKS, THREADS, 0, stream>>>(
+          row_data, rowptr_data, col_data, mat_data, grad_data, out_data, B, M,
+          N, E, K);
     });
   });
 

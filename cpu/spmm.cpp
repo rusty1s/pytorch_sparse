@@ -174,36 +174,28 @@ spmm(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
   return std::make_tuple(out, arg_out);
 }
 
-at::Tensor spmm_val_bw(at::Tensor index, at::Tensor rowptr, at::Tensor mat,
-                       at::Tensor grad, std::string reduce) {
-  CHECK_CPU(index);
+at::Tensor spmm_val_bw(at::Tensor row, at::Tensor rowptr, at::Tensor col,
+                       at::Tensor mat, at::Tensor grad, std::string reduce) {
+  CHECK_CPU(row);
   CHECK_CPU(rowptr);
+  CHECK_CPU(col);
   CHECK_CPU(mat);
   CHECK_CPU(grad);
 
-  AT_ASSERTM(index.dim() == 2, "Input mismatch");
-  AT_ASSERTM(index.size(0) == 2, "Input mismatch");
-  AT_ASSERTM(rowptr.dim() == 1, "Input mismatch");
-  AT_ASSERTM(mat.dim() >= 2, "Input mismatch");
-  AT_ASSERTM(mat.dim() == grad.dim(), "Input mismatch");
-  AT_ASSERTM(reduce2REDUCE.at(reduce) == SUM ||
-                 reduce2REDUCE.at(reduce) == MEAN,
-             "Reduce operation not supported");
-
-  index = index.contiguous();
   mat = mat.contiguous();
   grad = grad.contiguous();
 
   auto M = grad.size(-2);
   auto N = mat.size(-2);
-  auto E = index.size(1);
+  auto E = row.numel();
   auto K = mat.size(-1);
   auto B = mat.numel() / (N * K);
 
-  auto out = at::zeros(index.size(1), grad.options());
+  auto out = at::zeros(row.numel(), grad.options());
 
-  auto index_data = index.DATA_PTR<int64_t>();
+  auto row_data = row.DATA_PTR<int64_t>();
   auto rowptr_data = rowptr.DATA_PTR<int64_t>();
+  auto col_data = col.DATA_PTR<int64_t>();
   AT_DISPATCH_ALL_TYPES(mat.scalar_type(), "spmm_val_bw", [&] {
     auto mat_data = mat.DATA_PTR<scalar_t>();
     auto grad_data = grad.DATA_PTR<scalar_t>();
@@ -214,7 +206,7 @@ at::Tensor spmm_val_bw(at::Tensor index, at::Tensor rowptr, at::Tensor mat,
     AT_DISPATCH_REDUCTION_TYPES(reduce, [&] {
       for (int b = 0; b < B; b++) {
         for (int e = 0; e < E; e++) {
-          row = index_data[e], col = index_data[E + e], val = (scalar_t)0;
+          row = row_data[e], col = col_data[e], val = (scalar_t)0;
           for (int k = 0; k < K; k++) {
             val += mat_data[b * N * K + col * K + k] *
                    grad_data[b * M * K + row * K + k];

@@ -78,6 +78,7 @@ class SparseStorage(object):
         assert col is not None
         assert col.dtype == torch.long
         assert col.dim() == 1
+        col = col.contiguous()
 
         if sparse_size is None:
             M = rowptr.numel() - 1 if row is None else row.max().item() + 1
@@ -89,46 +90,54 @@ class SparseStorage(object):
             assert row.device == col.device
             assert row.dim() == 1
             assert row.numel() == col.numel()
+            row = row.contiguous()
 
         if rowptr is not None:
             assert rowptr.dtype == torch.long
             assert rowptr.device == col.device
             assert rowptr.dim() == 1
             assert rowptr.numel() - 1 == sparse_size[0]
+            rowptr = rowptr.contiguous()
 
         if value is not None:
             assert value.device == col.device
             assert value.size(0) == col.size(0)
+            value = value.contiguous()
 
         if rowcount is not None:
             assert rowcount.dtype == torch.long
             assert rowcount.device == col.device
             assert rowcount.dim() == 1
             assert rowcount.numel() == sparse_size[0]
+            rowcount = rowcount.contiguous()
 
         if colptr is not None:
             assert colptr.dtype == torch.long
             assert colptr.device == col.device
             assert colptr.dim() == 1
             assert colptr.numel() - 1 == sparse_size[1]
+            colptr = colptr.contiguous()
 
         if colcount is not None:
             assert colcount.dtype == torch.long
             assert colcount.device == col.device
             assert colcount.dim() == 1
             assert colcount.numel() == sparse_size[1]
+            colcount = colcount.contiguous()
 
         if csr2csc is not None:
             assert csr2csc.dtype == torch.long
             assert csr2csc.device == col.device
             assert csr2csc.dim() == 1
             assert csr2csc.numel() == col.size(0)
+            csr2csc = csr2csc.contiguous()
 
         if csc2csr is not None:
             assert csc2csr.dtype == torch.long
             assert csc2csr.device == col.device
             assert csc2csr.dim() == 1
             assert csc2csr.numel() == col.size(0)
+            csc2csr = csc2csr.contiguous()
 
         self._row = row
         self._rowptr = rowptr

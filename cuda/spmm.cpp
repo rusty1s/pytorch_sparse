@@ -20,13 +20,14 @@ spmm(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
   return spmm_cuda(rowptr, col, value_opt, mat, reduce);
 }
 
-at::Tensor spmm_val_bw(at::Tensor index, at::Tensor rowptr, at::Tensor mat,
-                       at::Tensor grad, std::string reduce) {
-  CHECK_CUDA(index);
+at::Tensor spmm_val_bw(at::Tensor row, at::Tensor rowptr, at::Tensor col,
+                       at::Tensor mat, at::Tensor grad, std::string reduce) {
+  CHECK_CUDA(row);
   CHECK_CUDA(rowptr);
+  CHECK_CUDA(col);
   CHECK_CUDA(mat);
   CHECK_CUDA(grad);
-  return spmm_val_bw_cuda(index, rowptr, mat, grad, reduce);
+  return spmm_val_bw_cuda(row, rowptr, col, mat, grad, reduce);
 }
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {

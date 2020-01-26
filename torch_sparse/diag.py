@@ -9,12 +9,9 @@ except ImportError:
 
 
 def remove_diag(src, k=0):
-    index, value = src.coo()
-    row, col = index
-
+    row, col, value = src.coo()
     inv_mask = row != col if k == 0 else row != (col - k)
-
-    index = index[:, inv_mask]
+    row, col = row[inv_mask], col[inv_mask]
 
     if src.has_value():
         value = value[inv_mask]
@@ -32,7 +29,7 @@ def remove_diag(src, k=0):
         colcount = src.storage.colcount.clone()
         colcount[col[mask]] -= 1
 
-    storage = src.storage.__class__(index, value,
+    storage = src.storage.__class__(row=row, col=col, value=value,
                                     sparse_size=src.sparse_size(),
                                     rowcount=rowcount, colcount=colcount,
                                     is_sorted=True)
@@ -45,26 +42,26 @@ def set_diag(src, values=None, k=0):
 
     src = src.remove_diag(k=0)
 
-    index, value = src.coo()
+    row, col, value = src.coo()
 
-    func = diag_cuda if index.is_cuda else diag_cpu
-    mask = func.non_diag_mask(index, src.size(0), src.size(1), k)
+    func = diag_cuda if row.is_cuda else diag_cpu
+    mask = func.non_diag_mask(row, col, src.size(0), src.size(1), k)
     inv_mask = ~mask
 
-    new_index = index.new_empty((2, mask.size(0)))
-    new_index[:, mask] = index
+    start, num_diag = -k if k < 0 else 0, mask.numel() - row.numel()
+    diag = torch.arange(start, start + num_diag, device=src.device)
 
-    num_diag = mask.numel() - index.size(1)
-    start = -k if k < 0 else 0
+    new_row = row.new_empty(mask.size(0))
+    new_row[mask] = row
+    new_row[inv_mask] = diag
 
-    diag_row = torch.arange(start, start + num_diag, device=src.device)
-    new_index[0, inv_mask] = diag_row
-    diag_col = diag_row.add_(k)
-    new_index[1, inv_mask] = diag_col
+    new_col = col.new_empty(mask.size(0))
+    new_col[mask] = row
+    new_col[inv_mask] = diag.add_(k)
 
     new_value = None
     if src.has_value():
-        new_value = torch.new_empty((mask.size(0), ) + mask.size()[1:])
+        new_value = torch.new_empty((mask.size(0), ) + value.size()[1:])
         new_value[mask] = value
         new_value[inv_mask] = values if values is not None else 1
 
@@ -78,8 +75,9 @@ def set_diag(src, values=None, k=0):
         colcount = src.storage.colcount.clone()
         colcount[start + k:start + num_diag + k] += 1
 
-    storage = src.storage.__class__(new_index, new_value,
+    storage = src.storage.__class__(row=new_row, col=new_col, value=new_value,
                                     sparse_size=src.sparse_size(),
                                     rowcount=rowcount, colcount=colcount,
                                     is_sorted=True)
+
     return src.__class__.from_storage(storage)
