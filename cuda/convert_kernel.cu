@@ -1,9 +1,10 @@
 #include <ATen/ATen.h>
 #include <ATen/cuda/CUDAContext.h>
+#include <cusparse.h>
 
 #include "compat.cuh"
 
-#define THREADS 1024
+#define THREADS 256
 
 __global__ void ind2ptr_kernel(const int64_t *ind_data, int64_t *out_data,
                                int64_t M, int64_t numel) {
@@ -37,7 +38,6 @@ __global__ void ptr2ind_kernel(const int64_t *ptr_data, int64_t *out_data,
 
   int64_t thread_idx = blockDim.x * blockIdx.x + threadIdx.x;
 
-  // TODO: Make more efficient.
   if (thread_idx < numel) {
     int64_t idx = ptr_data[thread_idx], next_idx = ptr_data[thread_idx + 1];
     for (int64_t i = idx; i < next_idx; i++) {

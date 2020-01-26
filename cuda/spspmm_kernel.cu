@@ -122,7 +122,7 @@ spspmm_cuda(at::Tensor rowptrA, at::Tensor colA,
   });
 
   rowptrC = rowptrC.toType(at::kLong);
-  colC = col.toType(at::kLong);
+  colC = colC.toType(at::kLong);
 
   return std::make_tuple(rowptrC, colC, valueC);
 }

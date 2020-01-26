@@ -6,8 +6,9 @@ std::tuple<at::Tensor, at::optional<at::Tensor>>
 spmm_cuda(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
           at::Tensor mat, std::string reduce);
 
-at::Tensor spmm_val_bw_cuda(at::Tensor index, at::Tensor rowptr, at::Tensor mat,
-                            at::Tensor grad, std::string reduce);
+at::Tensor spmm_val_bw_cuda(at::Tensor row, at::Tensor rowptr, at::Tensor col,
+                            at::Tensor mat, at::Tensor grad,
+                            std::string reduce);
 
 std::tuple<at::Tensor, at::optional<at::Tensor>>
 spmm(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
