@@ -418,10 +418,10 @@ class SparseTensor(object):
                     dim += 1
             elif item == Ellipsis:
                 if self.dim() - len(index) < dim:
-                    raise SyntaxError()
+                    raise SyntaxError
                 dim = self.dim() - len(index)
             else:
-                raise SyntaxError()
+                raise SyntaxError
 
         return out
 
