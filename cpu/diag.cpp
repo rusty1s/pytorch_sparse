@@ -1,11 +1,11 @@
-#include <torch/extension.h>
+#include <torch/script.h>
 
 #include "compat.h"
 
 #define CHECK_CPU(x) AT_ASSERTM(!x.type().is_cuda(), #x " must be CPU tensor")
 
-at::Tensor non_diag_mask(at::Tensor row, at::Tensor col, int64_t M, int64_t N,
-                         int64_t k) {
+torch::Tensor non_diag_mask(torch::Tensor row, torch::Tensor col, int64_t M,
+                            int64_t N, int64_t k) {
   CHECK_CPU(row);
   CHECK_CPU(col);
 
@@ -15,7 +15,7 @@ at::Tensor non_diag_mask(at::Tensor row, at::Tensor col, int64_t M, int64_t N,
   auto row_data = row.DATA_PTR<int64_t>();
   auto col_data = col.DATA_PTR<int64_t>();
 
-  auto mask = at::zeros(E + num_diag, row.options().dtype(at::kBool));
+  auto mask = torch::zeros(E + num_diag, row.options().dtype(at::kBool));
   auto mask_data = mask.DATA_PTR<bool>();
 
   int64_t r, c;
@@ -48,6 +48,5 @@ at::Tensor non_diag_mask(at::Tensor row, at::Tensor col, int64_t M, int64_t N,
   return mask;
 }
 
-PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-  m.def("non_diag_mask", &non_diag_mask, "Non-Diagonal Mask (CPU)");
-}
+static auto registry =
+    torch::RegisterOperators("torch_sparse_cpu::non_diag_mask", &non_diag_mask);

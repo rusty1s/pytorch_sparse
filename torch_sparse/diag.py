@@ -1,11 +1,6 @@
 import torch
 
-from torch_sparse import diag_cpu
-
-try:
-    from torch_sparse import diag_cuda
-except ImportError:
-    diag_cuda = None
+from .utils import ext
 
 
 def remove_diag(src, k=0):
@@ -44,8 +39,8 @@ def set_diag(src, values=None, k=0):
 
     row, col, value = src.coo()
 
-    func = diag_cuda if row.is_cuda else diag_cpu
-    mask = func.non_diag_mask(row, col, src.size(0), src.size(1), k)
+    mask = ext(row.is_cuda).non_diag_mask(row, col, src.size(0), src.size(1),
+                                          k)
     inv_mask = ~mask
 
     start, num_diag = -k if k < 0 else 0, mask.numel() - row.numel()
