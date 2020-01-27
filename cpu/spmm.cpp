@@ -1,4 +1,4 @@
-#include <torch/extension.h>
+#include <torch/script.h>
 
 #include "compat.h"
 
@@ -85,9 +85,10 @@ template <typename scalar_t, ReductionType REDUCE> struct Reducer {
   }
 };
 
-std::tuple<at::Tensor, at::optional<at::Tensor>>
-spmm(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
-     at::Tensor mat, std::string reduce) {
+std::tuple<torch::Tensor, torch::optional<torch::Tensor>>
+spmm(torch::Tensor rowptr, torch::Tensor col,
+     torch::optional<torch::Tensor> value_opt, torch::Tensor mat,
+     std::string reduce) {
 
   CHECK_CPU(rowptr);
   CHECK_CPU(col);
@@ -105,12 +106,12 @@ spmm(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
 
   auto sizes = mat.sizes().vec();
   sizes[mat.dim() - 2] = rowptr.numel() - 1;
-  auto out = at::empty(sizes, mat.options());
+  auto out = torch::empty(sizes, mat.options());
 
-  at::optional<at::Tensor> arg_out = at::nullopt;
+  torch::optional<torch::Tensor> arg_out = torch::nullopt;
   int64_t *arg_out_data = nullptr;
   if (reduce2REDUCE.at(reduce) == MIN || reduce2REDUCE.at(reduce) == MAX) {
-    arg_out = at::full_like(out, col.numel(), rowptr.options());
+    arg_out = torch::full_like(out, col.numel(), rowptr.options());
     arg_out_data = arg_out.value().DATA_PTR<int64_t>();
   }
 
@@ -174,8 +175,9 @@ spmm(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
   return std::make_tuple(out, arg_out);
 }
 
-at::Tensor spmm_val_bw(at::Tensor row, at::Tensor rowptr, at::Tensor col,
-                       at::Tensor mat, at::Tensor grad, std::string reduce) {
+torch::Tensor spmm_val_bw(torch::Tensor row, torch::Tensor rowptr,
+                          torch::Tensor col, torch::Tensor mat,
+                          torch::Tensor grad, std::string reduce) {
   CHECK_CPU(row);
   CHECK_CPU(rowptr);
   CHECK_CPU(col);
@@ -191,7 +193,7 @@ at::Tensor spmm_val_bw(at::Tensor row, at::Tensor rowptr, at::Tensor col,
   auto K = mat.size(-1);
   auto B = mat.numel() / (N * K);
 
-  auto out = at::zeros(row.numel(), grad.options());
+  auto out = torch::zeros(row.numel(), grad.options());
 
   auto row_data = row.DATA_PTR<int64_t>();
   auto rowptr_data = rowptr.DATA_PTR<int64_t>();
@@ -224,8 +226,5 @@ at::Tensor spmm_val_bw(at::Tensor row, at::Tensor rowptr, at::Tensor col,
   return out;
 }
 
-PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-  m.def("spmm", &spmm, "Sparse-Dense Matrix Multiplication (CPU)");
-  m.def("spmm_val_bw", &spmm_val_bw,
-        "Sparse-Dense Matrix Multiplication Value Backward (CPU)");
-}
+static auto registry = torch::RegisterOperators("torch_sparse_cpu::spmm", &spmm)
+                           .op("torch_sparse_cpu::spmm_val_bw", &spmm_val_bw);

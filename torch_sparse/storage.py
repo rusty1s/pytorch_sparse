@@ -2,7 +2,7 @@ import warnings
 
 import torch
 from torch_scatter import segment_csr, scatter_add
-from .utils import ext
+from torch_sparse.utils import ext
 
 __cache__ = {'enabled': True}
 

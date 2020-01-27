@@ -15,6 +15,7 @@ from torch_sparse.diag import remove_diag, set_diag
 from torch_sparse.matmul import matmul
 from torch_sparse.add import add, add_, add_nnz, add_nnz_
 from torch_sparse.mul import mul, mul_, mul_nnz, mul_nnz_
+from torch_sparse.utils import is_scalar
 
 
 class SparseTensor(object):
@@ -501,10 +502,14 @@ TORCH_MINOR = int(torch.__version__.split('.')[1])
 if (TORCH_MAJOR < 1) or (TORCH_MAJOR == 1 and TORCH_MINOR < 4):
 
     def add(self, other):
-        return self.add(other) if torch.is_tensor(other) else NotImplemented
+        if torch.is_tensor(other) or is_scalar(other):
+            return self.add(other)
+        return NotImplemented
 
     def mul(self, other):
-        return self.mul(other) if torch.is_tensor(other) else NotImplemented
+        if torch.is_tensor(other) or is_scalar(other):
+            return self.mul(other)
+        return NotImplemented
 
     torch.Tensor.__add__ = add
-    torch.Tensor.__mul__ = add
+    torch.Tensor.__mul__ = mul

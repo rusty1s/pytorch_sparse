@@ -1,18 +1,20 @@
-#include <torch/extension.h>
+#include <torch/script.h>
 
 #define CHECK_CUDA(x) AT_ASSERTM(x.type().is_cuda(), #x " must be CUDA tensor")
 
-std::tuple<at::Tensor, at::optional<at::Tensor>>
-spmm_cuda(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
-          at::Tensor mat, std::string reduce);
+std::tuple<torch::Tensor, torch::optional<torch::Tensor>>
+spmm_cuda(torch::Tensor rowptr, torch::Tensor col,
+          torch::optional<torch::Tensor> value_opt, torch::Tensor mat,
+          std::string reduce);
 
-at::Tensor spmm_val_bw_cuda(at::Tensor row, at::Tensor rowptr, at::Tensor col,
-                            at::Tensor mat, at::Tensor grad,
-                            std::string reduce);
+torch::Tensor spmm_val_bw_cuda(torch::Tensor row, torch::Tensor rowptr,
+                               torch::Tensor col, torch::Tensor mat,
+                               torch::Tensor grad, std::string reduce);
 
-std::tuple<at::Tensor, at::optional<at::Tensor>>
-spmm(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
-     at::Tensor mat, std::string reduce) {
+std::tuple<torch::Tensor, torch::optional<torch::Tensor>>
+spmm(torch::Tensor rowptr, torch::Tensor col,
+     torch::optional<torch::Tensor> value_opt, torch::Tensor mat,
+     std::string reduce) {
   CHECK_CUDA(rowptr);
   CHECK_CUDA(col);
   if (value_opt.has_value())
@@ -21,8 +23,9 @@ spmm(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
   return spmm_cuda(rowptr, col, value_opt, mat, reduce);
 }
 
-at::Tensor spmm_val_bw(at::Tensor row, at::Tensor rowptr, at::Tensor col,
-                       at::Tensor mat, at::Tensor grad, std::string reduce) {
+torch::Tensor spmm_val_bw(torch::Tensor row, torch::Tensor rowptr,
+                          torch::Tensor col, torch::Tensor mat,
+                          torch::Tensor grad, std::string reduce) {
   CHECK_CUDA(row);
   CHECK_CUDA(rowptr);
   CHECK_CUDA(col);
@@ -31,8 +34,6 @@ at::Tensor spmm_val_bw(at::Tensor row, at::Tensor rowptr, at::Tensor col,
   return spmm_val_bw_cuda(row, rowptr, col, mat, grad, reduce);
 }
 
-PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-  m.def("spmm", &spmm, "Sparse Matrix Multiplication (CUDA)");
-  m.def("spmm_val_bw", &spmm_val_bw,
-        "Sparse-Dense Matrix Multiplication Value Backward (CPU)");
-}
+static auto registry =
+    torch::RegisterOperators("torch_sparse_cuda::spmm", &spmm)
+        .op("torch_sparse_cuda::spmm_val_bw", &spmm_val_bw);

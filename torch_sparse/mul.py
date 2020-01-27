@@ -1,9 +1,6 @@
 import torch
 from torch_scatter import gather_csr
-
-
-def is_scalar(other):
-    return isinstance(other, int) or isinstance(other, float)
+from torch_sparse.utils import is_scalar
 
 
 def mul(src, other):

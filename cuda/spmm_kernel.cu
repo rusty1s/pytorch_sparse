@@ -1,5 +1,5 @@
-#include <ATen/ATen.h>
 #include <ATen/cuda/CUDAContext.h>
+#include <torch/extension.h>
 
 #include "compat.cuh"
 
@@ -155,9 +155,10 @@ __global__ void spmm_kernel(const int64_t *rowptr_data, const int64_t *col_data,
   }
 }
 
-std::tuple<at::Tensor, at::optional<at::Tensor>>
-spmm_cuda(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
-          at::Tensor mat, std::string reduce) {
+std::tuple<torch::Tensor, torch::optional<torch::Tensor>>
+spmm_cuda(torch::Tensor rowptr, torch::Tensor col,
+          torch::optional<torch::Tensor> value_opt, torch::Tensor mat,
+          std::string reduce) {
 
   AT_ASSERTM(rowptr.dim() == 1, "Input mismatch");
   AT_ASSERTM(col.dim() == 1, "Input mismatch");
@@ -169,12 +170,12 @@ spmm_cuda(at::Tensor rowptr, at::Tensor col, at::optional<at::Tensor> value_opt,
 
   auto sizes = mat.sizes().vec();
   sizes[mat.dim() - 2] = rowptr.numel() - 1;
-  auto out = at::empty(sizes, mat.options());
+  auto out = torch::empty(sizes, mat.options());
 
-  at::optional<at::Tensor> arg_out = at::nullopt;
+  torch::optional<torch::Tensor> arg_out = torch::nullopt;
   int64_t *arg_out_data = nullptr;
   if (reduce2REDUCE.at(reduce) == MIN || reduce2REDUCE.at(reduce) == MAX) {
-    arg_out = at::full_like(out, col.numel(), rowptr.options());
+    arg_out = torch::full_like(out, col.numel(), rowptr.options());
     arg_out_data = arg_out.value().DATA_PTR<int64_t>();
   }
 
@@ -247,9 +248,9 @@ spmm_val_bw_kernel(const int64_t *row_data, const int64_t *rowptr_data,
   }
 }
 
-at::Tensor spmm_val_bw_cuda(at::Tensor row, at::Tensor rowptr, at::Tensor col,
-                            at::Tensor mat, at::Tensor grad,
-                            std::string reduce) {
+torch::Tensor spmm_val_bw_cuda(torch::Tensor row, torch::Tensor rowptr,
+                               torch::Tensor col, torch::Tensor mat,
+                               torch::Tensor grad, std::string reduce) {
 
   mat = mat.contiguous();
   grad = grad.contiguous();
@@ -261,7 +262,7 @@ at::Tensor spmm_val_bw_cuda(at::Tensor row, at::Tensor rowptr, at::Tensor col,
   auto B = mat.numel() / (N * K);
   auto BLOCKS = dim3((E * 32 + THREADS - 1) / THREADS);
 
-  auto out = at::zeros(row.numel(), grad.options());
+  auto out = torch::zeros(row.numel(), grad.options());
 
   auto stream = at::cuda::getCurrentCUDAStream();
   AT_DISPATCH_ALL_TYPES(mat.scalar_type(), "spmm_val_bw_kernel", [&] {

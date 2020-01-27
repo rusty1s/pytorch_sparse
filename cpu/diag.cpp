@@ -15,7 +15,7 @@ torch::Tensor non_diag_mask(torch::Tensor row, torch::Tensor col, int64_t M,
   auto row_data = row.DATA_PTR<int64_t>();
   auto col_data = col.DATA_PTR<int64_t>();
 
-  auto mask = torch::zeros(E + num_diag, row.options().dtype(at::kBool));
+  auto mask = torch::zeros(E + num_diag, row.options().dtype(torch::kBool));
   auto mask_data = mask.DATA_PTR<bool>();
 
   int64_t r, c;

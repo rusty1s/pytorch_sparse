@@ -1,6 +1,6 @@
 import torch
 
-from .utils import ext
+from torch_sparse.utils import ext
 
 
 def remove_diag(src, k=0):

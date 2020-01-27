@@ -1,28 +1,14 @@
 import torch
 import scipy.sparse
-from torch_sparse import spmm_cpu
 from torch_scatter import scatter_add
-
-try:
-    from torch_sparse import spmm_cuda
-except ImportError:
-    spmm_cuda = None
-
-try:
-    from torch_sparse import spspmm_cuda
-except ImportError:
-    spspmm_cuda = None
-
-
-def spmm(is_cuda):
-    return spmm_cuda if is_cuda else spmm_cpu
+from torch_sparse.utils import ext
 
 
 class SPMM(torch.autograd.Function):
     @staticmethod
     def forward(ctx, row, rowptr, col, value, mat, rowcount, colptr, csr2csc,
                 reduce):
-        out, arg_out = spmm(mat.is_cuda).spmm(rowptr, col, value, mat, reduce)
+        out, arg_out = ext(mat.is_cuda).spmm(rowptr, col, value, mat, reduce)
 
         ctx.reduce = reduce
         ctx.save_for_backward(row, rowptr, col, value, mat, rowcount, colptr,
@@ -48,7 +34,7 @@ class SPMM(torch.autograd.Function):
         grad_value = None
         if ctx.needs_input_grad[3]:
             if ctx.reduce in ['sum', 'add', 'mean']:
-                grad_value = spmm(grad_out.is_cuda).spmm_val_bw(
+                grad_value = ext(grad_out.is_cuda).spmm_val_bw(
                     row, rowptr, col, mat, grad_out, ctx.reduce)
 
             elif ctx.reduce in ['min', 'max']:
@@ -63,7 +49,7 @@ class SPMM(torch.autograd.Function):
         if ctx.needs_input_grad[4]:
             if ctx.reduce in ['sum', 'add']:
                 value = value[csr2csc] if value is not None else value
-                grad_mat, _ = spmm(grad_out.is_cuda).spmm(
+                grad_mat, _ = ext(grad_out.is_cuda).spmm(
                     colptr, row[csr2csc], value, grad_out, 'sum')
 
             elif ctx.reduce == 'mean':
@@ -71,7 +57,7 @@ class SPMM(torch.autograd.Function):
                 value = count.pow_(-1) if value is None else value / count
                 row = row[csr2csc]
                 value = value[csr2csc] if value is not None else value
-                grad_mat, _ = spmm(grad_out.is_cuda).spmm(
+                grad_mat, _ = ext(grad_out.is_cuda).spmm(
                     colptr, row, value, grad_out, 'sum')
 
             elif ctx.reduce in ['min', 'max']:
@@ -92,9 +78,9 @@ class SPSPMM(torch.autograd.Function):
     @staticmethod
     def forward(ctx, rowptrA, colA, valueA, rowptrB, colB, valueB, M, N, K):
         if rowptrA.is_cuda:
-            rowptrC, colC, valueC = spspmm_cuda.spspmm(rowptrA, colA, valueA,
-                                                       rowptrB, colB, valueB,
-                                                       M, N, K)
+            rowptrC, colC, valueC = ext(True).spspmm(rowptrA, colA, valueA,
+                                                     rowptrB, colB, valueB, M,
+                                                     N, K)
         else:
             dtype = None
             if valueA is not None:
@@ -149,7 +135,7 @@ def matmul(src, other, reduce='sum'):
 
         row = None
         if reduce in ['sum', 'add', 'mean'] and (src.requires_grad
-                                                 or other.reuqires_grad):
+                                                 or other.requires_grad):
             row = src.storage.row
 
         rowcount = None
