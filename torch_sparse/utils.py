@@ -1,4 +1,11 @@
+from typing import Any
+
 import torch
+
+try:
+    from typing_extensions import Final  # noqa
+except ImportError:
+    from torch.jit import Final  # noqa
 
 torch.ops.load_library('torch_sparse/convert_cpu.so')
 torch.ops.load_library('torch_sparse/diag_cpu.so')
@@ -14,10 +21,5 @@ except OSError as e:
         raise e
 
 
-def ext(is_cuda):
-    name = 'torch_sparse_cuda' if is_cuda else 'torch_sparse_cpu'
-    return getattr(torch.ops, name)
-
-
-def is_scalar(other):
+def is_scalar(other: Any) -> bool:
     return isinstance(other, int) or isinstance(other, float)

@@ -1,7 +1,7 @@
 import torch
 import torch_scatter
 
-from .unique import unique
+# from .unique import unique
 
 
 def coalesce(index, value, m, n, op='add', fill_value=0):
@@ -22,6 +22,7 @@ def coalesce(index, value, m, n, op='add', fill_value=0):
 
     :rtype: (:class:`LongTensor`, :class:`Tensor`)
     """
+    raise NotImplementedError
 
     row, col = index
 

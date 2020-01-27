@@ -1,14 +1,20 @@
 import torch
 import scipy.sparse
 from torch_scatter import scatter_add
-from torch_sparse.utils import ext
+
+ext = None
 
 
 class SPMM(torch.autograd.Function):
     @staticmethod
     def forward(ctx, row, rowptr, col, value, mat, rowcount, colptr, csr2csc,
                 reduce):
-        out, arg_out = ext(mat.is_cuda).spmm(rowptr, col, value, mat, reduce)
+        if mat.is_cuda:
+            out, arg_out = torch.ops.torch_sparse_cuda.spmm(
+                rowptr, col, value, mat, reduce)
+        else:
+            out, arg_out = torch.ops.torch_sparse_cpu.spmm(
+                rowptr, col, value, mat, reduce)
 
         ctx.reduce = reduce
         ctx.save_for_backward(row, rowptr, col, value, mat, rowcount, colptr,

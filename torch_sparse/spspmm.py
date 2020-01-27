@@ -1,10 +1,10 @@
 import torch
 from torch_sparse import transpose, to_scipy, from_scipy, coalesce
 
-import torch_sparse.spspmm_cpu
+# import torch_sparse.spspmm_cpu
 
-if torch.cuda.is_available():
-    import torch_sparse.spspmm_cuda
+# if torch.cuda.is_available():
+#     import torch_sparse.spspmm_cuda
 
 
 def spspmm(indexA, valueA, indexB, valueB, m, k, n, coalesced=False):
@@ -25,6 +25,7 @@ def spspmm(indexA, valueA, indexB, valueB, m, k, n, coalesced=False):
 
     :rtype: (:class:`LongTensor`, :class:`Tensor`)
     """
+    raise NotImplementedError
     if indexA.is_cuda and coalesced:
         indexA, valueA = coalesce(indexA, valueA, m, k)
         indexB, valueB = coalesce(indexB, valueB, k, n)

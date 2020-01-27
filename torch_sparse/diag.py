@@ -1,7 +1,5 @@
 import torch
 
-from torch_sparse.utils import ext
-
 
 def remove_diag(src, k=0):
     row, col, value = src.coo()
@@ -39,8 +37,13 @@ def set_diag(src, values=None, k=0):
 
     row, col, value = src.coo()
 
-    mask = ext(row.is_cuda).non_diag_mask(row, col, src.size(0), src.size(1),
-                                          k)
+    if row.is_cuda:
+        mask = torch.ops.torch_sparse_cuda.non_diag_mask(
+            row, col, src.size(0), src.size(1), k)
+    else:
+        mask = torch.ops.torch_sparse_cpu.non_diag_mask(
+            row, col, src.size(0), src.size(1), k)
+
     inv_mask = ~mask
 
     start, num_diag = -k if k < 0 else 0, mask.numel() - row.numel()
