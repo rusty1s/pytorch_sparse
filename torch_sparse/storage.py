@@ -2,13 +2,7 @@ import warnings
 
 import torch
 from torch_scatter import segment_csr, scatter_add
-
-from torch_sparse import convert_cpu
-
-try:
-    from torch_sparse import convert_cuda
-except ImportError:
-    convert_cuda = None
+from .utils import ext
 
 __cache__ = {'enabled': True}
 
@@ -167,8 +161,8 @@ class SparseStorage(object):
     @property
     def row(self):
         if self._row is None:
-            func = convert_cuda if self.rowptr.is_cuda else convert_cpu
-            self._row = func.ptr2ind(self.rowptr, self.col.numel())
+            self._row = ext(self.col.is_cuda).ptr2ind(self.rowptr,
+                                                      self.col.numel())
         return self._row
 
     def has_rowptr(self):
@@ -177,8 +171,8 @@ class SparseStorage(object):
     @property
     def rowptr(self):
         if self._rowptr is None:
-            func = convert_cuda if self.row.is_cuda else convert_cpu
-            self._rowptr = func.ind2ptr(self.row, self.sparse_size[0])
+            self._rowptr = ext(self.col.is_cuda).ind2ptr(
+                self.row, self.sparse_size[0])
         return self._rowptr
 
     @property
@@ -279,8 +273,8 @@ class SparseStorage(object):
     @cached_property
     def colptr(self):
         if self.has_csr2csc():
-            func = convert_cuda if self.col.is_cuda else convert_cpu
-            return func.ind2ptr(self.col[self.csr2csc], self.sparse_size[1])
+            return ext(self.col.is_cuda).ind2ptr(self.col[self.csr2csc],
+                                                 self.sparse_size[1])
         else:
             colptr = self.col.new_zeros(self.sparse_size[1] + 1)
             torch.cumsum(self.colcount, dim=0, out=colptr[1:])

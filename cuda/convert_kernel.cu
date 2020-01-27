@@ -1,6 +1,5 @@
-#include <ATen/ATen.h>
 #include <ATen/cuda/CUDAContext.h>
-#include <cusparse.h>
+#include <torch/extension.h>
 
 #include "compat.cuh"
 
@@ -23,8 +22,8 @@ __global__ void ind2ptr_kernel(const int64_t *ind_data, int64_t *out_data,
   }
 }
 
-at::Tensor ind2ptr_cuda(at::Tensor ind, int64_t M) {
-  auto out = at::empty(M + 1, ind.options());
+torch::Tensor ind2ptr_cuda(torch::Tensor ind, int64_t M) {
+  auto out = torch::empty(M + 1, ind.options());
   auto ind_data = ind.DATA_PTR<int64_t>();
   auto out_data = out.DATA_PTR<int64_t>();
   auto stream = at::cuda::getCurrentCUDAStream();
@@ -46,8 +45,8 @@ __global__ void ptr2ind_kernel(const int64_t *ptr_data, int64_t *out_data,
   }
 }
 
-at::Tensor ptr2ind_cuda(at::Tensor ptr, int64_t E) {
-  auto out = at::empty(E, ptr.options());
+torch::Tensor ptr2ind_cuda(torch::Tensor ptr, int64_t E) {
+  auto out = torch::empty(E, ptr.options());
   auto ptr_data = ptr.DATA_PTR<int64_t>();
   auto out_data = out.DATA_PTR<int64_t>();
   auto stream = at::cuda::getCurrentCUDAStream();

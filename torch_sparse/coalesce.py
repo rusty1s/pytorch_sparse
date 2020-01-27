@@ -1,7 +1,7 @@
 import torch
 import torch_scatter
 
-from .utils.unique import unique
+from .unique import unique
 
 
 def coalesce(index, value, m, n, op='add', fill_value=0):

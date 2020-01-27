@@ -1,12 +1,12 @@
-#include <torch/extension.h>
+#include <torch/script.h>
 
 #include "compat.h"
 
 #define CHECK_CPU(x) AT_ASSERTM(!x.type().is_cuda(), #x " must be CPU tensor")
 
-at::Tensor ind2ptr(at::Tensor ind, int64_t M) {
+torch::Tensor ind2ptr(torch::Tensor ind, int64_t M) {
   CHECK_CPU(ind);
-  auto out = at::empty(M + 1, ind.options());
+  auto out = torch::empty(M + 1, ind.options());
   auto ind_data = ind.DATA_PTR<int64_t>();
   auto out_data = out.DATA_PTR<int64_t>();
 
@@ -28,9 +28,9 @@ at::Tensor ind2ptr(at::Tensor ind, int64_t M) {
   return out;
 }
 
-at::Tensor ptr2ind(at::Tensor ptr, int64_t E) {
+torch::Tensor ptr2ind(torch::Tensor ptr, int64_t E) {
   CHECK_CPU(ptr);
-  auto out = at::empty(E, ptr.options());
+  auto out = torch::empty(E, ptr.options());
   auto ptr_data = ptr.DATA_PTR<int64_t>();
   auto out_data = out.DATA_PTR<int64_t>();
 
@@ -45,7 +45,6 @@ at::Tensor ptr2ind(at::Tensor ptr, int64_t E) {
   return out;
 }
 
-PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-  m.def("ind2ptr", &ind2ptr, "Ind2Ptr (CPU)");
-  m.def("ptr2ind", &ptr2ind, "Ptr2Ind (CPU)");
-}
+static auto registry =
+    torch::RegisterOperators("torch_sparse_cpu::ind2ptr", &ind2ptr)
+        .op("torch_sparse_cpu::ptr2ind", &ptr2ind);

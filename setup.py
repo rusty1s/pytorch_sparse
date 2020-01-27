@@ -5,6 +5,7 @@ from setuptools import setup, find_packages
 from sys import argv
 
 import torch
+from torch.utils.cpp_extension import BuildExtension
 from torch.utils.cpp_extension import CppExtension, CUDAExtension, CUDA_HOME
 
 cxx_extra_compile_args = []
@@ -16,7 +17,9 @@ extra_compile_args = []
 if (TORCH_MAJOR > 1) or (TORCH_MAJOR == 1 and TORCH_MINOR > 2):
     cxx_extra_compile_args += ['-DVERSION_GE_1_3']
     nvcc_extra_compile_args += ['-DVERSION_GE_1_3']
-cmdclass = {'build_ext': torch.utils.cpp_extension.BuildExtension}
+cmdclass = {
+    'build_ext': BuildExtension.with_options(no_python_abi_suffix=True)
+}
 
 ext_modules = []
 exts = [e.split(osp.sep)[-1][:-4] for e in glob(osp.join('cpu', '*.cpp'))]
