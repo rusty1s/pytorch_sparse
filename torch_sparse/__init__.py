@@ -19,3 +19,7 @@ __all__ = [
     'spmm',
     'spspmm',
 ]
+
+from .storage import SparseStorage
+from .tensor import SparseTensor
+from .transpose import t

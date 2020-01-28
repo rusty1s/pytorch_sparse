@@ -1,7 +1,6 @@
 import torch
 
-from torch_sparse.tensor import SparseTensor
-from torch_sparse.storage import SparseStorage
+from torch_sparse import SparseStorage, SparseTensor
 
 from typing import Dict, Any
 
@@ -73,6 +72,10 @@ def test_jit():
     # mat = SparseTensor.from_scipy(scipy)
     print()
     print(adj)
+    # adj = t(adj)
+    adj = adj.t()
+    print(adj)
+    # print(adj.t)
 
     # adj = {'rowptr': mat.storage.rowptr, 'col': mat.storage.col}
     # foo = Foo(mat.storage.rowptr, mat.storage.col)

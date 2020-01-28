@@ -6,7 +6,6 @@ import scipy.sparse
 
 from torch_sparse.storage import SparseStorage, get_layout
 
-# from torch_sparse.transpose import t
 # from torch_sparse.narrow import narrow
 # from torch_sparse.select import select
 # from torch_sparse.index_select import index_select, index_select_nnz
@@ -406,9 +405,6 @@ class SparseTensor(object):
     #     return matmul(self, other, reduce='sum')
 
 
-# Bindings ####################################################################
-
-# SparseTensor.t = t
 # SparseTensor.narrow = narrow
 # SparseTensor.select = select
 # SparseTensor.index_select = index_select

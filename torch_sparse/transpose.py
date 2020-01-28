@@ -1,6 +1,9 @@
 import torch
 from torch_sparse import to_scipy, from_scipy, coalesce
 
+from torch_sparse.storage import SparseStorage
+from torch_sparse.tensor import SparseTensor
+
 
 def transpose(index, value, m, n, coalesced=True):
     """Transposes dimensions 0 and 1 of a sparse tensor.
@@ -28,15 +31,23 @@ def transpose(index, value, m, n, coalesced=True):
     return index, value
 
 
-def t(src):
-    csr2csc = src.storage.csr2csc
+@torch.jit.script
+def t(src: SparseTensor):
+    csr2csc = src.storage.csr2csc()
 
-    storage = src.storage.__class__(
-        row=src.storage.col[csr2csc],
+    row, col, value = src.coo()
+
+    if value is not None:
+        value = value[csr2csc]
+
+    sparse_sizes = src.storage.sparse_sizes()
+
+    storage = SparseStorage(
+        row=col[csr2csc],
         rowptr=src.storage._colptr,
-        col=src.storage.row[csr2csc],
-        value=src.storage.value[csr2csc] if src.has_value() else None,
-        sparse_size=src.storage.sparse_size[::-1],
+        col=row[csr2csc],
+        value=value,
+        sparse_sizes=torch.Size([sparse_sizes[1], sparse_sizes[0]]),
         rowcount=src.storage._colcount,
         colptr=src.storage._rowptr,
         colcount=src.storage._rowcount,
@@ -46,3 +57,6 @@ def t(src):
     )
 
     return src.from_storage(storage)
+
+
+SparseTensor.t = lambda self: t(self)
