@@ -6,12 +6,10 @@ import scipy.sparse
 
 from torch_sparse.storage import SparseStorage, get_layout
 
-# from torch_sparse.narrow import narrow
-# from torch_sparse.select import select
 # from torch_sparse.index_select import index_select, index_select_nnz
 # from torch_sparse.masked_select import masked_select, masked_select_nnz
-# import torch_sparse.reduce
 # from torch_sparse.diag import remove_diag, set_diag
+# import torch_sparse.reduce
 # from torch_sparse.matmul import matmul
 # from torch_sparse.add import add, add_, add_nnz, add_nnz_
 # from torch_sparse.mul import mul, mul_, mul_nnz, mul_nnz_

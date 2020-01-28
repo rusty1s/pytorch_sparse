@@ -23,3 +23,5 @@ __all__ = [
 from .storage import SparseStorage
 from .tensor import SparseTensor
 from .transpose import t
+from .narrow import narrow
+from .select import select
