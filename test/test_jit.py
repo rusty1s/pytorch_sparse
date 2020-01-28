@@ -65,13 +65,14 @@ def test_jit():
     # adj = Foo(adj.storage.rowptr, adj.storage.col)
     # adj = adj.storage
 
-    rowptr = torch.tensor([0, 3, 6, 9])
-    col = torch.tensor([0, 1, 2, 0, 1, 2, 0, 1, 2])
+    rowptr = torch.tensor([0, 1, 4, 7])
+    col = torch.tensor([0, 0, 1, 2, 0, 1, 2])
 
     adj = SparseTensor(rowptr=rowptr, col=col)
-    scipy = adj.to_scipy(layout='csr')
-    mat = SparseTensor.from_scipy(scipy)
-    mat.fill_value_(2.3)
+    # scipy = adj.to_scipy(layout='csr')
+    # mat = SparseTensor.from_scipy(scipy)
+    print()
+    print(adj)
 
     # adj = {'rowptr': mat.storage.rowptr, 'col': mat.storage.col}
     # foo = Foo(mat.storage.rowptr, mat.storage.col)
