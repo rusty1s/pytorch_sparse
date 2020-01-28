@@ -30,9 +30,10 @@ class MyCell(torch.nn.Module):
         self.linear = torch.nn.Linear(2, 4)
 
     # def forward(self, x: torch.Tensor, ptr: torch.Tensor) -> torch.Tensor:
-    def forward(self, x: torch.Tensor, adj: SparseStorage) -> torch.Tensor:
-        out, _ = torch.ops.torch_sparse_cpu.spmm(adj.rowptr(), adj.col(), None,
-                                                 x, 'sum')
+    def forward(self, x: torch.Tensor, adj: SparseTensor) -> torch.Tensor:
+        out, _ = torch.ops.torch_sparse_cpu.spmm(adj.storage.rowptr(),
+                                                 adj.storage.col(), None, x,
+                                                 'sum')
         return out
 
 
@@ -67,7 +68,10 @@ def test_jit():
     rowptr = torch.tensor([0, 3, 6, 9])
     col = torch.tensor([0, 1, 2, 0, 1, 2, 0, 1, 2])
 
-    adj = SparseStorage(rowptr=rowptr, col=col)
+    adj = SparseTensor(rowptr=rowptr, col=col)
+    scipy = adj.to_scipy(layout='csr')
+    mat = SparseTensor.from_scipy(scipy)
+    mat.fill_value_(2.3)
 
     # adj = {'rowptr': mat.storage.rowptr, 'col': mat.storage.col}
     # foo = Foo(mat.storage.rowptr, mat.storage.col)
