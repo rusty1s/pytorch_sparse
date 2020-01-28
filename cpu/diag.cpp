@@ -2,7 +2,7 @@
 
 #include "compat.h"
 
-#define CHECK_CPU(x) AT_ASSERTM(!x.type().is_cuda(), #x " must be CPU tensor")
+#define CHECK_CPU(x) AT_ASSERTM(x.device().is_cpu(), #x " must be CPU tensor")
 
 torch::Tensor non_diag_mask(torch::Tensor row, torch::Tensor col, int64_t M,
                             int64_t N, int64_t k) {

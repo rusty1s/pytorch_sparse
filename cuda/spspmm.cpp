@@ -1,6 +1,7 @@
 #include <torch/script.h>
 
-#define CHECK_CUDA(x) AT_ASSERTM(x.type().is_cuda(), #x " must be CUDA tensor")
+#define CHECK_CUDA(x)                                                          \
+  AT_ASSERTM(x.device().is_cuda(), #x " must be CUDA tensor")
 
 std::tuple<torch::Tensor, torch::Tensor, torch::optional<torch::Tensor>>
 spspmm_cuda(torch::Tensor rowptrA, torch::Tensor colA,

@@ -2,7 +2,7 @@
 
 #include "compat.h"
 
-#define CHECK_CPU(x) AT_ASSERTM(!x.type().is_cuda(), #x " must be CPU tensor")
+#define CHECK_CPU(x) AT_ASSERTM(x.device().is_cpu(), #x " must be CPU tensor")
 
 torch::Tensor ind2ptr(torch::Tensor ind, int64_t M) {
   CHECK_CPU(ind);

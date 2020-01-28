@@ -1,6 +1,7 @@
 #include <torch/script.h>
 
-#define CHECK_CUDA(x) AT_ASSERTM(x.type().is_cuda(), #x " must be CUDA tensor")
+#define CHECK_CUDA(x)                                                          \
+  AT_ASSERTM(x.device().is_cuda(), #x " must be CUDA tensor")
 
 torch::Tensor ind2ptr_cuda(torch::Tensor ind, int64_t M);
 torch::Tensor ptr2ind_cuda(torch::Tensor ptr, int64_t E);
