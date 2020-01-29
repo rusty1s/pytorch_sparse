@@ -1,9 +1,13 @@
+from typing import Optional
+
 import torch
+from torch_sparse.storage import SparseStorage, get_layout
+from torch_sparse.tensor import SparseTensor
 
-from torch_sparse.storage import get_layout
 
-
-def masked_select(src, dim, mask):
+@torch.jit.script
+def masked_select(src: SparseTensor, dim: int,
+                  mask: torch.Tensor) -> SparseTensor:
     dim = src.dim() + dim if dim < 0 else dim
 
     assert mask.dim() == 1
@@ -11,29 +15,33 @@ def masked_select(src, dim, mask):
 
     if dim == 0:
         row, col, value = src.coo()
-        rowcount = src.storage.rowcount
+        rowcount = src.storage.rowcount()
 
         rowcount = rowcount[mask]
 
         mask = mask[row]
         row = torch.arange(rowcount.size(0),
                            device=row.device).repeat_interleave(rowcount)
+
         col = col[mask]
 
-        if src.has_value():
+        if value is not None:
             value = value[mask]
 
-        sparse_size = torch.Size([rowcount.size(0), src.sparse_size(1)])
+        sparse_sizes = torch.Size([rowcount.size(0), src.sparse_size(1)])
 
-        storage = src.storage.__class__(row=row, col=col, value=value,
-                                        sparse_size=sparse_size,
-                                        rowcount=rowcount, is_sorted=True)
+        storage = SparseStorage(row=row, rowptr=None, col=col, value=value,
+                                sparse_sizes=sparse_sizes, rowcount=rowcount,
+                                colcount=None, colptr=None, csr2csc=None,
+                                csc2csr=None, is_sorted=True)
+        return src.from_storage(storage)
 
     elif dim == 1:
         row, col, value = src.coo()
-        csr2csc = src.storage.csr2csc
-        row, col = row[csr2csc], col[csr2csc]
-        colcount = src.storage.colcount
+        csr2csc = src.storage.csr2csc()
+        row = row[csr2csc]
+        col = col[csr2csc]
+        colcount = src.storage.colcount()
 
         colcount = colcount[mask]
 
@@ -44,39 +52,47 @@ def masked_select(src, dim, mask):
         csc2csr = (colcount.size(0) * row + col).argsort()
         row, col = row[csc2csr], col[csc2csr]
 
-        if src.has_value():
+        if value is not None:
             value = value[csr2csc][mask][csc2csr]
 
-        sparse_size = torch.Size([src.sparse_size(0), colcount.size(0)])
+        sparse_sizes = torch.Size([src.sparse_size(0), colcount.size(0)])
 
-        storage = src.storage.__class__(row=row, col=col, value=value,
-                                        sparse_size=sparse_size,
-                                        colcount=colcount, csc2csr=csc2csr,
-                                        is_sorted=True)
+        storage = SparseStorage(row=row, rowptr=None, col=col, value=value,
+                                sparse_sizes=sparse_sizes, rowcount=None,
+                                colcount=colcount, colptr=None, csr2csc=None,
+                                csc2csr=csc2csr, is_sorted=True)
+        return src.from_storage(storage)
 
     else:
-        idx = mask.nonzero().view(-1)
-        storage = src.storage.apply_value(
-            lambda x: x.index_select(dim - 1, idx))
+        value = src.storage.value()
+        if value is not None:
+            idx = mask.nonzero().flatten()
+            return src.set_value(value.index_select(dim - 1, idx),
+                                 layout='coo')
+        else:
+            raise ValueError
 
-    return src.from_storage(storage)
 
-
-def masked_select_nnz(src, mask, layout=None):
+@torch.jit.script
+def masked_select_nnz(src: SparseTensor, mask: torch.Tensor,
+                      layout: Optional[str] = None) -> SparseTensor:
     assert mask.dim() == 1
 
     if get_layout(layout) == 'csc':
-        mask = mask[src.storage.csc2csr]
+        mask = mask[src.storage.csc2csr()]
 
     row, col, value = src.coo()
     row, col = row[mask], col[mask]
 
-    if src.has_value():
+    if value is not None:
         value = value[mask]
 
-    # There is no other information we can maintain...
-    storage = src.storage.__class__(row=row, col=col, value=value,
-                                    sparse_size=src.sparse_size(),
-                                    is_sorted=True)
+    return SparseTensor(row=row, rowptr=None, col=col, value=value,
+                        sparse_sizes=src.sparse_sizes(), is_sorted=True)
 
-    return src.from_storage(storage)
+
+SparseTensor.masked_select = lambda self, dim, mask: masked_select(
+    self, dim, mask)
+tmp = lambda src, mask, layout=None: masked_select_nnz(  # noqa
+    src, mask, layout)
+SparseTensor.masked_select_nnz = tmp

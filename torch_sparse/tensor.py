@@ -5,14 +5,6 @@ import torch
 import scipy.sparse
 
 from torch_sparse.storage import SparseStorage, get_layout
-
-# from torch_sparse.index_select import index_select, index_select_nnz
-# from torch_sparse.masked_select import masked_select, masked_select_nnz
-# from torch_sparse.diag import remove_diag, set_diag
-# import torch_sparse.reduce
-# from torch_sparse.matmul import matmul
-# from torch_sparse.add import add, add_, add_nnz, add_nnz_
-# from torch_sparse.mul import mul, mul_, mul_nnz, mul_nnz_
 from torch_sparse.utils import is_scalar
 
 
@@ -403,12 +395,6 @@ class SparseTensor(object):
     #     return matmul(self, other, reduce='sum')
 
 
-# SparseTensor.narrow = narrow
-# SparseTensor.select = select
-# SparseTensor.index_select = index_select
-# SparseTensor.index_select_nnz = index_select_nnz
-# SparseTensor.masked_select = masked_select
-# SparseTensor.masked_select_nnz = masked_select_nnz
 # SparseTensor.reduction = torch_sparse.reduce.reduction
 # SparseTensor.sum = torch_sparse.reduce.sum
 # SparseTensor.mean = torch_sparse.reduce.mean
@@ -417,14 +403,6 @@ class SparseTensor(object):
 # SparseTensor.remove_diag = remove_diag
 # SparseTensor.set_diag = set_diag
 # SparseTensor.matmul = matmul
-# SparseTensor.add = add
-# SparseTensor.add_ = add_
-# SparseTensor.add_nnz = add_nnz
-# SparseTensor.add_nnz_ = add_nnz_
-# SparseTensor.mul = mul
-# SparseTensor.mul_ = mul_
-# SparseTensor.mul_nnz = mul_nnz
-# SparseTensor.mul_nnz_ = mul_nnz_
 
 # Python Bindings #############################################################
 

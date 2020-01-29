@@ -4,7 +4,8 @@ from torch_sparse.tensor import SparseTensor
 
 
 @torch.jit.script
-def narrow(src: SparseTensor, dim: int, start: int, length: int):
+def narrow(src: SparseTensor, dim: int, start: int,
+           length: int) -> SparseTensor:
     dim = src.dim() + dim if dim < 0 else dim
     start = src.size(dim) + start if start < 0 else start
 

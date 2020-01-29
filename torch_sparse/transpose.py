@@ -6,7 +6,7 @@ from torch_sparse.tensor import SparseTensor
 
 
 @torch.jit.script
-def t(src: SparseTensor):
+def t(src: SparseTensor) -> SparseTensor:
     csr2csc = src.storage.csr2csc()
 
     row, col, value = src.coo()
