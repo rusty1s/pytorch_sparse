@@ -345,7 +345,10 @@ class SparseTensor(object):
     def to_dense(self, options: Optional[torch.Tensor] = None):
         row, col, value = self.coo()
 
-        if options is not None:
+        if value is not None:
+            mat = torch.zeros(self.sizes(), dtype=value.dtype,
+                              device=self.device())
+        elif options is not None:
             mat = torch.zeros(self.sizes(), dtype=options.dtype,
                               device=self.device())
         else:
@@ -373,24 +376,6 @@ class SparseTensor(object):
 
     # Standard Operators ######################################################
 
-    # def __add__(self, other):
-    #     return self.add(other)
-
-    # def __radd__(self, other):
-    #     return self.add(other)
-
-    # def __iadd__(self, other):
-    #     return self.add_(other)
-
-    # def __mul__(self, other):
-    #     return self.mul(other)
-
-    # def __rmul__(self, other):
-    #     return self.mul(other)
-
-    # def __imul__(self, other):
-    #     return self.mul_(other)
-
     # def __matmul__(self, other):
     #     return matmul(self, other, reduce='sum')
 
@@ -400,8 +385,6 @@ class SparseTensor(object):
 # SparseTensor.mean = torch_sparse.reduce.mean
 # SparseTensor.min = torch_sparse.reduce.min
 # SparseTensor.max = torch_sparse.reduce.max
-# SparseTensor.remove_diag = remove_diag
-# SparseTensor.set_diag = set_diag
 # SparseTensor.matmul = matmul
 
 # Python Bindings #############################################################

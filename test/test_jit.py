@@ -71,10 +71,13 @@ def test_jit():
     # scipy = adj.to_scipy(layout='csr')
     # mat = SparseTensor.from_scipy(scipy)
     print()
-    print(adj)
     # adj = t(adj)
     adj = adj.t()
+    adj = adj.remove_diag(k=0)
+    print(adj.to_dense())
+    adj = adj + torch.tensor([1, 2, 3]).view(1, 3)
     print(adj)
+    print(adj.to_dense())
     # print(adj.t)
 
     # adj = {'rowptr': mat.storage.rowptr, 'col': mat.storage.col}

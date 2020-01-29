@@ -20,7 +20,7 @@ def add(src: SparseTensor, other: torch.Tensor) -> SparseTensor:
                          f'{other.size()}.')
 
     if value is not None:
-        value = other.add_(value)
+        value = other.to(value.dtype).add_(value)
     else:
         value = other.add_(1)
     return src.set_value(value, layout='coo')
@@ -41,7 +41,7 @@ def add_(src: SparseTensor, other: torch.Tensor) -> SparseTensor:
                          f'{other.size()}.')
 
     if value is not None:
-        value = value.add_(other)
+        value = value.add_(other.to(value.dtype))
     else:
         value = other.add_(1)
     return src.set_value_(value, layout='coo')
@@ -52,7 +52,7 @@ def add_nnz(src: SparseTensor, other: torch.Tensor,
             layout: Optional[str] = None) -> SparseTensor:
     value = src.storage.value()
     if value is not None:
-        value = value.add(other)
+        value = value.add(other.to(value.dtype))
     else:
         value = other.add(1)
     return src.set_value(value, layout=layout)
@@ -63,7 +63,7 @@ def add_nnz_(src: SparseTensor, other: torch.Tensor,
              layout: Optional[str] = None) -> SparseTensor:
     value = src.storage.value()
     if value is not None:
-        value = value.add_(other)
+        value = value.add_(other.to(value.dtype))
     else:
         value = other.add(1)
     return src.set_value_(value, layout=layout)
@@ -75,3 +75,6 @@ SparseTensor.add_nnz = lambda self, other, layout=None: add_nnz(
     self, other, layout)
 SparseTensor.add_nnz_ = lambda self, other, layout=None: add_nnz_(
     self, other, layout)
+SparseTensor.__add__ = SparseTensor.add
+SparseTensor.__radd__ = SparseTensor.add
+SparseTensor.__iadd__ = SparseTensor.add_
