@@ -40,6 +40,8 @@ __global__ void non_diag_mask_kernel(const int64_t *row_data,
 
 torch::Tensor non_diag_mask_cuda(torch::Tensor row, torch::Tensor col,
                                  int64_t M, int64_t N, int64_t k) {
+  cudaSetDevice(row.get_device());
+
   int64_t E = row.size(0);
   int64_t num_diag = k < 0 ? std::min(M + k, N) : std::min(M, N - k);
 

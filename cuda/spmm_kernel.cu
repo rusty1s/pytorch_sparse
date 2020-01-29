@@ -160,6 +160,7 @@ spmm_cuda(torch::Tensor rowptr, torch::Tensor col,
           torch::optional<torch::Tensor> value_opt, torch::Tensor mat,
           std::string reduce) {
 
+  cudaSetDevice(rowptr.get_device());
   AT_ASSERTM(rowptr.dim() == 1, "Input mismatch");
   AT_ASSERTM(col.dim() == 1, "Input mismatch");
   if (value_opt.has_value())
@@ -251,6 +252,8 @@ spmm_val_bw_kernel(const int64_t *row_data, const int64_t *rowptr_data,
 torch::Tensor spmm_val_bw_cuda(torch::Tensor row, torch::Tensor rowptr,
                                torch::Tensor col, torch::Tensor mat,
                                torch::Tensor grad, std::string reduce) {
+
+  cudaSetDevice(row.get_device());
 
   mat = mat.contiguous();
   grad = grad.contiguous();

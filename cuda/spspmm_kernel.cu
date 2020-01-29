@@ -48,6 +48,9 @@ spspmm_cuda(torch::Tensor rowptrA, torch::Tensor colA,
             torch::optional<torch::Tensor> valueA, torch::Tensor rowptrB,
             torch::Tensor colB, torch::optional<torch::Tensor> valueB,
             int64_t M, int64_t N, int64_t K) {
+
+  cudaSetDevice(rowptrA.get_device());
+
   cusparseMatDescr_t descr = 0;
   cusparseCreateMatDescr(&descr);
   auto handle = at::cuda::getCurrentCUDASparseHandle();
