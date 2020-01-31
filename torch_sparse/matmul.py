@@ -38,10 +38,6 @@ def spmm_sum(src: SparseTensor, other: torch.Tensor) -> torch.Tensor:
         csr2csc = src.storage.csr2csc()
         colptr = src.storage.colptr()
 
-    print(row is not None)
-    print(csr2csc is not None)
-    print(colptr is not None)
-
     return torch.ops.torch_sparse.spmm_sum(row, rowptr, col, value, colptr,
                                            csr2csc, other)
 

@@ -10,8 +10,6 @@ import torch_scatter
 from .utils import devices, grad_dtypes
 
 reductions = ['sum', 'mean', 'min', 'max']
-devices = ['cpu']
-grad_dtypes = [torch.float]
 reductions = ['sum']
 
 
@@ -33,8 +31,6 @@ def test_spmm(dtype, device, reduce):
         expected[expected > 1000] = 0
     if reduce == 'max':
         expected[expected < -1000] = 0
-
-    print(expected)
 
     grad_out = torch.randn_like(expected)
 
