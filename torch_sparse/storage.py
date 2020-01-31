@@ -1,9 +1,27 @@
 import warnings
+import os.path as osp
 from typing import Optional, List
 
 import torch
 from torch_scatter import segment_csr, scatter_add
 from torch_sparse.utils import Final
+
+try:
+    torch.ops.load_library(
+        osp.join(osp.dirname(osp.abspath(__file__)), '_convert.so'))
+except OSError:
+    warnings.warn('Failed to load `convert` binaries.')
+
+    def ind2ptr_placeholder(ind: torch.Tensor, M: int) -> torch.Tensor:
+        raise ImportError
+        return ind
+
+    def ptr2ind_placeholder(ptr: torch.Tensor, E: int) -> torch.Tensor:
+        raise ImportError
+        return ptr
+
+    torch.ops.torch_sparse.ind2ptr = ind2ptr_placeholder
+    torch.ops.torch_sparse.ptr2ind = ptr2ind_placeholder
 
 layouts: Final[List[str]] = ['coo', 'csr', 'csc']
 
@@ -147,16 +165,7 @@ class SparseStorage(object):
 
         rowptr = self._rowptr
         if rowptr is not None:
-            if rowptr.is_cuda:
-                row = torch.ops.torch_sparse_cuda.ptr2ind(
-                    rowptr, self._col.numel())
-            else:
-                if rowptr.is_cuda:
-                    row = torch.ops.torch_sparse_cuda.ptr2ind(
-                        rowptr, self._col.numel())
-                else:
-                    row = torch.ops.torch_sparse_cpu.ptr2ind(
-                        rowptr, self._col.numel())
+            row = torch.ops.torch_sparse.ptr2ind(rowptr, self._col.numel())
             self._row = row
             return row
 
@@ -172,12 +181,7 @@ class SparseStorage(object):
 
         row = self._row
         if row is not None:
-            if row.is_cuda:
-                rowptr = torch.ops.torch_sparse_cuda.ind2ptr(
-                    row, self._sparse_sizes[0])
-            else:
-                rowptr = torch.ops.torch_sparse_cpu.ind2ptr(
-                    row, self._sparse_sizes[0])
+            rowptr = torch.ops.torch_sparse.ind2ptr(row, self._sparse_sizes[0])
             self._rowptr = rowptr
             return rowptr
 
@@ -284,8 +288,8 @@ class SparseStorage(object):
 
         csr2csc = self._csr2csc
         if csr2csc is not None:
-            colptr = torch.ops.torch_sparse_cpu.ind2ptr(
-                self._col[csr2csc], self._sparse_sizes[1])
+            colptr = torch.ops.torch_sparse.ind2ptr(self._col[csr2csc],
+                                                    self._sparse_sizes[1])
         else:
             colptr = self._col.new_zeros(self._sparse_sizes[1] + 1)
             torch.cumsum(self.colcount(), dim=0, out=colptr[1:])

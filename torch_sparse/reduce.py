@@ -1,9 +1,7 @@
 from typing import Optional
 
 import torch
-import torch_scatter
 from torch_scatter import scatter, segment_csr
-
 from torch_sparse.tensor import SparseTensor
 
 
@@ -32,7 +30,6 @@ def reduction(src: SparseTensor, dim: Optional[int] = None,
                 return torch.tensor(1, dtype=src.dtype(), device=src.device())
             else:
                 raise ValueError
-
     else:
         if dim < 0:
             dim = src.dim() + dim
@@ -67,7 +64,6 @@ def reduction(src: SparseTensor, dim: Optional[int] = None,
                 return value.max(dim=dim - 1)[0]
             else:
                 raise ValueError
-
         else:
             raise ValueError
 
