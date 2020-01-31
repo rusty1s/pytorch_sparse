@@ -1,7 +1,8 @@
-#include <ATen/cuda/CUDAContext.h>
-#include <torch/extension.h>
+#include "diag_cuda.h"
 
-#include "compat.cuh"
+#include <ATen/cuda/CUDAContext.h>
+
+#include "utils.cuh"
 
 #define THREADS 1024
 
@@ -40,16 +41,18 @@ __global__ void non_diag_mask_kernel(const int64_t *row_data,
 
 torch::Tensor non_diag_mask_cuda(torch::Tensor row, torch::Tensor col,
                                  int64_t M, int64_t N, int64_t k) {
+  CHECK_CUDA(row);
+  CHECK_CUDA(col);
   cudaSetDevice(row.get_device());
 
-  int64_t E = row.size(0);
-  int64_t num_diag = k < 0 ? std::min(M + k, N) : std::min(M, N - k);
+  auto E = row.size(0);
+  auto num_diag = k < 0 ? std::min(M + k, N) : std::min(M, N - k);
 
-  auto row_data = row.DATA_PTR<int64_t>();
-  auto col_data = col.DATA_PTR<int64_t>();
+  auto row_data = row.data_ptr<int64_t>();
+  auto col_data = col.data_ptr<int64_t>();
 
   auto mask = torch::zeros(E + num_diag, row.options().dtype(torch::kBool));
-  auto mask_data = mask.DATA_PTR<bool>();
+  auto mask_data = mask.data_ptr<bool>();
 
   auto stream = at::cuda::getCurrentCUDAStream();
   non_diag_mask_kernel<<<(E + THREADS - 1) / THREADS, THREADS, 0, stream>>>(

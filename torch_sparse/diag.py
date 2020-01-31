@@ -1,8 +1,23 @@
+import warnings
+import os.path as osp
 from typing import Optional
 
 import torch
 from torch_sparse.storage import SparseStorage
 from torch_sparse.tensor import SparseTensor
+
+try:
+    torch.ops.load_library(
+        osp.join(osp.dirname(osp.abspath(__file__)), '_diag.so'))
+except OSError:
+    warnings.warn('Failed to load `diag` binaries.')
+
+    def non_diag_mask_placeholder(row: torch.Tensor, col: torch.Tensor, M: int,
+                                  N: int, k: int) -> torch.Tensor:
+        raise ImportError
+        return row
+
+    torch.ops.torch_sparse.non_diag_mask = non_diag_mask_placeholder
 
 
 @torch.jit.script
@@ -38,13 +53,8 @@ def set_diag(src: SparseTensor, values: Optional[torch.Tensor] = None,
     src = remove_diag(src, k=0)
     row, col, value = src.coo()
 
-    if row.is_cuda:
-        mask = torch.ops.torch_sparse_cuda.non_diag_mask(
-            row, col, src.size(0), src.size(1), k)
-    else:
-        mask = torch.ops.torch_sparse_cpu.non_diag_mask(
-            row, col, src.size(0), src.size(1), k)
-
+    mask = torch.ops.torch_sparse.non_diag_mask(row, col, src.size(0),
+                                                src.size(1), k)
     inv_mask = ~mask
 
     start, num_diag = -k if k < 0 else 0, mask.numel() - row.numel()

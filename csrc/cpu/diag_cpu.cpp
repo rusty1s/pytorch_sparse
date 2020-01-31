@@ -1,22 +1,20 @@
-#include <torch/script.h>
+#include "diag_cpu.h"
 
-#include "compat.h"
+#include "utils.h"
 
-#define CHECK_CPU(x) AT_ASSERTM(x.device().is_cpu(), #x " must be CPU tensor")
-
-torch::Tensor non_diag_mask(torch::Tensor row, torch::Tensor col, int64_t M,
-                            int64_t N, int64_t k) {
+torch::Tensor non_diag_mask_cpu(torch::Tensor row, torch::Tensor col, int64_t M,
+                                int64_t N, int64_t k) {
   CHECK_CPU(row);
   CHECK_CPU(col);
 
-  int64_t E = row.size(0);
-  int64_t num_diag = k < 0 ? std::min(M + k, N) : std::min(M, N - k);
+  auto E = row.size(0);
+  auto num_diag = k < 0 ? std::min(M + k, N) : std::min(M, N - k);
 
-  auto row_data = row.DATA_PTR<int64_t>();
-  auto col_data = col.DATA_PTR<int64_t>();
+  auto row_data = row.data_ptr<int64_t>();
+  auto col_data = col.data_ptr<int64_t>();
 
   auto mask = torch::zeros(E + num_diag, row.options().dtype(torch::kBool));
-  auto mask_data = mask.DATA_PTR<bool>();
+  auto mask_data = mask.data_ptr<bool>();
 
   int64_t r, c;
   if (k < 0) {
@@ -47,6 +45,3 @@ torch::Tensor non_diag_mask(torch::Tensor row, torch::Tensor col, int64_t M,
 
   return mask;
 }
-
-static auto registry =
-    torch::RegisterOperators("torch_sparse_cpu::non_diag_mask", &non_diag_mask);

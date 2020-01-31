@@ -10,6 +10,9 @@ import torch_scatter
 from .utils import devices, grad_dtypes
 
 reductions = ['sum', 'mean', 'min', 'max']
+devices = ['cpu']
+grad_dtypes = [torch.float]
+reductions = ['sum']
 
 
 @pytest.mark.parametrize('dtype,device,reduce',
@@ -25,13 +28,13 @@ def test_spmm(dtype, device, reduce):
                         requires_grad=True)
 
     src_col = other.index_select(-2, col) * value.unsqueeze(-1)
-    func = 'add' if reduce == 'sum' else reduce
-    expected = getattr(torch_scatter, f'scatter_{func}')(src_col, row, dim=-2)
-    expected = expected[0] if isinstance(expected, tuple) else expected
+    expected = torch_scatter.scatter(src_col, row, dim=-2, reduce=reduce)
     if reduce == 'min':
         expected[expected > 1000] = 0
     if reduce == 'max':
         expected[expected < -1000] = 0
+
+    print(expected)
 
     grad_out = torch.randn_like(expected)
 
@@ -42,7 +45,6 @@ def test_spmm(dtype, device, reduce):
     other.grad = None
 
     out = matmul(src, other, reduce)
-    out = out[0] if isinstance(out, tuple) else out
     out.backward(grad_out)
 
     assert torch.allclose(expected, out)
@@ -50,17 +52,17 @@ def test_spmm(dtype, device, reduce):
     assert torch.allclose(expected_grad_other, other.grad)
 
 
-@pytest.mark.parametrize('dtype,device', product(grad_dtypes, devices))
-def test_spspmm(dtype, device):
-    src = torch.tensor([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=dtype,
-                       device=device)
+# @pytest.mark.parametrize('dtype,device', product(grad_dtypes, devices))
+# def test_spspmm(dtype, device):
+#     src = torch.tensor([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=dtype,
+#                        device=device)
 
-    src = SparseTensor.from_dense(src)
-    out = src @ src
-    assert out.size() == (3, 3)
-    assert out.has_value()
+#     src = SparseTensor.from_dense(src)
+#     out = src @ src
+#     assert out.size() == (3, 3)
+#     assert out.has_value()
 
-    src.set_value_(None)
-    out = src @ src
-    assert out.size() == (3, 3)
-    assert not out.has_value()
+#     src.set_value_(None)
+#     out = src @ src
+#     assert out.size() == (3, 3)
+#     assert not out.has_value()
