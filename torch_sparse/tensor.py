@@ -380,11 +380,6 @@ class SparseTensor(object):
     #     return matmul(self, other, reduce='sum')
 
 
-# SparseTensor.reduction = torch_sparse.reduce.reduction
-# SparseTensor.sum = torch_sparse.reduce.sum
-# SparseTensor.mean = torch_sparse.reduce.mean
-# SparseTensor.min = torch_sparse.reduce.min
-# SparseTensor.max = torch_sparse.reduce.max
 # SparseTensor.matmul = matmul
 
 # Python Bindings #############################################################

@@ -9,8 +9,7 @@ from torch_sparse.tensor import SparseTensor
 def add(src: SparseTensor, other: torch.Tensor) -> SparseTensor:
     rowptr, col, value = src.csr()
     if other.size(0) == src.size(0) and other.size(1) == 1:  # Row-wise...
-        # TODO
-        # other = gather_csr(other.squeeze(1), rowptr)
+        other = gather_csr(other.squeeze(1), rowptr)
         pass
     elif other.size(0) == 1 and other.size(1) == src.size(1):  # Col-wise...
         other = other.squeeze(0)[col]
@@ -30,8 +29,7 @@ def add(src: SparseTensor, other: torch.Tensor) -> SparseTensor:
 def add_(src: SparseTensor, other: torch.Tensor) -> SparseTensor:
     rowptr, col, value = src.csr()
     if other.size(0) == src.size(0) and other.size(1) == 1:  # Row-wise...
-        # TODO
-        # other = gather_csr(other.squeeze(1), rowptr)
+        other = gather_csr(other.squeeze(1), rowptr)
         pass
     elif other.size(0) == 1 and other.size(1) == src.size(1):  # Col-wise...
         other = other.squeeze(0)[col]

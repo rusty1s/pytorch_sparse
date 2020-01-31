@@ -304,9 +304,8 @@ class SparseStorage(object):
         if colptr is not None:
             colcount = colptr[1:] - colptr[1:]
         else:
-            raise NotImplementedError
-            # colcount = scatter_add(torch.ones_like(self._col), self._col,
-            #                        dim_size=self._sparse_sizes[1])
+            colcount = scatter_add(torch.ones_like(self._col), self._col,
+                                   dim_size=self._sparse_sizes[1])
         self._colcount = colcount
         return colcount
 
@@ -355,8 +354,7 @@ class SparseStorage(object):
         if value is not None:
             ptr = mask.nonzero().flatten()
             ptr = torch.cat([ptr, ptr.new_full((1, ), value.size(0))])
-            raise NotImplementedError
-            # value = segment_csr(value, ptr, reduce=reduce)
+            value = segment_csr(value, ptr, reduce=reduce)
             value = value[0] if isinstance(value, tuple) else value
 
         return SparseStorage(row=row, rowptr=None, col=col, value=value,

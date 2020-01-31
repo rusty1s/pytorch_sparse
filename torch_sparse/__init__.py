@@ -45,3 +45,4 @@ from .masked_select import masked_select, masked_select_nnz
 from .diag import set_diag, remove_diag
 from .add import add, add_, add_nnz, add_nnz_
 from .mul import mul, mul_, mul_nnz, mul_nnz_
+from .reduce import sum, mean, min, max

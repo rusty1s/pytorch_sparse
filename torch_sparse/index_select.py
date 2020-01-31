@@ -25,8 +25,7 @@ def index_select(src: SparseTensor, dim: int,
                            device=col.device).repeat_interleave(rowcount)
 
         perm = torch.arange(row.size(0), device=row.device)
-        # TODO
-        # perm += gather_csr(old_rowptr[idx] - rowptr[:-1], rowptr)
+        perm += gather_csr(old_rowptr[idx] - rowptr[:-1], rowptr)
 
         col = col[perm]
 
@@ -54,8 +53,7 @@ def index_select(src: SparseTensor, dim: int,
                            device=row.device).repeat_interleave(colcount)
 
         perm = torch.arange(col.size(0), device=col.device)
-        # TODO
-        # perm += gather_csr(old_colptr[idx] - colptr[:-1], colptr)
+        perm += gather_csr(old_colptr[idx] - colptr[:-1], colptr)
 
         row = row[perm]
         csc2csr = (idx.size(0) * row + col).argsort()
