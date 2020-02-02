@@ -10,7 +10,7 @@ import torch_scatter
 from .utils import devices, grad_dtypes
 
 reductions = ['sum', 'mean', 'min', 'max']
-reductions = ['sum']
+reductions = ['sum', 'mean']
 
 
 @pytest.mark.parametrize('dtype,device,reduce',

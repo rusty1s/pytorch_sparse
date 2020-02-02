@@ -274,7 +274,7 @@ class SparseStorage(object):
             return rowcount
 
         rowptr = self.rowptr()
-        rowcount = rowptr[1:] - rowptr[1:]
+        rowcount = rowptr[1:] - rowptr[:-1]
         self._rowcount = rowcount
         return rowcount
 
@@ -306,7 +306,7 @@ class SparseStorage(object):
 
         colptr = self._colptr
         if colptr is not None:
-            colcount = colptr[1:] - colptr[1:]
+            colcount = colptr[1:] - colptr[:-1]
         else:
             colcount = scatter_add(torch.ones_like(self._col), self._col,
                                    dim_size=self._sparse_sizes[1])

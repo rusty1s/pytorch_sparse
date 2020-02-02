@@ -19,7 +19,18 @@ except OSError:
         raise ImportError
         return mat
 
+    def spmm_mean_placeholder(row: Optional[torch.Tensor],
+                              rowptr: torch.Tensor, col: torch.Tensor,
+                              value: Optional[torch.Tensor],
+                              rowcount: Optional[torch.Tensor],
+                              colptr: Optional[torch.Tensor],
+                              csr2csc: Optional[torch.Tensor],
+                              mat: torch.Tensor) -> torch.Tensor:
+        raise ImportError
+        return mat
+
     torch.ops.torch_sparse.spmm_sum = spmm_sum_placeholder
+    torch.ops.torch_sparse.spmm_mean = spmm_mean_placeholder
 
 
 @torch.jit.script
@@ -48,10 +59,34 @@ def spmm_add(src: SparseTensor, other: torch.Tensor) -> torch.Tensor:
 
 
 @torch.jit.script
+def spmm_mean(src: SparseTensor, other: torch.Tensor) -> torch.Tensor:
+    rowptr, col, value = src.csr()
+
+    row = src.storage._row
+    rowcount = src.storage._rowcount
+    csr2csc = src.storage._csr2csc
+    colptr = src.storage._colptr
+
+    if value is not None and value.requires_grad:
+        row = src.storage.row()
+
+    if other.requires_grad:
+        row = src.storage.row()
+        rowcount = src.storage.rowcount()
+        csr2csc = src.storage.csr2csc()
+        colptr = src.storage.colptr()
+
+    return torch.ops.torch_sparse.spmm_mean(row, rowptr, col, value, rowcount,
+                                            colptr, csr2csc, other)
+
+
+@torch.jit.script
 def spmm(src: SparseTensor, other: torch.Tensor,
          reduce: str = "sum") -> torch.Tensor:
     if reduce == 'sum' or reduce == 'add':
         return spmm_sum(src, other)
+    elif reduce == 'mean':
+        return spmm_mean(src, other)
     else:
         raise ValueError
 
