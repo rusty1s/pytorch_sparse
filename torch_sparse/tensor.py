@@ -64,7 +64,7 @@ class SparseTensor(object):
 
         rowptr = torch.arange(M + 1, dtype=torch.long, device=row.device)
         if M > N:
-            rowptr[N + 1:] = M
+            rowptr[N + 1:] = N
 
         value: Optional[torch.Tensor] = None
         if has_value:
