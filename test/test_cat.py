@@ -1,7 +1,7 @@
 import pytest
 import torch
 from torch_sparse.tensor import SparseTensor
-from torch_sparse.cat import cat
+from torch_sparse.cat import cat, cat_diag
 
 from .utils import devices, tensor
 
@@ -21,29 +21,27 @@ def test_cat(device):
                                        [0, 1, 0], [1, 0, 0]]
     assert out.storage.has_row()
     assert out.storage.has_rowptr()
-    assert len(out.storage.cached_keys()) == 1
     assert out.storage.has_rowcount()
+    assert out.storage.num_cached_keys() == 1
 
     out = cat([mat1, mat2], dim=1)
     assert out.to_dense().tolist() == [[1, 1, 0, 1, 1], [0, 0, 1, 0, 1],
                                        [0, 0, 0, 1, 0]]
     assert out.storage.has_row()
     assert not out.storage.has_rowptr()
-    assert len(out.storage.cached_keys()) == 2
-    assert out.storage.has_colcount()
-    assert out.storage.has_colptr()
+    assert out.storage.num_cached_keys() == 2
 
-    out = cat([mat1, mat2], dim=(0, 1))
+    out = cat_diag([mat1, mat2])
     assert out.to_dense().tolist() == [[1, 1, 0, 0, 0], [0, 0, 1, 0, 0],
                                        [0, 0, 0, 1, 1], [0, 0, 0, 0, 1],
                                        [0, 0, 0, 1, 0]]
     assert out.storage.has_row()
     assert out.storage.has_rowptr()
-    assert len(out.storage.cached_keys()) == 5
+    assert out.storage.num_cached_keys() == 5
 
-    mat1.set_value_(torch.randn((mat1.nnz(), 4), device=device))
+    mat1 = mat1.set_value_(torch.randn((mat1.nnz(), 4), device=device))
     out = cat([mat1, mat1], dim=-1)
-    assert out.storage.value.size() == (mat1.nnz(), 8)
+    assert out.storage.value().size() == (mat1.nnz(), 8)
     assert out.storage.has_row()
     assert out.storage.has_rowptr()
-    assert len(out.storage.cached_keys()) == 5
+    assert out.storage.num_cached_keys() == 5

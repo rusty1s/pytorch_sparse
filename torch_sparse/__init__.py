@@ -1,18 +1,3 @@
-import torch
-
-torch.ops.load_library('torch_sparse/convert_cpu.so')
-torch.ops.load_library('torch_sparse/diag_cpu.so')
-torch.ops.load_library('torch_sparse/spmm_cpu.so')
-
-try:
-    torch.ops.load_library('torch_sparse/convert_cuda.so')
-    torch.ops.load_library('torch_sparse/diag_cuda.so')
-    torch.ops.load_library('torch_sparse/spmm_cuda.so')
-    torch.ops.load_library('torch_sparse/spspmm_cuda.so')
-except OSError as e:
-    if torch.cuda.is_available():
-        raise e
-
 from .convert import to_torch_sparse, from_torch_sparse, to_scipy, from_scipy
 from .coalesce import coalesce
 from .transpose import transpose
@@ -48,3 +33,4 @@ from .mul import mul, mul_, mul_nnz, mul_nnz_
 from .reduce import sum, mean, min, max
 from .matmul import (spmm_sum, spmm_add, spmm_mean, spmm_min, spmm_max, spmm,
                      spspmm_sum, spspmm_add, spspmm, matmul)
+from .cat import cat, cat_diag

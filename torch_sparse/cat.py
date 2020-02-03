@@ -1,147 +1,242 @@
+from typing import List, Optional
+
 import torch
+from torch_sparse.storage import SparseStorage
+from torch_sparse.tensor import SparseTensor
 
 
-def cat(tensors, dim):
+@torch.jit.script
+def cat(tensors: List[SparseTensor], dim: int) -> SparseTensor:
     assert len(tensors) > 0
-    has_row = tensors[0].storage.has_row()
-    has_value = tensors[0].has_value()
-    has_rowcount = tensors[0].storage.has_rowcount()
-    has_colptr = tensors[0].storage.has_colptr()
-    has_colcount = tensors[0].storage.has_colcount()
-    has_csr2csc = tensors[0].storage.has_csr2csc()
-    has_csc2csr = tensors[0].storage.has_csc2csr()
-
-    rows, rowptrs, cols, values, sparse_size, nnzs = [], [], [], [], [0, 0], 0
-    rowcounts, colcounts, colptrs, csr2cscs, csc2csrs = [], [], [], [], []
-
-    if isinstance(dim, int):
-        dim = tensors[0].dim() + dim if dim < 0 else dim
-    else:
-        dim = tuple([tensors[0].dim() + d if d < 0 else d for d in dim])
+    if dim < 0:
+        dim = tensors[0].dim() + dim
 
     if dim == 0:
+        rows: List[torch.Tensor] = []
+        rowptrs: List[torch.Tensor] = []
+        cols: List[torch.Tensor] = []
+        values: List[torch.Tensor] = []
+        sparse_sizes: List[int] = [0, 0]
+        rowcounts: List[torch.Tensor] = []
+
+        nnz: int = 0
         for tensor in tensors:
-            rowptr, col, value = tensor.csr()
-            rowptr = rowptr if len(rowptrs) == 0 else rowptr[1:]
-            rowptrs += [rowptr + nnzs]
-            cols += [col]
-            values += [value]
+            row = tensor.storage._row
+            if row is not None:
+                rows.append(row + sparse_sizes[0])
 
-            if has_row:
-                rows += [tensor.storage.row + sparse_size[0]]
+            rowptr = tensor.storage._rowptr
+            if rowptr is not None:
+                if len(rowptrs) > 0:
+                    rowptr = rowptr[1:]
+                rowptrs.append(rowptr + nnz)
 
-            if has_rowcount:
-                rowcounts += [tensor.storage.rowcount]
+            cols.append(tensor.storage._col)
 
-            sparse_size[0] += tensor.sparse_size(0)
-            sparse_size[1] = max(sparse_size[1], tensor.sparse_size(1))
-            nnzs += tensor.nnz()
+            value = tensor.storage._value
+            if value is not None:
+                values.append(value)
 
-        storage = tensors[0].storage.__class__(
-            row=torch.cat(rows) if has_row else None,
-            rowptr=torch.cat(rowptrs), col=torch.cat(cols),
-            value=torch.cat(values, dim=0) if has_value else None,
-            sparse_size=sparse_size,
-            rowcount=torch.cat(rowcounts) if has_rowcount else None,
-            is_sorted=True)
+            rowcount = tensor.storage._rowcount
+            if rowcount is not None:
+                rowcounts.append(rowcount)
+
+            sparse_sizes[0] += tensor.sparse_size(0)
+            sparse_sizes[1] = max(sparse_sizes[1], tensor.sparse_size(1))
+            nnz += tensor.nnz()
+
+        row: Optional[torch.Tensor] = None
+        if len(rows) == len(tensors):
+            row = torch.cat(rows, dim=0)
+
+        rowptr: Optional[torch.Tensor] = None
+        if len(rowptrs) == len(tensors):
+            rowptr = torch.cat(rowptrs, dim=0)
+
+        col = torch.cat(cols, dim=0)
+
+        value: Optional[torch.Tensor] = None
+        if len(values) == len(tensors):
+            value = torch.cat(values, dim=0)
+
+        rowcount: Optional[torch.Tensor] = None
+        if len(rowcounts) == len(tensors):
+            rowcount = torch.cat(rowcounts, dim=0)
+
+        storage = SparseStorage(row=row, rowptr=rowptr, col=col, value=value,
+                                sparse_sizes=sparse_sizes, rowcount=rowcount,
+                                colptr=None, colcount=None, csr2csc=None,
+                                csc2csr=None, is_sorted=True)
+        return tensors[0].from_storage(storage)
 
     elif dim == 1:
+        rows: List[torch.Tensor] = []
+        cols: List[torch.Tensor] = []
+        values: List[torch.Tensor] = []
+        sparse_sizes: List[int] = [0, 0]
+        colptrs: List[torch.Tensor] = []
+        colcounts: List[torch.Tensor] = []
+
+        nnz: int = 0
         for tensor in tensors:
             row, col, value = tensor.coo()
-            rows += [row]
-            cols += [col + sparse_size[1]]
-            values += [value]
 
-            if has_colcount:
-                colcounts += [tensor.storage.colcount]
+            rows.append(row)
 
-            if has_colptr:
-                colptr = tensor.storage.colptr
-                colptr = colptr if len(colptrs) == 0 else colptr[1:]
-                colptrs += [colptr + nnzs]
+            cols.append(tensor.storage._col + sparse_sizes[1])
 
-            sparse_size[0] = max(sparse_size[0], tensor.sparse_size(0))
-            sparse_size[1] += tensor.sparse_size(1)
-            nnzs += tensor.nnz()
+            if value is not None:
+                values.append(value)
 
-        storage = tensors[0].storage.__class__(
-            row=torch.cat(rows),
-            col=torch.cat(cols),
-            value=torch.cat(values, dim=0) if has_value else None,
-            sparse_size=sparse_size,
-            colcount=torch.cat(colcounts) if has_colcount else None,
-            colptr=torch.cat(colptrs) if has_colptr else None,
-            is_sorted=False,
-        )
+            colptr = tensor.storage._colptr
+            if colptr is not None:
+                if len(colptrs) > 0:
+                    colptr = colptr[1:]
+                colptrs.append(colptr + nnz)
 
-    elif dim == (0, 1) or dim == (1, 0):
+            colcount = tensor.storage._colcount
+            if colcount is not None:
+                colcounts.append(colcount)
+
+            sparse_sizes[0] = max(sparse_sizes[0], tensor.sparse_size(0))
+            sparse_sizes[1] += tensor.sparse_size(1)
+            nnz += tensor.nnz()
+
+        row = torch.cat(rows, dim=0)
+
+        col = torch.cat(cols, dim=0)
+
+        value: Optional[torch.Tensor] = None
+        if len(values) == len(tensors):
+            value = torch.cat(values, dim=0)
+
+        colptr: Optional[torch.Tensor] = None
+        if len(colptrs) == len(tensors):
+            colptr = torch.cat(colptrs, dim=0)
+
+        colcount: Optional[torch.Tensor] = None
+        if len(colcounts) == len(tensors):
+            colcount = torch.cat(colcounts, dim=0)
+
+        storage = SparseStorage(row=row, rowptr=None, col=col, value=value,
+                                sparse_sizes=sparse_sizes, rowcount=None,
+                                colptr=colptr, colcount=colcount, csr2csc=None,
+                                csc2csr=None, is_sorted=False)
+        return tensors[0].from_storage(storage)
+
+    elif dim > 1 and dim < tensors[0].dim():
+        values: List[torch.Tensor] = []
         for tensor in tensors:
-            rowptr, col, value = tensor.csr()
-            rowptr = rowptr if len(rowptrs) == 0 else rowptr[1:]
-            rowptrs += [rowptr + nnzs]
-            cols += [col + sparse_size[1]]
-            values += [value]
+            value = tensor.storage.value()
+            if value is not None:
+                values.append(value)
 
-            if has_row:
-                rows += [tensor.storage.row + sparse_size[0]]
+        value: Optional[torch.Tensor] = None
+        if len(values) == len(tensors):
+            value = torch.cat(values, dim=dim - 1)
 
-            if has_rowcount:
-                rowcounts += [tensor.storage.rowcount]
-
-            if has_colcount:
-                colcounts += [tensor.storage.colcount]
-
-            if has_colptr:
-                colptr = tensor.storage.colptr
-                colptr = colptr if len(colptrs) == 0 else colptr[1:]
-                colptrs += [colptr + nnzs]
-
-            if has_csr2csc:
-                csr2cscs += [tensor.storage.csr2csc + nnzs]
-
-            if has_csc2csr:
-                csc2csrs += [tensor.storage.csc2csr + nnzs]
-
-            sparse_size[0] += tensor.sparse_size(0)
-            sparse_size[1] += tensor.sparse_size(1)
-            nnzs += tensor.nnz()
-
-        storage = tensors[0].storage.__class__(
-            row=torch.cat(rows) if has_row else None,
-            rowptr=torch.cat(rowptrs),
-            col=torch.cat(cols),
-            value=torch.cat(values, dim=0) if has_value else None,
-            sparse_size=sparse_size,
-            rowcount=torch.cat(rowcounts) if has_rowcount else None,
-            colptr=torch.cat(colptrs) if has_colptr else None,
-            colcount=torch.cat(colcounts) if has_colcount else None,
-            csr2csc=torch.cat(csr2cscs) if has_csr2csc else None,
-            csc2csr=torch.cat(csc2csrs) if has_csc2csr else None,
-            is_sorted=True,
-        )
-
-    elif isinstance(dim, int) and dim > 1 and dim < tensors[0].dim():
-        for tensor in tensors:
-            values += [tensor.storage.value]
-
-        old_storage = tensors[0].storage
-        storage = old_storage.__class__(
-            row=old_storage._row,
-            rowptr=old_storage._rowptr,
-            col=old_storage._col,
-            value=torch.cat(values, dim=dim - 1),
-            sparse_size=old_storage.sparse_size,
-            rowcount=old_storage._rowcount,
-            colptr=old_storage._colptr,
-            colcount=old_storage._colcount,
-            csr2csc=old_storage._csr2csc,
-            csc2csr=old_storage._csc2csr,
-            is_sorted=True,
-        )
-
+        return tensors[0].set_value(value, layout='coo')
     else:
         raise IndexError(
             (f'Dimension out of range: Expected to be in range of '
              f'[{-tensors[0].dim()}, {tensors[0].dim() - 1}, but got {dim}]'))
 
-    return tensors[0].__class__.from_storage(storage)
+
+@torch.jit.script
+def cat_diag(tensors: List[SparseTensor]) -> SparseTensor:
+    assert len(tensors) > 0
+
+    rows: List[torch.Tensor] = []
+    rowptrs: List[torch.Tensor] = []
+    cols: List[torch.Tensor] = []
+    values: List[torch.Tensor] = []
+    sparse_sizes: List[int] = [0, 0]
+    rowcounts: List[torch.Tensor] = []
+    colptrs: List[torch.Tensor] = []
+    colcounts: List[torch.Tensor] = []
+    csr2cscs: List[torch.Tensor] = []
+    csc2csrs: List[torch.Tensor] = []
+
+    nnz: int = 0
+    for tensor in tensors:
+        row = tensor.storage._row
+        if row is not None:
+            rows.append(row + sparse_sizes[0])
+
+        rowptr = tensor.storage._rowptr
+        if rowptr is not None:
+            if len(rowptrs) > 0:
+                rowptr = rowptr[1:]
+            rowptrs.append(rowptr + nnz)
+
+        cols.append(tensor.storage._col + sparse_sizes[1])
+
+        value = tensor.storage._value
+        if value is not None:
+            values.append(value)
+
+        rowcount = tensor.storage._rowcount
+        if rowcount is not None:
+            rowcounts.append(rowcount)
+
+        colptr = tensor.storage._colptr
+        if colptr is not None:
+            if len(colptrs) > 0:
+                colptr = colptr[1:]
+            colptrs.append(colptr + nnz)
+
+        colcount = tensor.storage._colcount
+        if colcount is not None:
+            colcounts.append(colcount)
+
+        csr2csc = tensor.storage._csr2csc
+        if csr2csc is not None:
+            csr2cscs.append(csr2csc + nnz)
+
+        csc2csr = tensor.storage._csc2csr
+        if csc2csr is not None:
+            csc2csrs.append(csc2csr + nnz)
+
+        sparse_sizes[0] += tensor.sparse_size(0)
+        sparse_sizes[1] += tensor.sparse_size(1)
+        nnz += tensor.nnz()
+
+    row: Optional[torch.Tensor] = None
+    if len(rows) == len(tensors):
+        row = torch.cat(rows, dim=0)
+
+    rowptr: Optional[torch.Tensor] = None
+    if len(rowptrs) == len(tensors):
+        rowptr = torch.cat(rowptrs, dim=0)
+
+    col = torch.cat(cols, dim=0)
+
+    value: Optional[torch.Tensor] = None
+    if len(values) == len(tensors):
+        value = torch.cat(values, dim=0)
+
+    rowcount: Optional[torch.Tensor] = None
+    if len(rowcounts) == len(tensors):
+        rowcount = torch.cat(rowcounts, dim=0)
+
+    colptr: Optional[torch.Tensor] = None
+    if len(colptrs) == len(tensors):
+        colptr = torch.cat(colptrs, dim=0)
+
+    colcount: Optional[torch.Tensor] = None
+    if len(colcounts) == len(tensors):
+        colcount = torch.cat(colcounts, dim=0)
+
+    csr2csc: Optional[torch.Tensor] = None
+    if len(csr2cscs) == len(tensors):
+        csr2csc = torch.cat(csr2cscs, dim=0)
+
+    csc2csr: Optional[torch.Tensor] = None
+    if len(csc2csrs) == len(tensors):
+        csc2csr = torch.cat(csc2csrs, dim=0)
+
+    storage = SparseStorage(row=row, rowptr=rowptr, col=col, value=value,
+                            sparse_sizes=sparse_sizes, rowcount=rowcount,
+                            colptr=colptr, colcount=colcount, csr2csc=csr2csc,
+                            csc2csr=csc2csr, is_sorted=True)
+    return tensors[0].from_storage(storage)

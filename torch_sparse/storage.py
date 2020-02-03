@@ -199,7 +199,7 @@ class SparseStorage(object):
     def set_value_(self, value: Optional[torch.Tensor],
                    layout: Optional[str] = None):
         if value is not None:
-            if get_layout(layout) == 'csc2csr':
+            if get_layout(layout) == 'csc':
                 value = value[self.csc2csr()]
             value = value.contiguous()
             assert value.device == self._col.device
@@ -211,7 +211,7 @@ class SparseStorage(object):
     def set_value(self, value: Optional[torch.Tensor],
                   layout: Optional[str] = None):
         if value is not None:
-            if get_layout(layout) == 'csc2csr':
+            if get_layout(layout) == 'csc':
                 value = value[self.csc2csr()]
             value = value.contiguous()
             assert value.device == self._col.device
@@ -383,6 +383,20 @@ class SparseStorage(object):
         self._csr2csc = None
         self._csc2csr = None
         return self
+
+    def num_cached_keys(self) -> int:
+        count = 0
+        if self.has_rowcount():
+            count += 1
+        if self.has_colptr():
+            count += 1
+        if self.has_colcount():
+            count += 1
+        if self.has_csr2csc():
+            count += 1
+        if self.has_csc2csr():
+            count += 1
+        return count
 
     def copy(self):
         return SparseStorage(row=self._row, rowptr=self._rowptr, col=self._col,
