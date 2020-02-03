@@ -46,4 +46,5 @@ from .diag import set_diag, remove_diag
 from .add import add, add_, add_nnz, add_nnz_
 from .mul import mul, mul_, mul_nnz, mul_nnz_
 from .reduce import sum, mean, min, max
-from .matmul import spmm_sum, spmm_add, spmm, matmul
+from .matmul import (spmm_sum, spmm_add, spmm_mean, spmm_min, spmm_max, spmm,
+                     spspmm_sum, spspmm_add, spspmm, matmul)

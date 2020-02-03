@@ -168,6 +168,122 @@ public:
   }
 };
 
+class SPMMMin : public torch::autograd::Function<SPMMMin> {
+public:
+  static variable_list forward(AutogradContext *ctx, Variable rowptr,
+                               Variable col, Variable value, Variable mat,
+                               bool has_value) {
+
+    torch::optional<torch::Tensor> opt_value = torch::nullopt;
+    if (has_value)
+      opt_value = value;
+
+    auto result = spmm_fw(rowptr, col, opt_value, mat, "min");
+    auto out = std::get<0>(result);
+    auto arg_out = std::get<1>(result).value();
+    ctx->saved_data["has_value"] = has_value;
+    ctx->save_for_backward({col, value, mat, arg_out});
+    ctx->mark_non_differentiable({arg_out});
+    return {out, arg_out};
+  }
+
+  static variable_list backward(AutogradContext *ctx, variable_list grad_outs) {
+    auto has_value = ctx->saved_data["has_value"].toBool();
+    auto grad_out = grad_outs[0];
+    auto saved = ctx->get_saved_variables();
+    auto col = saved[0], value = saved[1], mat = saved[2], arg_out = saved[3];
+
+    auto invalid_arg_mask = arg_out == col.size(0);
+    arg_out = arg_out.masked_fill(invalid_arg_mask, 0);
+
+    auto grad_value = Variable();
+    if (has_value > 0 && torch::autograd::any_variable_requires_grad({value})) {
+      auto ind = col.index_select(0, arg_out.flatten()).view_as(arg_out);
+      auto out = mat.gather(-2, ind);
+      out.mul_(grad_out);
+      out.masked_fill_(invalid_arg_mask, 0);
+
+      grad_value = torch::zeros_like(value);
+      grad_value.scatter_add_(0, arg_out.flatten(), out.flatten());
+    }
+
+    auto grad_mat = Variable();
+    if (torch::autograd::any_variable_requires_grad({mat})) {
+      if (has_value > 0) {
+        value = value.index_select(0, arg_out.flatten()).view_as(arg_out);
+        value.mul_(grad_out);
+      } else
+        value = grad_out;
+
+      value.masked_fill_(invalid_arg_mask, 0);
+      auto ind = col.index_select(0, arg_out.flatten()).view_as(arg_out);
+
+      grad_mat = torch::zeros_like(mat);
+      grad_mat.scatter_add_(-2, ind, value);
+    }
+
+    return {Variable(), Variable(), grad_value, grad_mat, Variable()};
+  }
+};
+
+class SPMMMax : public torch::autograd::Function<SPMMMax> {
+public:
+  static variable_list forward(AutogradContext *ctx, Variable rowptr,
+                               Variable col, Variable value, Variable mat,
+                               bool has_value) {
+
+    torch::optional<torch::Tensor> opt_value = torch::nullopt;
+    if (has_value)
+      opt_value = value;
+
+    auto result = spmm_fw(rowptr, col, opt_value, mat, "max");
+    auto out = std::get<0>(result);
+    auto arg_out = std::get<1>(result).value();
+    ctx->saved_data["has_value"] = has_value;
+    ctx->save_for_backward({col, value, mat, arg_out});
+    ctx->mark_non_differentiable({arg_out});
+    return {out, arg_out};
+  }
+
+  static variable_list backward(AutogradContext *ctx, variable_list grad_outs) {
+    auto has_value = ctx->saved_data["has_value"].toBool();
+    auto grad_out = grad_outs[0];
+    auto saved = ctx->get_saved_variables();
+    auto col = saved[0], value = saved[1], mat = saved[2], arg_out = saved[3];
+
+    auto invalid_arg_mask = arg_out == col.size(0);
+    arg_out = arg_out.masked_fill(invalid_arg_mask, 0);
+
+    auto grad_value = Variable();
+    if (has_value > 0 && torch::autograd::any_variable_requires_grad({value})) {
+      auto ind = col.index_select(0, arg_out.flatten()).view_as(arg_out);
+      auto out = mat.gather(-2, ind);
+      out.mul_(grad_out);
+      out.masked_fill_(invalid_arg_mask, 0);
+
+      grad_value = torch::zeros_like(value);
+      grad_value.scatter_add_(0, arg_out.flatten(), out.flatten());
+    }
+
+    auto grad_mat = Variable();
+    if (torch::autograd::any_variable_requires_grad({mat})) {
+      if (has_value > 0) {
+        value = value.index_select(0, arg_out.flatten()).view_as(arg_out);
+        value.mul_(grad_out);
+      } else
+        value = grad_out;
+
+      value.masked_fill_(invalid_arg_mask, 0);
+      auto ind = col.index_select(0, arg_out.flatten()).view_as(arg_out);
+
+      grad_mat = torch::zeros_like(mat);
+      grad_mat.scatter_add_(-2, ind, value);
+    }
+
+    return {Variable(), Variable(), grad_value, grad_mat, Variable()};
+  }
+};
+
 torch::Tensor spmm_sum(torch::optional<torch::Tensor> opt_row,
                        torch::Tensor rowptr, torch::Tensor col,
                        torch::optional<torch::Tensor> opt_value,
@@ -191,6 +307,24 @@ torch::Tensor spmm_mean(torch::optional<torch::Tensor> opt_row,
                          opt_csr2csc, mat, opt_value.has_value())[0];
 }
 
+std::tuple<torch::Tensor, torch::Tensor>
+spmm_min(torch::Tensor rowptr, torch::Tensor col,
+         torch::optional<torch::Tensor> opt_value, torch::Tensor mat) {
+  auto value = opt_value.has_value() ? opt_value.value() : col;
+  auto result = SPMMMin::apply(rowptr, col, value, mat, opt_value.has_value());
+  return std::make_tuple(result[0], result[1]);
+}
+
+std::tuple<torch::Tensor, torch::Tensor>
+spmm_max(torch::Tensor rowptr, torch::Tensor col,
+         torch::optional<torch::Tensor> opt_value, torch::Tensor mat) {
+  auto value = opt_value.has_value() ? opt_value.value() : col;
+  auto result = SPMMMax::apply(rowptr, col, value, mat, opt_value.has_value());
+  return std::make_tuple(result[0], result[1]);
+}
+
 static auto registry = torch::RegisterOperators()
                            .op("torch_sparse::spmm_sum", &spmm_sum)
-                           .op("torch_sparse::spmm_mean", &spmm_mean);
+                           .op("torch_sparse::spmm_mean", &spmm_mean)
+                           .op("torch_sparse::spmm_min", &spmm_min)
+                           .op("torch_sparse::spmm_max", &spmm_max);

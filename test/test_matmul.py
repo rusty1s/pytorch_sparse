@@ -7,10 +7,7 @@ from torch_sparse.matmul import matmul
 from torch_sparse.tensor import SparseTensor
 import torch_scatter
 
-from .utils import devices, grad_dtypes
-
-reductions = ['sum', 'mean', 'min', 'max']
-reductions = ['sum', 'mean']
+from .utils import reductions, devices, grad_dtypes
 
 
 @pytest.mark.parametrize('dtype,device,reduce',
