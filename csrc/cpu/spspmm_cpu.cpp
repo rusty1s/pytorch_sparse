@@ -53,19 +53,24 @@ spspmm_cpu(torch::Tensor rowptrA, torch::Tensor colA,
   auto rowptrC_data = rowptrC.data_ptr<int64_t>();
   rowptrC_data[0] = 0;
 
-  int64_t rowA_start = 0, rowA_end, rowB_start, rowB_end, cA, cB;
-  int64_t nnz = 0, row_nnz;
-  for (auto n = 1; n < rowptrA.numel(); n++) {
-    rowA_end = rowptrA_data[n];
+  std::vector<int64_t> mask(K, -1);
+  int64_t nnz = 0, row_nnz, rowA_start, rowA_end, rowB_start, rowB_end, cA, cB;
+  for (auto n = 0; n < rowptrA.numel() - 1; n++) {
+    row_nnz = 0;
 
-    for (auto eA = rowA_start; eA < rowA_end; eA++) {
+    for (auto eA = rowptrA_data[n]; eA < rowptrA_data[n + 1]; eA++) {
       cA = colA_data[eA];
-      row_nnz = rowptrB_data[cA + 1] - rowptrB_data[cA];
+      for (auto eB = rowptrB_data[cA]; eB < rowptrB_data[cA + 1]; eB++) {
+        cB = colB_data[eB];
+        if (mask[cB] != n) {
+          mask[cB] = n;
+          row_nnz++;
+        }
+      }
     }
 
     nnz += row_nnz;
-    rowptrC_data[n] = nnz;
-    rowA_start = rowA_end;
+    rowptrC_data[n + 1] = nnz;
   }
 
   // Pass 2: Compute CSR entries.

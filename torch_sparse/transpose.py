@@ -1,5 +1,4 @@
 import torch
-from torch_sparse import to_scipy, from_scipy, coalesce
 
 from torch_sparse.storage import SparseStorage
 from torch_sparse.tensor import SparseTensor
@@ -51,14 +50,14 @@ def transpose(index, value, m, n, coalesced=True):
     :rtype: (:class:`LongTensor`, :class:`Tensor`)
     """
 
-    if value.dim() == 1 and not value.is_cuda:
-        mat = to_scipy(index, value, m, n).tocsc()
-        (col, row), value = from_scipy(mat)
-        index = torch.stack([row, col], dim=0)
-        return index, value
-
     row, col = index
-    index = torch.stack([col, row], dim=0)
+    row, col = col, row
+
     if coalesced:
-        index, value = coalesce(index, value, n, m)
-    return index, value
+        sparse_sizes = torch.Size([n, m])
+        storage = SparseStorage(row=row, col=col, value=value,
+                                sparse_sizes=sparse_sizes, is_sorted=False)
+        storage = storage.coalesce()
+        row, col, value = storage.row(), storage.col(), storage.value()
+
+    return torch.stack([row, col], dim=0), value
