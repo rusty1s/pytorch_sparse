@@ -36,6 +36,17 @@ except OSError:
         raise ImportError
         return mat, mat
 
+    torch.ops.torch_sparse.spmm_sum = spmm_sum_placeholder
+    torch.ops.torch_sparse.spmm_mean = spmm_mean_placeholder
+    torch.ops.torch_sparse.spmm_min = spmm_min_max_placeholder
+    torch.ops.torch_sparse.spmm_max = spmm_min_max_placeholder
+
+try:
+    torch.ops.load_library(
+        osp.join(osp.dirname(osp.abspath(__file__)), '_spspmm.so'))
+except OSError:
+    warnings.warn('Failed to load `spspmm` binaries.')
+
     def spspmm_sum_placeholder(
             rowptrA: torch.Tensor, colA: torch.Tensor,
             valueA: Optional[torch.Tensor], rowptrB: torch.Tensor,
@@ -44,10 +55,6 @@ except OSError:
         raise ImportError
         return rowptrA, colA, valueA
 
-    torch.ops.torch_sparse.spmm_sum = spmm_sum_placeholder
-    torch.ops.torch_sparse.spmm_mean = spmm_mean_placeholder
-    torch.ops.torch_sparse.spmm_min = spmm_min_max_placeholder
-    torch.ops.torch_sparse.spmm_max = spmm_min_max_placeholder
     torch.ops.torch_sparse.spspmm_sum = spspmm_sum_placeholder
 
 
@@ -129,6 +136,7 @@ def spmm(src: SparseTensor, other: torch.Tensor,
 
 @torch.jit.script
 def spspmm_sum(src: SparseTensor, other: SparseTensor) -> SparseTensor:
+    assert src.sparse_size(1) == other.sparse_size(0)
     rowptrA, colA, valueA = src.csr()
     rowptrB, colB, valueB = other.csr()
     M, K = src.sparse_size(0), other.sparse_size(1)

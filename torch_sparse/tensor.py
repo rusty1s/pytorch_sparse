@@ -311,34 +311,44 @@ class SparseTensor(object):
         return torch.is_floating_point(self.options())
 
     def bfloat16(self):
-        return self.type_as(torch.tensor(0, dtype=torch.bfloat16))
+        return self.type_as(
+            torch.tensor(0, dtype=torch.bfloat16, device=self.device()))
 
     def bool(self):
-        return self.type_as(torch.tensor(0, dtype=torch.bool))
+        return self.type_as(
+            torch.tensor(0, dtype=torch.bool, device=self.device()))
 
     def byte(self):
-        return self.type_as(torch.tensor(0, dtype=torch.uint8))
+        return self.type_as(
+            torch.tensor(0, dtype=torch.uint8, device=self.device()))
 
     def char(self):
-        return self.type_as(torch.tensor(0, dtype=torch.int8))
+        return self.type_as(
+            torch.tensor(0, dtype=torch.int8, device=self.device()))
 
     def half(self):
-        return self.type_as(torch.tensor(0, dtype=torch.half))
+        return self.type_as(
+            torch.tensor(0, dtype=torch.half, device=self.device()))
 
     def float(self):
-        return self.type_as(torch.tensor(0, dtype=torch.float))
+        return self.type_as(
+            torch.tensor(0, dtype=torch.float, device=self.device()))
 
     def double(self):
-        return self.type_as(torch.tensor(0, dtype=torch.double))
+        return self.type_as(
+            torch.tensor(0, dtype=torch.double, device=self.device()))
 
     def short(self):
-        return self.type_as(torch.tensor(0, dtype=torch.short))
+        return self.type_as(
+            torch.tensor(0, dtype=torch.short, device=self.device()))
 
     def int(self):
-        return self.type_as(torch.tensor(0, dtype=torch.int))
+        return self.type_as(
+            torch.tensor(0, dtype=torch.int, device=self.device()))
 
     def long(self):
-        return self.type_as(torch.tensor(0, dtype=torch.long))
+        return self.type_as(
+            torch.tensor(0, dtype=torch.long, device=self.device()))
 
     # Conversions #############################################################
 
