@@ -7,14 +7,11 @@
 
 #define AT_DISPATCH_HAS_VALUE(optional_value, ...)                             \
   [&] {                                                                        \
-    switch (optional_value.has_value()) {                                      \
-    case true: {                                                               \
+    if (optional_value.has_value()) {                                          \
       const bool HAS_VALUE = true;                                             \
       return __VA_ARGS__();                                                    \
-    }                                                                          \
-    case false: {                                                              \
+    } else {                                                                   \
       const bool HAS_VALUE = false;                                            \
       return __VA_ARGS__();                                                    \
-    }                                                                          \
     }                                                                          \
   }()
