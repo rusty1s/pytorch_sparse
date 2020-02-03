@@ -372,7 +372,8 @@ class SparseTensor(object):
 
         return mat
 
-    def to_torch_sparse_coo_tensor(self, options: Optional[torch.Tensor]):
+    def to_torch_sparse_coo_tensor(self,
+                                   options: Optional[torch.Tensor] = None):
         row, col, value = self.coo()
         index = torch.stack([row, col], dim=0)
         if value is None:
@@ -384,13 +385,6 @@ class SparseTensor(object):
 
         return torch.sparse_coo_tensor(index, value, self.sizes())
 
-    # Standard Operators ######################################################
-
-    # def __matmul__(self, other):
-    #     return matmul(self, other, reduce='sum')
-
-
-# SparseTensor.matmul = matmul
 
 # Python Bindings #############################################################
 

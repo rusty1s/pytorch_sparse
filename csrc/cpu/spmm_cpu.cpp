@@ -58,19 +58,19 @@ spmm_cpu(torch::Tensor rowptr, torch::Tensor col,
           value_data = optional_value.value().data_ptr<scalar_t>();
         }
 
-        for (int b = 0; b < B; b++) {
-          for (int m = 0; m < M; m++) {
+        for (auto b = 0; b < B; b++) {
+          for (auto m = 0; m < M; m++) {
             row_start = rowptr_data[m], row_end = rowptr_data[m + 1];
 
-            for (int k = 0; k < K; k++)
+            for (auto k = 0; k < K; k++)
               vals[k] = Reducer<scalar_t, REDUCE>::init();
 
-            int offset = b * N * K;
-            for (int e = row_start; e < row_end; e++) {
+            auto offset = b * N * K;
+            for (auto e = row_start; e < row_end; e++) {
               c = col_data[e];
               if (HAS_VALUE)
                 val = value_data[e];
-              for (int k = 0; k < K; k++) {
+              for (auto k = 0; k < K; k++) {
                 if (HAS_VALUE)
                   Reducer<scalar_t, REDUCE>::update(
                       &vals[k], val * mat_data[offset + c * K + k], &args[k],
@@ -81,7 +81,7 @@ spmm_cpu(torch::Tensor rowptr, torch::Tensor col,
               }
             }
             offset = b * M * K + m * K;
-            for (int k = 0; k < K; k++)
+            for (auto k = 0; k < K; k++)
               Reducer<scalar_t, REDUCE>::write(out_data + offset + k, vals[k],
                                                arg_out_data + offset + k,
                                                args[k], row_end - row_start);
