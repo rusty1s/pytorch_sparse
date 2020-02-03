@@ -50,7 +50,7 @@ def remove_diag(src: SparseTensor, k: int = 0) -> SparseTensor:
 @torch.jit.script
 def set_diag(src: SparseTensor, values: Optional[torch.Tensor] = None,
              k: int = 0) -> SparseTensor:
-    src = remove_diag(src, k=0)
+    src = remove_diag(src, k=k)
     row, col, value = src.coo()
 
     mask = torch.ops.torch_sparse.non_diag_mask(row, col, src.size(0),
@@ -65,7 +65,7 @@ def set_diag(src: SparseTensor, values: Optional[torch.Tensor] = None,
     new_row[inv_mask] = diag
 
     new_col = col.new_empty(mask.size(0))
-    new_col[mask] = row
+    new_col[mask] = col
     new_col[inv_mask] = diag.add_(k)
 
     new_value: Optional[torch.Tensor] = None
@@ -95,6 +95,22 @@ def set_diag(src: SparseTensor, values: Optional[torch.Tensor] = None,
     return src.from_storage(storage)
 
 
+@torch.jit.script
+def fill_diag(src: SparseTensor, fill_value: int, k: int = 0) -> SparseTensor:
+    num_diag = min(src.sparse_size(0), src.sparse_size(1) - k)
+    if k < 0:
+        num_diag = min(src.sparse_size(0) + k, src.sparse_size(1))
+
+    value = src.storage.value()
+    if value is not None:
+        sizes = [num_diag] + src.sizes()[2:]
+        return set_diag(src, value.new_full(sizes, fill_value), k)
+    else:
+        return set_diag(src, None, k)
+
+
 SparseTensor.remove_diag = lambda self, k=0: remove_diag(self, k)
 SparseTensor.set_diag = lambda self, values=None, k=0: set_diag(
     self, values, k)
+SparseTensor.fill_diag = lambda self, fill_value, k=0: fill_diag(
+    self, fill_value, k)

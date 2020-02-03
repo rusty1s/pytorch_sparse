@@ -27,7 +27,7 @@ from .narrow import narrow
 from .select import select
 from .index_select import index_select, index_select_nnz
 from .masked_select import masked_select, masked_select_nnz
-from .diag import set_diag, remove_diag
+from .diag import remove_diag, set_diag, fill_diag
 from .add import add, add_, add_nnz, add_nnz_
 from .mul import mul, mul_, mul_nnz, mul_nnz_
 from .reduce import sum, mean, min, max

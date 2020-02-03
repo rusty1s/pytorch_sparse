@@ -197,7 +197,7 @@ class SparseTensor(object):
         sizes = self.sparse_sizes()
         value = self.storage.value()
         if value is not None:
-            sizes = sizes + value.size()[1:]
+            sizes = list(sizes) + list(value.size())[1:]
         return sizes
 
     def size(self, dim: int) -> int:
