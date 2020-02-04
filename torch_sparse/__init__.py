@@ -5,7 +5,7 @@ from .eye import eye
 from .spmm import spmm
 from .spspmm import spspmm
 
-__version__ = '0.4.3'
+__version__ = '0.4.4'
 
 __all__ = [
     '__version__',

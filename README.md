@@ -28,11 +28,11 @@ Note that only `value` comes with autograd support, as `index` is discrete and t
 
 ## Installation
 
-Ensure that at least PyTorch 1.1.0 is installed and verify that `cuda/bin` and `cuda/include` are in your `$PATH` and `$CPATH` respectively, *e.g.*:
+Ensure that at least PyTorch 1.4.0 is installed and verify that `cuda/bin` and `cuda/include` are in your `$PATH` and `$CPATH` respectively, *e.g.*:
 
 ```
 $ python -c "import torch; print(torch.__version__)"
->>> 1.1.0
+>>> 1.4.0
 
 $ echo $PATH
 >>> /usr/local/cuda/bin:...
@@ -53,7 +53,7 @@ Be sure to import `torch` first before using this package to resolve symbols the
 ## Coalesce
 
 ```
-torch_sparse.coalesce(index, value, m, n, op="add", fill_value=0) -> (torch.LongTensor, torch.Tensor)
+torch_sparse.coalesce(index, value, m, n, op="add") -> (torch.LongTensor, torch.Tensor)
 ```
 
 Row-wise sorts `index` and removes duplicate entries.
@@ -67,7 +67,6 @@ For scattering, any operation of [`torch_scatter`](https://github.com/rusty1s/py
 * **m** *(int)* - The first dimension of corresponding dense matrix.
 * **n** *(int)* - The second dimension of corresponding dense matrix.
 * **op** *(string, optional)* - The scatter operation to use. (default: `"add"`)
-* **fill_value** *(int, optional)* - The initial fill value of scatter operation. (default: `0`)
 
 ### Returns
 

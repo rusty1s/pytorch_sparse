@@ -39,7 +39,7 @@ if CUDA_HOME is not None and GPU:
                       extra_compile_args=extra_compile_args),
     ]
 
-__version__ = '0.4.3'
+__version__ = '0.4.4'
 url = 'https://github.com/rusty1s/pytorch_sparse'
 
 install_requires = ['scipy']
