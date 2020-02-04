@@ -40,7 +40,7 @@ install:
   - pip install torch-scatter
 script:
   - python -c "import torch; print(torch.__version__)"
-  - pycodestyle .
+  - pycodestyle --ignore=E731,W504 .
   - flake8 .
   - python setup.py install
   - python setup.py test
