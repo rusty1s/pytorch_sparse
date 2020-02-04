@@ -1,7 +1,7 @@
 from .storage import SparseStorage
 from .tensor import SparseTensor
 from .transpose import t
-from .narrow import narrow
+from .narrow import narrow, __narrow_diag__
 from .select import select
 from .index_select import index_select, index_select_nnz
 from .masked_select import masked_select, masked_select_nnz
@@ -26,6 +26,7 @@ __all__ = [
     'SparseTensor',
     't',
     'narrow',
+    '__narrow_diag__',
     'select',
     'index_select',
     'index_select_nnz',
