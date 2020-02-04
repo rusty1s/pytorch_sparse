@@ -292,7 +292,8 @@ class SparseTensor(object):
         if value is not None:
             return value
         else:
-            return torch.tensor(0., device=self.storage.col().device)
+            return torch.tensor(0., dtype=torch.float,
+                                device=self.storage.col().device)
 
     def device(self):
         return self.storage.col().device
