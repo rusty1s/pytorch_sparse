@@ -399,29 +399,18 @@ Dtype = Optional[torch.dtype]
 Device = Optional[Union[torch.device, str]]
 
 
-@torch.jit.ignore
 def share_memory_(self: SparseTensor) -> SparseTensor:
     self.storage.share_memory_()
 
 
-@torch.jit.ignore
 def is_shared(self: SparseTensor) -> bool:
     return self.storage.is_shared()
 
 
-@torch.jit.ignore
 def to(self, *args: Optional[List[Any]],
        **kwargs: Optional[Dict[str, Any]]) -> SparseTensor:
 
-    dtype: Dtype = getattr(kwargs, 'dtype', None)
-    device: Device = getattr(kwargs, 'device', None)
-    non_blocking: bool = getattr(kwargs, 'non_blocking', False)
-
-    for arg in args:
-        if isinstance(arg, str) or isinstance(arg, torch.device):
-            device = arg
-        if isinstance(arg, torch.dtype):
-            dtype = arg
+    device, dtype, non_blocking, _ = torch._C._nn._parse_to(*args, **kwargs)
 
     if dtype is not None:
         self = self.type_as(torch.tensor(0., dtype=dtype))
@@ -431,7 +420,6 @@ def to(self, *args: Optional[List[Any]],
     return self
 
 
-@torch.jit.ignore
 def __getitem__(self: SparseTensor, index: Any) -> SparseTensor:
     index = list(index) if isinstance(index, tuple) else [index]
     # More than one `Ellipsis` is not allowed...
@@ -474,7 +462,6 @@ def __getitem__(self: SparseTensor, index: Any) -> SparseTensor:
     return out
 
 
-@torch.jit.ignore
 def __repr__(self: SparseTensor) -> str:
     i = ' ' * 6
     row, col, value = self.coo()
@@ -564,11 +551,11 @@ SparseTensor.to_scipy = to_scipy
 
 # Hacky fixes #################################################################
 
-# Fix standard operators of `torch.Tensor` for PyTorch<=1.3.
+# Fix standard operators of `torch.Tensor` for PyTorch<=1.4.
 # https://github.com/pytorch/pytorch/pull/31769
 TORCH_MAJOR = int(torch.__version__.split('.')[0])
 TORCH_MINOR = int(torch.__version__.split('.')[1])
-if (TORCH_MAJOR < 1) or (TORCH_MAJOR == 1 and TORCH_MINOR < 4):
+if (TORCH_MAJOR < 1) or (TORCH_MAJOR == 1 and TORCH_MINOR <= 4):
 
     def add(self, other):
         if torch.is_tensor(other) or is_scalar(other):

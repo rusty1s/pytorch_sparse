@@ -545,7 +545,6 @@ class SparseStorage(object):
         return is_pinned
 
 
-@torch.jit.ignore
 def share_memory_(self) -> SparseStorage:
     row = self._row
     if row is not None:
@@ -574,7 +573,6 @@ def share_memory_(self) -> SparseStorage:
         csc2csr.share_memory_()
 
 
-@torch.jit.ignore
 def is_shared(self) -> bool:
     is_shared = True
     row = self._row
