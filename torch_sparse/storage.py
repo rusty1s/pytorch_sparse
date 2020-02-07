@@ -144,12 +144,12 @@ class SparseStorage(object):
         self._csc2csr = csc2csr
 
         if not is_sorted:
-            idx = col.new_zeros(col.numel() + 1)
-            idx[1:] = sparse_sizes[1] * self.row() + col
+            idx = self._col.new_zeros(self._col.numel() + 1)
+            idx[1:] = self._sparse_sizes[1] * self.row() + self._col
             if (idx[1:] < idx[:-1]).any():
                 perm = idx[1:].argsort()
                 self._row = self.row()[perm]
-                self._col = col[perm]
+                self._col = self._col[perm]
                 if value is not None:
                     self._value = value[perm]
                 self._csr2csc = None
