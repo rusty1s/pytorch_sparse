@@ -166,7 +166,7 @@ class SparseTensor(object):
     def is_coalesced(self) -> bool:
         return self.storage.is_coalesced()
 
-    def coalesce(self, reduce: str = "add"):
+    def coalesce(self, reduce: str = "sum"):
         return self.from_storage(self.storage.coalesce(reduce))
 
     def fill_cache_(self):
@@ -251,6 +251,20 @@ class SparseTensor(object):
             return True
         else:
             return bool((value1 == value2).all())
+
+    def to_symmetric(self, reduce: str = "sum"):
+        row, col, value = self.coo()
+
+        row, col = torch.cat([row, col], dim=0), torch.cat([col, row], dim=0)
+        if value is not None:
+            value = torch.cat([value, value], dim=0)
+
+        N = max(self.size(0), self.size(1))
+
+        out = SparseTensor(row=row, rowptr=None, col=col, value=value,
+                           sparse_sizes=torch.Size([N, N]), is_sorted=False)
+        out = out.coalesce(reduce)
+        return out
 
     def detach_(self):
         value = self.storage.value()
@@ -496,7 +510,7 @@ ScipySparseMatrix = Union[scipy.sparse.coo_matrix, scipy.sparse.
 
 
 @torch.jit.ignore
-def from_scipy(mat: ScipySparseMatrix) -> SparseTensor:
+def from_scipy(mat: ScipySparseMatrix, has_value: bool = True) -> SparseTensor:
     colptr = None
     if isinstance(mat, scipy.sparse.csc_matrix):
         colptr = torch.from_numpy(mat.indptr).to(torch.long)
@@ -506,7 +520,9 @@ def from_scipy(mat: ScipySparseMatrix) -> SparseTensor:
     mat = mat.tocoo()
     row = torch.from_numpy(mat.row).to(torch.long)
     col = torch.from_numpy(mat.col).to(torch.long)
-    value = torch.from_numpy(mat.data)
+    value = None
+    if has_value:
+        value = torch.from_numpy(mat.data)
     sparse_sizes = mat.shape[:2]
 
     storage = SparseStorage(row=row, rowptr=rowptr, col=col, value=value,
