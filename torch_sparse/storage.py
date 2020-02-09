@@ -605,3 +605,19 @@ def is_shared(self) -> bool:
 
 SparseStorage.share_memory_ = share_memory_
 SparseStorage.is_shared = is_shared
+
+
+def __new__(cls, *args, **kwargs):
+    instance = super(SparseStorage, cls).__new__(cls, *args, **kwargs)
+    instance._row = None
+    instance._rowptr = None
+    instance._value = None
+    instance._rowcount = None
+    instance._colptr = None
+    instance._colcount = None
+    instance._csr2csc = None
+    instance._csc2csr = None
+    return instance
+
+
+SparseStorage.__new__ = __new__
