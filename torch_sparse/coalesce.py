@@ -2,7 +2,6 @@ import torch
 from torch_sparse.storage import SparseStorage
 
 
-
 def coalesce(index, value, m, n, op="add"):
     """Row-wise sorts :obj:`value` and removes duplicate entries. Duplicate
     entries are removed by scattering them together. For scattering, any
