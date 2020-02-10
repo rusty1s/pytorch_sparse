@@ -39,7 +39,8 @@ def test_cat(device):
     assert out.storage.has_rowptr()
     assert out.storage.num_cached_keys() == 5
 
-    mat1 = mat1.set_value_(torch.randn((mat1.nnz(), 4), device=device))
+    value = torch.randn((mat1.nnz(), 4), device=device)
+    mat1 = mat1.set_value_(value, layout='coo')
     out = cat([mat1, mat1], dim=-1)
     assert out.storage.value().size() == (mat1.nnz(), 8)
     assert out.storage.has_row()

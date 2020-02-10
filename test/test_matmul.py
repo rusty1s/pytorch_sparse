@@ -40,7 +40,7 @@ def test_spmm(dtype, device, reduce):
     out = matmul(src, other, reduce)
     out.backward(grad_out)
 
-    assert torch.allclose(expected, out)
+    assert torch.allclose(expected, out, atol=1e-6)
     assert torch.allclose(expected_grad_value, value.grad, atol=1e-6)
     assert torch.allclose(expected_grad_other, other.grad, atol=1e-6)
 

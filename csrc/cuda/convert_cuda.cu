@@ -57,7 +57,7 @@ torch::Tensor ptr2ind_cuda(torch::Tensor ptr, int64_t E) {
   auto ptr_data = ptr.data_ptr<int64_t>();
   auto out_data = out.data_ptr<int64_t>();
   auto stream = at::cuda::getCurrentCUDAStream();
-  ptr2ind_kernel<<<(ptr.numel() + THREADS - 1) / THREADS, THREADS, 0, stream>>>(
-      ptr_data, out_data, E, ptr.numel());
+  ptr2ind_kernel<<<(ptr.numel() - 1 + THREADS - 1) / THREADS, THREADS, 0,
+                   stream>>>(ptr_data, out_data, E, ptr.numel() - 1);
   return out;
 }
