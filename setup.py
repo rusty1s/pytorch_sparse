@@ -1,46 +1,71 @@
-import platform
+import os
+import os.path as osp
+import sys
+import glob
 from setuptools import setup, find_packages
-from sys import argv
+
 import torch
+from torch.utils.cpp_extension import BuildExtension
 from torch.utils.cpp_extension import CppExtension, CUDAExtension, CUDA_HOME
 
-TORCH_MAJOR = int(torch.__version__.split('.')[0])
-TORCH_MINOR = int(torch.__version__.split('.')[1])
+WITH_CUDA = torch.cuda.is_available() and CUDA_HOME is not None
+if os.getenv('FORCE_CUDA', '0') == '1':
+    WITH_CUDA = True
+if os.getenv('FORCE_NON_CUDA', '0') == '1':
+    WITH_CUDA = False
 
-extra_compile_args = []
-if (TORCH_MAJOR > 1) or (TORCH_MAJOR == 1 and TORCH_MINOR > 2):
-    extra_compile_args += ['-DVERSION_GE_1_3']
+BUILD_DOCS = os.getenv('BUILD_DOCS', '0') == '1'
 
-ext_modules = [
-    CppExtension('torch_sparse.spspmm_cpu', ['cpu/spspmm.cpp'],
-                 extra_compile_args=extra_compile_args)
-]
-cmdclass = {'build_ext': torch.utils.cpp_extension.BuildExtension}
 
-GPU = True
-for arg in argv:
-    if arg == '--cpu':
-        GPU = False
-        argv.remove(arg)
+def get_extensions():
+    Extension = CppExtension
+    define_macros = []
+    extra_compile_args = {'cxx': [], 'nvcc': []}
+    extra_link_args = []
 
-if CUDA_HOME is not None and GPU:
-    if platform.system() == 'Windows':
-        extra_link_args = ['cusparse.lib']
-    else:
-        extra_link_args = ['-lcusparse', '-l', 'cusparse']
+    # Windows users: Edit both of these to contain your VS include path, i.e.:
+    # extra_compile_args['cxx'] += ['-I{VISUAL_STUDIO_DIR}\\include']
+    # extra_compile_args['nvcc'] += ['-I{VISUAL_STUDIO_DIR}\\include']
 
-    ext_modules += [
-        CUDAExtension('torch_sparse.spspmm_cuda',
-                      ['cuda/spspmm.cpp', 'cuda/spspmm_kernel.cu'],
-                      extra_link_args=extra_link_args,
-                      extra_compile_args=extra_compile_args),
-        CUDAExtension('torch_sparse.unique_cuda',
-                      ['cuda/unique.cpp', 'cuda/unique_kernel.cu'],
-                      extra_compile_args=extra_compile_args),
-    ]
+    if WITH_CUDA:
+        Extension = CUDAExtension
+        define_macros += [('WITH_CUDA', None)]
+        nvcc_flags = os.getenv('NVCC_FLAGS', '')
+        nvcc_flags = [] if nvcc_flags == '' else nvcc_flags.split(' ')
+        nvcc_flags += ['-arch=sm_35', '--expt-relaxed-constexpr']
+        extra_compile_args['cxx'] += ['-O0']
+        extra_compile_args['nvcc'] += nvcc_flags
+        if sys.platform == 'win32':
 
-__version__ = '0.4.4'
-url = 'https://github.com/rusty1s/pytorch_sparse'
+            extra_link_args = ['cusparse.lib']
+        else:
+            extra_link_args = ['-lcusparse', '-l', 'cusparse']
+
+    if sys.platform == 'win32':
+        extra_compile_args['cxx'] += ['/MP']
+
+    extensions_dir = osp.join(osp.dirname(osp.abspath(__file__)), 'csrc')
+    main_files = glob.glob(osp.join(extensions_dir, '*.cpp'))
+    extensions = []
+    for main in main_files:
+        name = main.split(os.sep)[-1][:-4]
+
+        sources = [main, osp.join(extensions_dir, 'cpu', f'{name}_cpu.cpp')]
+        if WITH_CUDA:
+            sources += [osp.join(extensions_dir, 'cuda', f'{name}_cuda.cu')]
+
+        extension = Extension(
+            f'torch_sparse._{name}',
+            sources,
+            include_dirs=[extensions_dir],
+            define_macros=define_macros,
+            extra_compile_args=extra_compile_args,
+            extra_link_args=extra_link_args,
+        )
+        extensions += [extension]
+
+    return extensions
+
 
 install_requires = ['scipy']
 setup_requires = ['pytest-runner']
@@ -48,23 +73,20 @@ tests_require = ['pytest', 'pytest-cov']
 
 setup(
     name='torch_sparse',
-    version=__version__,
-    description=('PyTorch Extension Library of Optimized Autograd Sparse '
-                 'Matrix Operations'),
+    version='1.0.0',
     author='Matthias Fey',
     author_email='matthias.fey@tu-dortmund.de',
-    url=url,
-    download_url='{}/archive/{}.tar.gz'.format(url, __version__),
-    keywords=[
-        'pytorch',
-        'sparse',
-        'sparse-matrices',
-        'autograd',
-    ],
+    url='https://github.com/rusty1s/pytorch_sparse',
+    description=('PyTorch Extension Library of Optimized Autograd Sparse '
+                 'Matrix Operations'),
+    keywords=['pytorch', 'sparse', 'sparse-matrices', 'autograd'],
+    license='MIT',
     install_requires=install_requires,
     setup_requires=setup_requires,
     tests_require=tests_require,
-    ext_modules=ext_modules,
-    cmdclass=cmdclass,
+    ext_modules=get_extensions() if not BUILD_DOCS else [],
+    cmdclass={
+        'build_ext': BuildExtension.with_options(no_python_abi_suffix=True)
+    },
     packages=find_packages(),
 )

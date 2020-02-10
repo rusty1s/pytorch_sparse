@@ -1,10 +1,9 @@
 import torch
-import torch_scatter
-
-from .utils.unique import unique
+from torch_sparse.storage import SparseStorage
 
 
-def coalesce(index, value, m, n, op='add'):
+
+def coalesce(index, value, m, n, op="add"):
     """Row-wise sorts :obj:`value` and removes duplicate entries. Duplicate
     entries are removed by scattering them together. For scattering, any
     operation of `"torch_scatter"<https://github.com/rusty1s/pytorch_scatter>`_
@@ -21,21 +20,7 @@ def coalesce(index, value, m, n, op='add'):
     :rtype: (:class:`LongTensor`, :class:`Tensor`)
     """
 
-    row, col = index
-
-    if value is None:
-        _, perm = unique(row * n + col)
-        index = torch.stack([row[perm], col[perm]], dim=0)
-        return index, value
-
-    uniq, inv = torch.unique(row * n + col, sorted=True, return_inverse=True)
-
-    perm = torch.arange(inv.size(0), dtype=inv.dtype, device=inv.device)
-    perm = inv.new_empty(uniq.size(0)).scatter_(0, inv, perm)
-    index = torch.stack([row[perm], col[perm]], dim=0)
-
-    op = getattr(torch_scatter, 'scatter_{}'.format(op))
-    value = op(value, inv, 0, None, perm.size(0))
-    value = value[0] if isinstance(value, tuple) else value
-
-    return index, value
+    storage = SparseStorage(row=index[0], col=index[1], value=value,
+                            sparse_sizes=torch.Size([m, n], is_sorted=False))
+    storage = storage.coalesce(reduce=op)
+    return torch.stack([storage.row(), storage.col()], dim=0), storage.value()
