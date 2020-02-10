@@ -321,7 +321,8 @@ class SparseTensor(object):
     def cpu(self):
         return self.device_as(torch.tensor(0.), non_blocking=False)
 
-    def cuda(self, options=Optional[torch.Tensor], non_blocking: bool = False):
+    def cuda(self, options: Optional[torch.Tensor] = None,
+             non_blocking: bool = False):
         if options is not None:
             return self.device_as(options, non_blocking)
         else:
