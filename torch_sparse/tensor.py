@@ -48,11 +48,17 @@ class SparseTensor(object):
                             sparse_sizes=mat.size()[:2], is_sorted=True)
 
     @classmethod
-    def from_torch_sparse_coo_tensor(self, mat: torch.Tensor):
+    def from_torch_sparse_coo_tensor(self, mat: torch.Tensor,
+                                     has_value: bool = True):
         mat = mat.coalesce()
         index = mat._indices()
         row, col = index[0], index[1]
-        return SparseTensor(row=row, rowptr=None, col=col, value=mat._values(),
+
+        value: Optional[torch.Tensor] = None
+        if has_value:
+            value = mat._values()
+
+        return SparseTensor(row=row, rowptr=None, col=col, value=value,
                             sparse_sizes=mat.size()[:2], is_sorted=True)
 
     @classmethod
