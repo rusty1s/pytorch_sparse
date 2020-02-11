@@ -20,6 +20,6 @@ def coalesce(index, value, m, n, op="add"):
     """
 
     storage = SparseStorage(row=index[0], col=index[1], value=value,
-                            sparse_sizes=torch.Size([m, n], is_sorted=False))
+                            sparse_sizes=torch.Size([m, n]), is_sorted=False)
     storage = storage.coalesce(reduce=op)
     return torch.stack([storage.row(), storage.col()], dim=0), storage.value()
