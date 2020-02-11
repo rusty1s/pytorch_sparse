@@ -81,6 +81,7 @@ setup(
                  'Matrix Operations'),
     keywords=['pytorch', 'sparse', 'sparse-matrices', 'autograd'],
     license='MIT',
+    python_requires='>=3.6',
     install_requires=install_requires,
     setup_requires=setup_requires,
     tests_require=tests_require,
