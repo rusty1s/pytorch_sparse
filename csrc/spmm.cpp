@@ -1,9 +1,14 @@
+#include <Python.h>
 #include <torch/script.h>
 
 #include "cpu/spmm_cpu.h"
 
 #ifdef WITH_CUDA
 #include "cuda/spmm_cuda.h"
+#endif
+
+#ifdef _WIN32
+PyMODINIT_FUNC PyInit__spmm(void) { return NULL; }
 #endif
 
 std::tuple<torch::Tensor, torch::optional<torch::Tensor>>

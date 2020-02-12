@@ -1,9 +1,14 @@
+#include <Python.h>
 #include <torch/script.h>
 
 #include "cpu/diag_cpu.h"
 
 #ifdef WITH_CUDA
 #include "cuda/diag_cuda.h"
+#endif
+
+#ifdef _WIN32
+PyMODINIT_FUNC PyInit__diag(void) { return NULL; }
 #endif
 
 torch::Tensor non_diag_mask(torch::Tensor row, torch::Tensor col, int64_t M,

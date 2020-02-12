@@ -1,9 +1,14 @@
+#include <Python.h>
 #include <torch/script.h>
 
 #include "cpu/convert_cpu.h"
 
 #ifdef WITH_CUDA
 #include "cuda/convert_cuda.h"
+#endif
+
+#ifdef _WIN32
+PyMODINIT_FUNC PyInit__convert(void) { return NULL; }
 #endif
 
 torch::Tensor ind2ptr(torch::Tensor ind, int64_t M) {
