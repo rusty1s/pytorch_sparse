@@ -487,21 +487,22 @@ def __repr__(self: SparseTensor) -> str:
     i = ' ' * 6
     row, col, value = self.coo()
     infos = []
-    infos += [f'row={indent(row.__repr__(), i)[len(i):]}']
-    infos += [f'col={indent(col.__repr__(), i)[len(i):]}']
+    infos += ['row={}'.format(indent(row.__repr__(), i)[len(i):])]
+    infos += ['col={}'.format(indent(col.__repr__(), i)[len(i):])]
 
     if value is not None:
-        infos += [f'val={indent(value.__repr__(), i)[len(i):]}']
+        infos += ['val={}'.format(indent(value.__repr__(), i)[len(i):])]
 
     infos += [
-        f'size={tuple(self.sizes())}, '
-        f'nnz={self.nnz()}, '
-        f'density={100 * self.density():.02f}%'
+        'size={}, '.format(tuple(self.sizes())) +
+        'nnz={}, '.format(self.nnz()) +
+        'density={:.02f}%'.format(100 * self.density())
     ]
+
     infos = ',\n'.join(infos)
 
     i = ' ' * (len(self.__class__.__name__) + 1)
-    return f'{self.__class__.__name__}({indent(infos, i)[len(i):]})'
+    return '{}({})'.format(self.__class__.__name__, indent(infos, i)[len(i):])
 
 
 SparseTensor.share_memory_ = share_memory_

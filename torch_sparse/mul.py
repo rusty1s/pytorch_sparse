@@ -14,9 +14,9 @@ def mul(src: SparseTensor, other: torch.Tensor) -> SparseTensor:
     elif other.size(0) == 1 and other.size(1) == src.size(1):  # Col-wise...
         other = other.squeeze(0)[col]
     else:
-        raise ValueError(f'Size mismatch: Expected size ({src.size(0)}, 1,'
-                         f' ...) or (1, {src.size(1)}, ...), but got size '
-                         f'{other.size()}.')
+        raise ValueError(
+            'Size mismatch: Expected size ({}, 1, ...) or (1, {}, ...), but '
+            'got size {}.'.format(src.size(0), src.size(1), other.size()))
 
     if value is not None:
         value = other.to(value.dtype).mul_(value)
@@ -34,9 +34,9 @@ def mul_(src: SparseTensor, other: torch.Tensor) -> SparseTensor:
     elif other.size(0) == 1 and other.size(1) == src.size(1):  # Col-wise...
         other = other.squeeze(0)[col]
     else:
-        raise ValueError(f'Size mismatch: Expected size ({src.size(0)}, 1,'
-                         f' ...) or (1, {src.size(1)}, ...), but got size '
-                         f'{other.size()}.')
+        raise ValueError(
+            'Size mismatch: Expected size ({}, 1, ...) or (1, {}, ...), but '
+            'got size {}.'.format(src.size(0), src.size(1), other.size()))
 
     if value is not None:
         value = value.mul_(other.to(value.dtype))
