@@ -85,6 +85,6 @@ deploy:
   acl: public_read
   on:
     repo: rusty1s/pytorch_sparse
-    tags: true
+    branch: master
 notifications:
   email: false

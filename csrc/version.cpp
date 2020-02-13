@@ -18,4 +18,4 @@ int64_t cuda_version() {
 }
 
 static auto registry =
-    torch::RegisterOperators().op("torch_scatter::cuda_version", &cuda_version);
+    torch::RegisterOperators().op("torch_sparse::cuda_version", &cuda_version);

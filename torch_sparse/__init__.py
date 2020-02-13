@@ -21,7 +21,7 @@ except OSError as e:
                 f'version {major}.{minor}.')
     raise OSError(e)
 
-cuda_version = torch.ops.torch_scatter.cuda_version()
+cuda_version = torch.ops.torch_sparse.cuda_version()
 if cuda_version != -1 and torch.version.cuda is not None:  # pragma: no cover
     if cuda_version < 10000:
         major, minor = int(str(cuda_version)[0]), int(str(cuda_version)[2])
