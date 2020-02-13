@@ -138,8 +138,8 @@ def cat(tensors: List[SparseTensor], dim: int) -> SparseTensor:
         return tensors[0].set_value(value, layout='coo')
     else:
         raise IndexError(
-            'Dimension out of range: Expected to be in range of [{}, {}], but '
-            'got {}.'.format(-tensors[0].dim(), tensors[0].dim() - 1, dim))
+            f'Dimension out of range: Expected to be in range of '
+            '[{-tensors[0].dim()}, {tensors[0].dim() - 1}], but got {dim}.')
 
 
 @torch.jit.script

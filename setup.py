@@ -20,7 +20,7 @@ BUILD_DOCS = os.getenv('BUILD_DOCS', '0') == '1'
 def get_extensions():
     Extension = CppExtension
     define_macros = []
-    extra_compile_args = {'cxx': [], 'nvcc': []}
+    extra_compile_args = {'cxx': []}
     extra_link_args = []
 
     if WITH_CUDA:
@@ -29,7 +29,7 @@ def get_extensions():
         nvcc_flags = os.getenv('NVCC_FLAGS', '')
         nvcc_flags = [] if nvcc_flags == '' else nvcc_flags.split(' ')
         nvcc_flags += ['-arch=sm_35', '--expt-relaxed-constexpr']
-        extra_compile_args['nvcc'] += nvcc_flags
+        extra_compile_args['nvcc'] = nvcc_flags
 
         if sys.platform == 'win32':
             extra_link_args = ['cusparse.lib']
@@ -44,11 +44,11 @@ def get_extensions():
 
         sources = [main]
 
-        path = osp.join(extensions_dir, 'cpu', name + '_cpu.cpp')
+        path = osp.join(extensions_dir, 'cpu', f'{name}_cpu.cpp')
         if osp.exists(path):
             sources += [path]
 
-        path = osp.join(extensions_dir, 'cuda', name + '_cuda.cu')
+        path = osp.join(extensions_dir, 'cuda', f'{name}_cuda.cu')
         if WITH_CUDA and osp.exists(path):
             sources += [path]
 
@@ -79,7 +79,7 @@ setup(
                  'Matrix Operations'),
     keywords=['pytorch', 'sparse', 'sparse-matrices', 'autograd'],
     license='MIT',
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     install_requires=install_requires,
     setup_requires=setup_requires,
     tests_require=tests_require,

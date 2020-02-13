@@ -1,61 +1,14 @@
-import warnings
+import importlib
 import os.path as osp
-from typing import Optional, Union, Tuple
+from typing import Union, Tuple
 
 import torch
 from torch_sparse.tensor import SparseTensor
 
-try:
-    torch.ops.load_library(
-        osp.join(osp.dirname(osp.abspath(__file__)), '_spmm.so'))
-except OSError:
-    warnings.warn('Failed to load `spmm` binaries.')
-
-    def spmm_sum_placeholder(row: Optional[torch.Tensor], rowptr: torch.Tensor,
-                             col: torch.Tensor, value: Optional[torch.Tensor],
-                             colptr: Optional[torch.Tensor],
-                             csr2csc: Optional[torch.Tensor],
-                             mat: torch.Tensor) -> torch.Tensor:
-        raise ImportError
-        return mat
-
-    def spmm_mean_placeholder(row: Optional[torch.Tensor],
-                              rowptr: torch.Tensor, col: torch.Tensor,
-                              value: Optional[torch.Tensor],
-                              rowcount: Optional[torch.Tensor],
-                              colptr: Optional[torch.Tensor],
-                              csr2csc: Optional[torch.Tensor],
-                              mat: torch.Tensor) -> torch.Tensor:
-        raise ImportError
-        return mat
-
-    def spmm_min_max_placeholder(rowptr: torch.Tensor, col: torch.Tensor,
-                                 value: Optional[torch.Tensor],
-                                 mat: torch.Tensor
-                                 ) -> Tuple[torch.Tensor, torch.Tensor]:
-        raise ImportError
-        return mat, mat
-
-    torch.ops.torch_sparse.spmm_sum = spmm_sum_placeholder
-    torch.ops.torch_sparse.spmm_mean = spmm_mean_placeholder
-    torch.ops.torch_sparse.spmm_min = spmm_min_max_placeholder
-    torch.ops.torch_sparse.spmm_max = spmm_min_max_placeholder
-
-try:
-    torch.ops.load_library(
-        osp.join(osp.dirname(osp.abspath(__file__)), '_spspmm.so'))
-except OSError:
-    warnings.warn('Failed to load `spspmm` binaries.')
-
-    def spspmm_sum_placeholder(
-            rowptrA: torch.Tensor, colA: torch.Tensor,
-            valueA: Optional[torch.Tensor], rowptrB: torch.Tensor,
-            colB: torch.Tensor, valueB: Optional[torch.Tensor], K: int
-    ) -> Tuple[torch.Tensor, torch.Tensor, Optional[torch.Tensor]]:
-        raise ImportError
-        return rowptrA, colA, valueA
-
-    torch.ops.torch_sparse.spspmm_sum = spspmm_sum_placeholder
+torch.ops.load_library(importlib.machinery.PathFinder().find_spec(
+    '_spmm', [osp.dirname(__file__)]).origin)
+torch.ops.load_library(importlib.machinery.PathFinder().find_spec(
+    '_spspmm', [osp.dirname(__file__)]).origin)
 
 
 @torch.jit.script

@@ -13,8 +13,7 @@
 
 --------------------------------------------------------------------------------
 
-[PyTorch](http://pytorch.org/) completely lacks autograd support and operations such as sparse sparse matrix multiplication, but is heavily working on improvement (*cf.* [this issue](https://github.com/pytorch/pytorch/issues/9674)).
-In the meantime, this package consists of a small extension library of optimized sparse matrix operations with autograd support.
+This package consists of a small extension library of optimized sparse matrix operations with autograd support.
 This package currently consists of the following methods:
 
 * **[Coalesce](#coalesce)**
@@ -27,6 +26,26 @@ To avoid the hazzle of creating [`torch.sparse_coo_tensor`](https://pytorch.org/
 Note that only `value` comes with autograd support, as `index` is discrete and therefore not differentiable.
 
 ## Installation
+
+### Binaries
+
+We provide pip wheels for all major OS/PyTorch/CUDA combinations, see [here](http://pytorch-sparse.s3-website.eu-central-1.amazonaws.com/whl).
+To install from binaries, simply run
+
+```
+pip install torch-scatter==latest+${CUDA} -f http://pytorch-scatter.s3-website.eu-central-1.amazonaws.com/whl/torch-1.4.0.html --trusted-host pytorch-scatter.s3-website.eu-central-1.amazonaws.com
+pip install torch-sparse==latest+${CUDA} -f http://pytorch-sparse.s3-website.eu-central-1.amazonaws.com/whl/torch-1.4.0.html --trusted-host pytorch-sparse.s3-website.eu-central-1.amazonaws.com
+```
+
+where `${CUDA}` should be replaced by either `cpu`, `cu92`, `cu100` or `cu101` depending on your PyTorch installation.
+
+|             | `cpu` | `cu92` | `cu100` | `cu101` |
+|-------------|-------|--------|---------|---------|
+| **Linux**   | ✅    | ✅     | ✅      | ✅      |
+| **Windows** | ✅    | ❌     | ❌      | ✅      |
+| **macOS**   | ✅    | ❌     | ❌      | ❌      |
+
+### From source
 
 Ensure that at least PyTorch 1.4.0 is installed and verify that `cuda/bin` and `cuda/include` are in your `$PATH` and `$CPATH` respectively, *e.g.*:
 
@@ -47,10 +66,16 @@ Then run:
 pip install torch-scatter torch-sparse
 ```
 
-If you are running into any installation problems, please create an [issue](https://github.com/rusty1s/pytorch_sparse/issues).
-Be sure to import `torch` first before using this package to resolve symbols the dynamic linker must see.
+When running in a docker container without nvidia driver, PyTorch needs to evaluate the compute capabilities and may fail.
+In this case, ensure that the compute capabilities are set via `TORCH_CUDA_ARCH_LIST`, *e.g.*:
 
-## Coalesce
+```
+export TORCH_CUDA_ARCH_LIST = "6.0 6.1 7.2+PTX 7.5+PTX"
+```
+
+## Functions
+
+### Coalesce
 
 ```
 torch_sparse.coalesce(index, value, m, n, op="add") -> (torch.LongTensor, torch.Tensor)
@@ -60,7 +85,7 @@ Row-wise sorts `index` and removes duplicate entries.
 Duplicate entries are removed by scattering them together.
 For scattering, any operation of [`torch_scatter`](https://github.com/rusty1s/pytorch_scatter) can be used.
 
-### Parameters
+#### Parameters
 
 * **index** *(LongTensor)* - The index tensor of sparse matrix.
 * **value** *(Tensor)* - The value tensor of sparse matrix.
@@ -68,12 +93,12 @@ For scattering, any operation of [`torch_scatter`](https://github.com/rusty1s/py
 * **n** *(int)* - The second dimension of corresponding dense matrix.
 * **op** *(string, optional)* - The scatter operation to use. (default: `"add"`)
 
-### Returns
+#### Returns
 
 * **index** *(LongTensor)* - The coalesced index tensor of sparse matrix.
 * **value** *(Tensor)* - The coalesced value tensor of sparse matrix.
 
-### Example
+#### Example
 
 ```python
 import torch
@@ -97,7 +122,7 @@ tensor([[6.0, 8.0],
         [5.0, 6.0]])
 ```
 
-## Transpose
+### Transpose
 
 ```
 torch_sparse.transpose(index, value, m, n) -> (torch.LongTensor, torch.Tensor)
@@ -105,7 +130,7 @@ torch_sparse.transpose(index, value, m, n) -> (torch.LongTensor, torch.Tensor)
 
 Transposes dimensions 0 and 1 of a sparse matrix.
 
-### Parameters
+#### Parameters
 
 * **index** *(LongTensor)* - The index tensor of sparse matrix.
 * **value** *(Tensor)* - The value tensor of sparse matrix.
@@ -113,12 +138,12 @@ Transposes dimensions 0 and 1 of a sparse matrix.
 * **n** *(int)* - The second dimension of corresponding dense matrix.
 * **coalesced** *(bool, optional)* - If set to `False`, will not coalesce the output. (default: `True`)
 
-### Returns
+#### Returns
 
 * **index** *(LongTensor)* - The transposed index tensor of sparse matrix.
 * **value** *(Tensor)* - The transposed value tensor of sparse matrix.
 
-### Example
+#### Example
 
 ```python
 import torch
@@ -142,7 +167,7 @@ tensor([[7.0, 9.0],
         [3.0, 4.0]])
 ```
 
-## Sparse Dense Matrix Multiplication
+### Sparse Dense Matrix Multiplication
 
 ```
 torch_sparse.spmm(index, value, m, n, matrix) -> torch.Tensor
@@ -150,7 +175,7 @@ torch_sparse.spmm(index, value, m, n, matrix) -> torch.Tensor
 
 Matrix product of a sparse matrix with a dense matrix.
 
-### Parameters
+#### Parameters
 
 * **index** *(LongTensor)* - The index tensor of sparse matrix.
 * **value** *(Tensor)* - The value tensor of sparse matrix.
@@ -158,11 +183,11 @@ Matrix product of a sparse matrix with a dense matrix.
 * **n** *(int)* - The second dimension of corresponding dense matrix.
 * **matrix** *(Tensor)* - The dense matrix.
 
-### Returns
+#### Returns
 
 * **out** *(Tensor)* - The dense output matrix.
 
-### Example
+#### Example
 
 ```python
 import torch
@@ -183,7 +208,7 @@ tensor([[7.0, 16.0],
         [7.0, 19.0]])
 ```
 
-## Sparse Sparse Matrix Multiplication
+### Sparse Sparse Matrix Multiplication
 
 ```
 torch_sparse.spspmm(indexA, valueA, indexB, valueB, m, k, n) -> (torch.LongTensor, torch.Tensor)
@@ -192,7 +217,7 @@ torch_sparse.spspmm(indexA, valueA, indexB, valueB, m, k, n) -> (torch.LongTenso
 Matrix product of two sparse tensors.
 Both input sparse matrices need to be **coalesced** (use the `coalesced` attribute to force).
 
-### Parameters
+#### Parameters
 
 * **indexA** *(LongTensor)* - The index tensor of first sparse matrix.
 * **valueA** *(Tensor)* - The value tensor of first sparse matrix.
@@ -203,12 +228,12 @@ Both input sparse matrices need to be **coalesced** (use the `coalesced` attribu
 * **n** *(int)* - The second dimension of second corresponding dense matrix.
 * **coalesced** *(bool, optional)*: If set to `True`, will coalesce both input sparse matrices. (default: `False`)
 
-### Returns
+#### Returns
 
 * **index** *(LongTensor)* - The output index tensor of sparse matrix.
 * **value** *(Tensor)* - The output value tensor of sparse matrix.
 
-### Example
+#### Example
 
 ```python
 import torch

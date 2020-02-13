@@ -1,4 +1,4 @@
-import warnings
+import importlib
 import os.path as osp
 from typing import Optional
 
@@ -6,18 +6,8 @@ import torch
 from torch_sparse.storage import SparseStorage
 from torch_sparse.tensor import SparseTensor
 
-try:
-    torch.ops.load_library(
-        osp.join(osp.dirname(osp.abspath(__file__)), '_diag.so'))
-except OSError:
-    warnings.warn('Failed to load `diag` binaries.')
-
-    def non_diag_mask_placeholder(row: torch.Tensor, col: torch.Tensor, M: int,
-                                  N: int, k: int) -> torch.Tensor:
-        raise ImportError
-        return row
-
-    torch.ops.torch_sparse.non_diag_mask = non_diag_mask_placeholder
+torch.ops.load_library(importlib.machinery.PathFinder().find_spec(
+    '_diag', [osp.dirname(__file__)]).origin)
 
 
 @torch.jit.script

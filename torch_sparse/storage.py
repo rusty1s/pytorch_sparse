@@ -1,4 +1,5 @@
 import warnings
+import importlib
 import os.path as osp
 from typing import Optional, List
 
@@ -6,22 +7,8 @@ import torch
 from torch_scatter import segment_csr, scatter_add
 from torch_sparse.utils import Final
 
-try:
-    torch.ops.load_library(
-        osp.join(osp.dirname(osp.abspath(__file__)), '_convert.so'))
-except OSError:
-    warnings.warn('Failed to load `convert` binaries.')
-
-    def ind2ptr_placeholder(ind: torch.Tensor, M: int) -> torch.Tensor:
-        raise ImportError
-        return ind
-
-    def ptr2ind_placeholder(ptr: torch.Tensor, E: int) -> torch.Tensor:
-        raise ImportError
-        return ptr
-
-    torch.ops.torch_sparse.ind2ptr = ind2ptr_placeholder
-    torch.ops.torch_sparse.ptr2ind = ptr2ind_placeholder
+torch.ops.load_library(importlib.machinery.PathFinder().find_spec(
+    '_convert', [osp.dirname(__file__)]).origin)
 
 layouts: Final[List[str]] = ['coo', 'csr', 'csc']
 
