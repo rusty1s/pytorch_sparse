@@ -1,5 +1,3 @@
-# flake8: noqa
-
 import importlib
 import os.path as osp
 
@@ -9,8 +7,9 @@ __version__ = '0.5.1'
 expected_torch_version = (1, 4)
 
 try:
-    torch.ops.load_library(importlib.machinery.PathFinder().find_spec(
-        '_version', [osp.dirname(__file__)]).origin)
+    for library in ['_version', '_convert', '_diag', '_spmm', '_spspmm']:
+        torch.ops.load_library(importlib.machinery.PathFinder().find_spec(
+            library, [osp.dirname(__file__)]).origin)
 except OSError as e:
     if 'undefined symbol' in str(e):
         major, minor = [int(x) for x in torch.__version__.split('.')[:2]]
@@ -40,26 +39,27 @@ if torch.version.cuda is not None:  # pragma: no cover
             f'{major}.{minor}. Please reinstall the torch_sparse that '
             f'matches your PyTorch install.')
 
-from .storage import SparseStorage
-from .tensor import SparseTensor
-from .transpose import t
-from .narrow import narrow, __narrow_diag__
-from .select import select
-from .index_select import index_select, index_select_nnz
-from .masked_select import masked_select, masked_select_nnz
-from .diag import remove_diag, set_diag, fill_diag
-from .add import add, add_, add_nnz, add_nnz_
-from .mul import mul, mul_, mul_nnz, mul_nnz_
-from .reduce import sum, mean, min, max
-from .matmul import matmul
-from .cat import cat, cat_diag
+from .storage import SparseStorage  # noqa: E4402
+from .tensor import SparseTensor  # noqa: E4402
+from .transpose import t  # noqa: E4402
+from .narrow import narrow, __narrow_diag__  # noqa: E4402
+from .select import select  # noqa: E4402
+from .index_select import index_select, index_select_nnz  # noqa: E4402
+from .masked_select import masked_select, masked_select_nnz  # noqa: E4402
+from .diag import remove_diag, set_diag, fill_diag  # noqa: E4402
+from .add import add, add_, add_nnz, add_nnz_  # noqa: E4402
+from .mul import mul, mul_, mul_nnz, mul_nnz_  # noqa: E4402
+from .reduce import sum, mean, min, max  # noqa: E4402
+from .matmul import matmul  # noqa: E4402
+from .cat import cat, cat_diag  # noqa: E4402
 
-from .convert import to_torch_sparse, from_torch_sparse, to_scipy, from_scipy
-from .coalesce import coalesce
-from .transpose import transpose
-from .eye import eye
-from .spmm import spmm
-from .spspmm import spspmm
+from .convert import to_torch_sparse, from_torch_sparse  # noqa: E4402
+from .convert import to_scipy, from_scipy  # noqa: E4402
+from .coalesce import coalesce  # noqa: E4402
+from .transpose import transpose  # noqa: E4402
+from .eye import eye  # noqa: E4402
+from .spmm import spmm  # noqa: E4402
+from .spspmm import spspmm  # noqa: E4402
 
 __all__ = [
     'SparseStorage',

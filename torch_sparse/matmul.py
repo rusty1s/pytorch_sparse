@@ -1,14 +1,7 @@
-import importlib
-import os.path as osp
 from typing import Union, Tuple
 
 import torch
 from torch_sparse.tensor import SparseTensor
-
-torch.ops.load_library(importlib.machinery.PathFinder().find_spec(
-    '_spmm', [osp.dirname(__file__)]).origin)
-torch.ops.load_library(importlib.machinery.PathFinder().find_spec(
-    '_spspmm', [osp.dirname(__file__)]).origin)
 
 
 @torch.jit.script
@@ -95,8 +88,13 @@ def spspmm_sum(src: SparseTensor, other: SparseTensor) -> SparseTensor:
     M, K = src.sparse_size(0), other.sparse_size(1)
     rowptrC, colC, valueC = torch.ops.torch_sparse.spspmm_sum(
         rowptrA, colA, valueA, rowptrB, colB, valueB, K)
-    return SparseTensor(row=None, rowptr=rowptrC, col=colC, value=valueC,
-                        sparse_sizes=torch.Size([M, K]), is_sorted=True)
+    return SparseTensor(
+        row=None,
+        rowptr=rowptrC,
+        col=colC,
+        value=valueC,
+        sparse_sizes=torch.Size([M, K]),
+        is_sorted=True)
 
 
 @torch.jit.script
@@ -115,7 +113,8 @@ def spspmm(src: SparseTensor, other: SparseTensor,
         raise ValueError
 
 
-def matmul(src: SparseTensor, other: Union[torch.Tensor, SparseTensor],
+def matmul(src: SparseTensor,
+           other: Union[torch.Tensor, SparseTensor],
            reduce: str = "sum"):
     if torch.is_tensor(other):
         return spmm(src, other, reduce)
