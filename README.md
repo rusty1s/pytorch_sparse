@@ -29,12 +29,11 @@ Note that only `value` comes with autograd support, as `index` is discrete and t
 
 ### Binaries
 
-We provide pip wheels for all major OS/PyTorch/CUDA combinations, see [here](http://pytorch-sparse.s3-website.eu-central-1.amazonaws.com/whl).
+We provide pip wheels for all major OS/PyTorch/CUDA combinations, see [here](https://s3.eu-central-1.amazonaws.com/pytorch-geometric.com/whl/index.html).
 To install from binaries, simply run
 
 ```
-pip install torch-scatter==latest+${CUDA} -f http://pytorch-scatter.s3-website.eu-central-1.amazonaws.com/whl/torch-1.4.0.html --trusted-host pytorch-scatter.s3-website.eu-central-1.amazonaws.com
-pip install torch-sparse==latest+${CUDA} -f http://pytorch-sparse.s3-website.eu-central-1.amazonaws.com/whl/torch-1.4.0.html --trusted-host pytorch-sparse.s3-website.eu-central-1.amazonaws.com
+pip install torch-scatter==latest+${CUDA} torch-sparse==latest+${CUDA} -f https://s3.eu-central-1.amazonaws.com/pytorch-geometric.com/whl/torch-1.4.0.html
 ```
 
 where `${CUDA}` should be replaced by either `cpu`, `cu92`, `cu100` or `cu101` depending on your PyTorch installation.
