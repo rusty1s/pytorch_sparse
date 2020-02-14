@@ -64,7 +64,7 @@ install:
   - source activate test
   - conda install pytorch=${TORCH_VERSION} ${TOOLKIT} -c pytorch --yes
   - source script/torch.sh
-  - pip install torch-scatter==latest+${IDX} -f http://pytorch-scatter.s3-website.eu-central-1.amazonaws.com/whl/torch-${TORCH_VERSION}.html --trusted-host pytorch-scatter.s3-website.eu-central-1.amazonaws.com
+  - pip install torch-scatter==latest+${IDX} -f https://s3.eu-central-1.amazonaws.com/pytorch-geometric.com/whl/torch-1.4.0.html
   - pip install flake8 codecov
   - python setup.py install
 script:
