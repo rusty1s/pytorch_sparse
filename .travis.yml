@@ -57,7 +57,6 @@ jobs:
     - os: windows
       env: TORCH_VERSION=1.4.0 PYTHON_VERSION=3.8 IDX=cu101
 
-
 install:
   - source script/cuda.sh
   - source script/conda.sh
