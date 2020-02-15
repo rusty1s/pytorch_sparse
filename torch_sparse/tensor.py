@@ -512,8 +512,8 @@ SparseTensor.__repr__ = __repr__
 
 # Scipy Conversions ###########################################################
 
-ScipySparseMatrix = Union[scipy.sparse.coo_matrix, scipy.sparse.
-                          csr_matrix, scipy.sparse.csc_matrix]
+ScipySparseMatrix = Union[scipy.sparse.coo_matrix, scipy.sparse.csr_matrix,
+                          scipy.sparse.csc_matrix]
 
 
 @torch.jit.ignore
@@ -574,11 +574,11 @@ SparseTensor.to_scipy = to_scipy
 
 # Hacky fixes #################################################################
 
-# Fix standard operators of `torch.Tensor` for PyTorch<=1.4.
+# Fix standard operators of `torch.Tensor` for PyTorch<=1.3.
 # https://github.com/pytorch/pytorch/pull/31769
 TORCH_MAJOR = int(torch.__version__.split('.')[0])
 TORCH_MINOR = int(torch.__version__.split('.')[1])
-if (TORCH_MAJOR < 1) or (TORCH_MAJOR == 1 and TORCH_MINOR <= 4):
+if (TORCH_MAJOR < 1) or (TORCH_MAJOR == 1 and TORCH_MINOR <= 3):
 
     def add(self, other):
         if torch.is_tensor(other) or is_scalar(other):
