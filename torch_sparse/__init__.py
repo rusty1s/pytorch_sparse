@@ -39,27 +39,27 @@ if torch.version.cuda is not None:  # pragma: no cover
             f'{major}.{minor}. Please reinstall the torch_sparse that '
             f'matches your PyTorch install.')
 
-from .storage import SparseStorage  # noqa: E4402
-from .tensor import SparseTensor  # noqa: E4402
-from .transpose import t  # noqa: E4402
-from .narrow import narrow, __narrow_diag__  # noqa: E4402
-from .select import select  # noqa: E4402
-from .index_select import index_select, index_select_nnz  # noqa: E4402
-from .masked_select import masked_select, masked_select_nnz  # noqa: E4402
-from .diag import remove_diag, set_diag, fill_diag  # noqa: E4402
-from .add import add, add_, add_nnz, add_nnz_  # noqa: E4402
-from .mul import mul, mul_, mul_nnz, mul_nnz_  # noqa: E4402
-from .reduce import sum, mean, min, max  # noqa: E4402
-from .matmul import matmul  # noqa: E4402
-from .cat import cat, cat_diag  # noqa: E4402
+from .storage import SparseStorage  # noqa
+from .tensor import SparseTensor  # noqa
+from .transpose import t  # noqa
+from .narrow import narrow, __narrow_diag__  # noqa
+from .select import select  # noqa
+from .index_select import index_select, index_select_nnz  # noqa
+from .masked_select import masked_select, masked_select_nnz  # noqa
+from .diag import remove_diag, set_diag, fill_diag  # noqa
+from .add import add, add_, add_nnz, add_nnz_  # noqa
+from .mul import mul, mul_, mul_nnz, mul_nnz_  # noqa
+from .reduce import sum, mean, min, max  # noqa
+from .matmul import matmul  # noqa
+from .cat import cat, cat_diag  # noqa
 
-from .convert import to_torch_sparse, from_torch_sparse  # noqa: E4402
-from .convert import to_scipy, from_scipy  # noqa: E4402
-from .coalesce import coalesce  # noqa: E4402
-from .transpose import transpose  # noqa: E4402
-from .eye import eye  # noqa: E4402
-from .spmm import spmm  # noqa: E4402
-from .spspmm import spspmm  # noqa: E4402
+from .convert import to_torch_sparse, from_torch_sparse  # noqa
+from .convert import to_scipy, from_scipy  # noqa
+from .coalesce import coalesce  # noqa
+from .transpose import transpose  # noqa
+from .eye import eye  # noqa
+from .spmm import spmm  # noqa
+from .spspmm import spspmm  # noqa
 
 __all__ = [
     'SparseStorage',
