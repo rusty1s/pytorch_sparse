@@ -5,7 +5,6 @@ from torch_sparse.storage import SparseStorage, get_layout
 from torch_sparse.tensor import SparseTensor
 
 
-@torch.jit.script
 def masked_select(src: SparseTensor, dim: int,
                   mask: torch.Tensor) -> SparseTensor:
     dim = src.dim() + dim if dim < 0 else dim
@@ -73,7 +72,6 @@ def masked_select(src: SparseTensor, dim: int,
             raise ValueError
 
 
-@torch.jit.script
 def masked_select_nnz(src: SparseTensor, mask: torch.Tensor,
                       layout: Optional[str] = None) -> SparseTensor:
     assert mask.dim() == 1

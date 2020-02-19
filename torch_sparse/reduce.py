@@ -5,7 +5,6 @@ from torch_scatter import scatter, segment_csr
 from torch_sparse.tensor import SparseTensor
 
 
-@torch.jit.script
 def reduction(src: SparseTensor, dim: Optional[int] = None,
               reduce: str = 'sum') -> torch.Tensor:
     value = src.storage.value()
@@ -68,22 +67,18 @@ def reduction(src: SparseTensor, dim: Optional[int] = None,
             raise ValueError
 
 
-@torch.jit.script
 def sum(src: SparseTensor, dim: Optional[int] = None) -> torch.Tensor:
     return reduction(src, dim, reduce='sum')
 
 
-@torch.jit.script
 def mean(src: SparseTensor, dim: Optional[int] = None) -> torch.Tensor:
     return reduction(src, dim, reduce='mean')
 
 
-@torch.jit.script
 def min(src: SparseTensor, dim: Optional[int] = None) -> torch.Tensor:
     return reduction(src, dim, reduce='min')
 
 
-@torch.jit.script
 def max(src: SparseTensor, dim: Optional[int] = None) -> torch.Tensor:
     return reduction(src, dim, reduce='max')
 

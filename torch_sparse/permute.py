@@ -3,7 +3,6 @@ from torch_sparse.storage import SparseStorage
 from torch_sparse.tensor import SparseTensor
 
 
-@torch.jit.script
 def permute(src: SparseTensor, perm: torch.Tensor) -> SparseTensor:
     assert src.is_symmetric()
 

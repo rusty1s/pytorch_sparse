@@ -5,7 +5,6 @@ from torch_sparse.storage import SparseStorage
 from torch_sparse.tensor import SparseTensor
 
 
-@torch.jit.script
 def narrow(src: SparseTensor, dim: int, start: int,
            length: int) -> SparseTensor:
     if dim < 0:
@@ -80,7 +79,6 @@ def narrow(src: SparseTensor, dim: int, start: int,
             raise ValueError
 
 
-@torch.jit.script
 def __narrow_diag__(src: SparseTensor, start: Tuple[int, int],
                     length: Tuple[int, int]) -> SparseTensor:
     # This function builds the inverse operation of `cat_diag` and should hence

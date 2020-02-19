@@ -4,7 +4,6 @@ from torch_sparse.storage import SparseStorage
 from torch_sparse.tensor import SparseTensor
 
 
-@torch.jit.script
 def t(src: SparseTensor) -> SparseTensor:
     csr2csc = src.storage.csr2csc()
 

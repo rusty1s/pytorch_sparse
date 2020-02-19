@@ -5,7 +5,6 @@ from torch_sparse.tensor import SparseTensor
 from torch_sparse.permute import permute
 
 
-@torch.jit.script
 def partition_kway(
         src: SparseTensor,
         num_parts: int) -> Tuple[SparseTensor, torch.Tensor, torch.Tensor]:
