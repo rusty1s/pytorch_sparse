@@ -59,6 +59,7 @@ def get_extensions():
             define_macros=define_macros,
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args,
+            libraries=['metis'],
         )
         extensions += [extension]
 
