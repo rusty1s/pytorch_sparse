@@ -30,7 +30,7 @@ def narrow(src: SparseTensor, dim: int, start: int,
         if value is not None:
             value = value.narrow(0, row_start, row_length)
 
-        sparse_sizes = torch.Size([length, src.sparse_size(1)])
+        sparse_sizes = (length, src.sparse_size(1))
 
         rowcount = src.storage._rowcount
         if rowcount is not None:
@@ -53,7 +53,7 @@ def narrow(src: SparseTensor, dim: int, start: int,
         if value is not None:
             value = value[mask]
 
-        sparse_sizes = torch.Size([src.sparse_size(0), length])
+        sparse_sizes = (src.sparse_size(0), length)
 
         colptr = src.storage._colptr
         if colptr is not None:

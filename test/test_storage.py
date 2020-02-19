@@ -93,8 +93,8 @@ def test_utility(dtype, device):
     storage = storage.set_value(value, layout='coo')
     assert storage.value().tolist() == [1, 2, 3, 4]
 
-    storage = storage.sparse_resize([3, 3])
-    assert storage.sparse_sizes() == [3, 3]
+    storage = storage.sparse_resize((3, 3))
+    assert storage.sparse_sizes() == (3, 3)
 
     new_storage = storage.copy()
     assert new_storage != storage

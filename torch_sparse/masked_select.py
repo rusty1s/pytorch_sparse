@@ -27,7 +27,7 @@ def masked_select(src: SparseTensor, dim: int,
         if value is not None:
             value = value[mask]
 
-        sparse_sizes = torch.Size([rowcount.size(0), src.sparse_size(1)])
+        sparse_sizes = (rowcount.size(0), src.sparse_size(1))
 
         storage = SparseStorage(row=row, rowptr=None, col=col, value=value,
                                 sparse_sizes=sparse_sizes, rowcount=rowcount,
@@ -54,7 +54,7 @@ def masked_select(src: SparseTensor, dim: int,
         if value is not None:
             value = value[csr2csc][mask][csc2csr]
 
-        sparse_sizes = torch.Size([src.sparse_size(0), colcount.size(0)])
+        sparse_sizes = (src.sparse_size(0), colcount.size(0))
 
         storage = SparseStorage(row=row, rowptr=None, col=col, value=value,
                                 sparse_sizes=sparse_sizes, rowcount=None,

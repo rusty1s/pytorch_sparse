@@ -1,5 +1,5 @@
 import warnings
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 import torch
 from torch_scatter import segment_csr, scatter_add
@@ -23,7 +23,7 @@ class SparseStorage(object):
     _rowptr: Optional[torch.Tensor]
     _col: torch.Tensor
     _value: Optional[torch.Tensor]
-    _sparse_sizes: List[int]
+    _sparse_sizes: Tuple[int, int]
     _rowcount: Optional[torch.Tensor]
     _colptr: Optional[torch.Tensor]
     _colcount: Optional[torch.Tensor]
@@ -34,7 +34,7 @@ class SparseStorage(object):
                  rowptr: Optional[torch.Tensor] = None,
                  col: Optional[torch.Tensor] = None,
                  value: Optional[torch.Tensor] = None,
-                 sparse_sizes: Optional[List[int]] = None,
+                 sparse_sizes: Optional[Tuple[int, int]] = None,
                  rowcount: Optional[torch.Tensor] = None,
                  colptr: Optional[torch.Tensor] = None,
                  colcount: Optional[torch.Tensor] = None,
@@ -56,7 +56,7 @@ class SparseStorage(object):
             else:
                 raise ValueError
             N = col.max().item() + 1
-            sparse_sizes = torch.Size([int(M), int(N)])
+            sparse_sizes = (int(M), int(N))
         else:
             assert len(sparse_sizes) == 2
 
@@ -118,7 +118,7 @@ class SparseStorage(object):
         self._rowptr = rowptr
         self._col = col
         self._value = value
-        self._sparse_sizes = sparse_sizes
+        self._sparse_sizes = tuple(sparse_sizes)
         self._rowcount = rowcount
         self._colptr = colptr
         self._colcount = colcount
@@ -218,13 +218,13 @@ class SparseStorage(object):
                              colcount=self._colcount, csr2csc=self._csr2csc,
                              csc2csr=self._csc2csr, is_sorted=True)
 
-    def sparse_sizes(self) -> List[int]:
+    def sparse_sizes(self) -> Tuple[int, int]:
         return self._sparse_sizes
 
     def sparse_size(self, dim: int) -> int:
         return self._sparse_sizes[dim]
 
-    def sparse_resize(self, sparse_sizes: List[int]):
+    def sparse_resize(self, sparse_sizes: Tuple[int, int]):
         assert len(sparse_sizes) == 2
         old_sparse_sizes, nnz = self._sparse_sizes, self._col.numel()
 

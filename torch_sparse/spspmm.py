@@ -23,9 +23,9 @@ def spspmm(indexA, valueA, indexB, valueB, m, k, n, coalesced=False):
     """
 
     A = SparseTensor(row=indexA[0], col=indexA[1], value=valueA,
-                     sparse_sizes=torch.Size([m, k]), is_sorted=not coalesced)
+                     sparse_sizes=(m, k), is_sorted=not coalesced)
     B = SparseTensor(row=indexB[0], col=indexB[1], value=valueB,
-                     sparse_sizes=torch.Size([k, n]), is_sorted=not coalesced)
+                     sparse_sizes=(k, n), is_sorted=not coalesced)
 
     C = matmul(A, B)
     row, col, value = C.coo()

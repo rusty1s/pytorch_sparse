@@ -82,7 +82,7 @@ def spspmm_sum(src: SparseTensor, other: SparseTensor) -> SparseTensor:
     rowptrC, colC, valueC = torch.ops.torch_sparse.spspmm_sum(
         rowptrA, colA, valueA, rowptrB, colB, valueB, K)
     return SparseTensor(row=None, rowptr=rowptrC, col=colC, value=valueC,
-                        sparse_sizes=torch.Size([M, K]), is_sorted=True)
+                        sparse_sizes=(M, K), is_sorted=True)
 
 
 def spspmm_add(src: SparseTensor, other: SparseTensor) -> SparseTensor:
