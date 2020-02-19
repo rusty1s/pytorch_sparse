@@ -18,3 +18,7 @@ def partition_kway(
     partptr = torch.ops.torch_sparse.ind2ptr(cluster, num_parts)
 
     return out, partptr, perm
+
+
+SparseTensor.partition_kway = lambda self, num_parts: partition_kway(
+    self, num_parts)

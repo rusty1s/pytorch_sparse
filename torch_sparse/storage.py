@@ -379,19 +379,22 @@ class SparseStorage(object):
         self._csc2csr = None
         return self
 
-    def num_cached_keys(self) -> int:
-        count = 0
+    def cached_keys(self) -> List[str]:
+        keys: List[str] = []
         if self.has_rowcount():
-            count += 1
+            keys.append('rowcount')
         if self.has_colptr():
-            count += 1
+            keys.append('colptr')
         if self.has_colcount():
-            count += 1
+            keys.append('colcount')
         if self.has_csr2csc():
-            count += 1
+            keys.append('csr2csc')
         if self.has_csc2csr():
-            count += 1
-        return count
+            keys.append('csc2csr')
+        return keys
+
+    def num_cached_keys(self) -> int:
+        return len(self.cached_keys())
 
     def copy(self):
         return SparseStorage(row=self._row, rowptr=self._rowptr, col=self._col,
