@@ -14,4 +14,4 @@ def test_permute(device):
     row, col, value = adj.permute(torch.tensor([1, 0, 2])).coo()
     assert row.tolist() == [0, 1, 1, 2, 2]
     assert col.tolist() == [1, 0, 1, 0, 2]
-    print(value)
+    assert value.tolist() == [3, 2, 1, 4, 5]
