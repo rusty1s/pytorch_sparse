@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ "${TRAVIS_OS_NAME}" = "windows" ]; then
+  choco install make
+fi
+
 METIS=metis-5.1.0
 
 wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz
