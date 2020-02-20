@@ -1,6 +1,5 @@
 from typing import Tuple
 
-import torch
 from torch_sparse.storage import SparseStorage
 from torch_sparse.tensor import SparseTensor
 
