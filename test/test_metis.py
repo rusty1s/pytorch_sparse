@@ -9,5 +9,5 @@ from .utils import devices
 def test_metis(device):
     mat = SparseTensor.from_dense(torch.randn((6, 6), device=device))
     mat, partptr, perm = mat.partition_kway(num_parts=2)
-    assert partptr.tolist() == [0, 3, 6]
-    assert perm.tolist() == [0, 1, 2, 3, 4, 5]
+    assert partptr.numel() == 3
+    assert perm.nume() == 6
