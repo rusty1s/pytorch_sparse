@@ -9,3 +9,4 @@ sed -i.bak -e 's/IDXTYPEWIDTH 32/IDXTYPEWIDTH 64/g' include/metis.h
 make config
 make
 sudo make install
+cd ..
