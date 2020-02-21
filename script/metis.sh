@@ -7,11 +7,12 @@ tar -xvzf ${METIS}.tar.gz
 cd ${METIS} || exit
 sed -i.bak -e 's/IDXTYPEWIDTH 32/IDXTYPEWIDTH 64/g' include/metis.h
 
-if [ "${TRAVIS_OS_NAME}" = "windows" ]; then
+if [ "${TRAVIS_OS_NAME}" != "windows" ]; then
   make config
   make
   sudo make install
 else
-  ./vsgen
+  ./vsgen.bat
 fi
+
 cd ..
