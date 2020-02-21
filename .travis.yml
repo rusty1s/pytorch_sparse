@@ -60,11 +60,11 @@ jobs:
 install:
   - source script/cuda.sh
   - source script/conda.sh
-  - source script/metis.sh
   - conda create --yes -n test python="${PYTHON_VERSION}"
   - source activate test
   - conda install pytorch=${TORCH_VERSION} ${TOOLKIT} -c pytorch --yes
   - source script/torch.sh
+  - conda install -c anaconda metis --yes
   - pip install torch-scatter==latest+${IDX} -f https://s3.eu-central-1.amazonaws.com/pytorch-geometric.com/whl/torch-1.4.0.html
   - pip install flake8 codecov
   - python setup.py install
