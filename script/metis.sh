@@ -10,9 +10,10 @@ sed -i.bak -e 's/IDXTYPEWIDTH 32/IDXTYPEWIDTH 64/g' include/metis.h
 if [ "${TRAVIS_OS_NAME}" != "windows" ]; then
   make config
   make
-  sudo make install
 else
   ./vsgen.bat
 fi
+
+sudo make install
 
 cd ..

@@ -59,6 +59,8 @@ $ echo $CPATH
 >>> /usr/local/cuda/include:...
 ```
 
+Afterwards, download and install the [METIS library](http://glaros.dtc.umn.edu/gkhome/metis/metis/download) by following the instructions in the `Install.txt` file.
+
 Then run:
 
 ```
