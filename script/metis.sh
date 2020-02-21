@@ -2,6 +2,7 @@
 
 if [ "${TRAVIS_OS_NAME}" = "windows" ]; then
   choco install make
+  cmake --help
 fi
 
 METIS=metis-5.1.0
