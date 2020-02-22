@@ -1,6 +1,5 @@
 import os
 import os.path as osp
-import sys
 import glob
 from setuptools import setup, find_packages
 
@@ -31,11 +30,6 @@ def get_extensions():
         nvcc_flags += ['-arch=sm_35', '--expt-relaxed-constexpr']
         extra_compile_args['nvcc'] = nvcc_flags
 
-        if sys.platform == 'win32':
-            extra_link_args = ['cusparse.lib']
-        else:
-            extra_link_args = ['-lcusparse', '-l', 'cusparse']
-
     extensions_dir = osp.join(osp.dirname(osp.abspath(__file__)), 'csrc')
     main_files = glob.glob(osp.join(extensions_dir, '*.cpp'))
     extensions = []
@@ -59,7 +53,7 @@ def get_extensions():
             define_macros=define_macros,
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args,
-            libraries=['metis'],
+            libraries=['cusparse', 'metis'],
         )
         extensions += [extension]
 

@@ -12,6 +12,8 @@ if [ "${TRAVIS_OS_NAME}" != "windows" ]; then
   make
 else
   ./vsgen.bat
+  ls build
+  ls build/windows
 fi
 
 sudo make install
