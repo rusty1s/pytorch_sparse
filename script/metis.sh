@@ -28,9 +28,9 @@ else
 
   echo "$LIBRARY_LIB"
   echo "$LIBRARY_INC"
-  echo "/c/tools/miniconda3/envs/test"
-  echo "/c/tools/miniconda3/envs/libs"
-  echo "/c/tools/miniconda3/envs/include"
+  ls "/c/tools/miniconda3/envs/test"
+  ls "/c/tools/miniconda3/envs/libs"
+  ls "/c/tools/miniconda3/envs/include"
 
   cd ..
 fi
