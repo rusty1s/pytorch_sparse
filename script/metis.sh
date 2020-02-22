@@ -10,18 +10,20 @@ sed -i.bak -e 's/IDXTYPEWIDTH 32/IDXTYPEWIDTH 64/g' include/metis.h
 if [ "${TRAVIS_OS_NAME}" != "windows" ]; then
   make config
   make
+  sudo make install
 else
-  ./vsgen.bat
-  echo "--- BUILD"
-  ls build
-  echo "--- WINDOWS"
-  ls build/windows
-  echo "--- LIBMETIS"
-  ls build/windows/libmetis
-  echo "--- RELEASE"
-  ls build/windows/libmetis/Release
-fi
+  mkdir build
+  cd build || exit
 
-sudo make install
+  cmake ..
+  cmake --build . --config "Release" --target ALL_BUILD
+
+  echo "--- LIBMETIS"
+  ls libmetis
+  echo "--- RELEASE"
+  ls libmetis/Release
+
+  cd ..
+fi
 
 cd ..
