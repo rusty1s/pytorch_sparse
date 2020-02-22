@@ -20,8 +20,8 @@ else
   cmake ..
   cmake --build . --config "Release" --target ALL_BUILD
 
-  cp libmetis/Release/metis.lib /c/tools/miniconda3/envs/libs
-  cp ../include/metis.h /c/tools/miniconda3/envs/include
+  cp libmetis/Release/metis.lib /c/tools/miniconda3/envs/test/libs
+  cp ../include/metis.h /c/tools/miniconda3/envs/test/include
 
   cd ..
 fi
