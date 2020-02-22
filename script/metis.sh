@@ -12,6 +12,8 @@ if [ "${TRAVIS_OS_NAME}" != "windows" ]; then
   make
   sudo make install
 else
+  sed -i.bak -e '61,69d' GKlib/gk_arch.h
+
   mkdir build
   cd build || exit
 
