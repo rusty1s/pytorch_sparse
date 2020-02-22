@@ -28,6 +28,9 @@ else
   echo "INCLUDES"
   ls /c/tools/miniconda3/envs/test/include
 
+  cp libmetis/Release/metis.lib ../..
+  cp ../include/metis.h ../..
+
   cd ..
 fi
 
