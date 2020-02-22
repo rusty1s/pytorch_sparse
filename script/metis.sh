@@ -12,8 +12,14 @@ if [ "${TRAVIS_OS_NAME}" != "windows" ]; then
   make
 else
   ./vsgen.bat
+  echo "--- BUILD"
   ls build
+  echo "--- WINDOWS"
   ls build/windows
+  echo "--- LIBMETIS"
+  ls build/windows/libmetis
+  echo "--- RELEASE"
+  ls build/windows/libmetis/Release
 fi
 
 sudo make install
