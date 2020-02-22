@@ -20,16 +20,8 @@ else
   cmake ..
   cmake --build . --config "Release" --target ALL_BUILD
 
-  cp libmetis/Release/metis.lib /c/tools/miniconda3/envs/test/libs
-  cp ../include/metis.h /c/tools/miniconda3/envs/test/include
-
-  echo "LIBS"
-  ls /c/tools/miniconda3/envs/test/libs
-  echo "INCLUDES"
-  ls /c/tools/miniconda3/envs/test/include
-
   cp libmetis/Release/metis.lib ../..
-  cp ../include/metis.h ../..
+  cp ../include/metis.h /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/include
 
   cd ..
 fi
