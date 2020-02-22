@@ -12,10 +12,11 @@ if [ "${TRAVIS_OS_NAME}" != "windows" ]; then
   make
   sudo make install
 else
+  # Fix GKlib on Windows: https://github.com/jlblancoc/suitesparse-metis-for-windows/issues/6
   sed -i.bak -e '61,69d' GKlib/gk_arch.h
 
   mkdir build
-  cd build || exit
+  cd build || exit
 
   cmake ..
   cmake --build . --config "Release" --target ALL_BUILD
@@ -24,6 +25,9 @@ else
   ls libmetis
   echo "--- RELEASE"
   ls libmetis/Release
+
+  echo "$LIBRARY_LIB"
+  echo "$LIBRARY_INC"
 
   cd ..
 fi
