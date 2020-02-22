@@ -23,6 +23,11 @@ else
   cp libmetis/Release/metis.lib /c/tools/miniconda3/envs/test/libs
   cp ../include/metis.h /c/tools/miniconda3/envs/test/include
 
+  echo "LIBS"
+  ls /c/tools/miniconda3/envs/test/libs
+  echo "INCLUDES"
+  ls /c/tools/miniconda3/envs/test/include
+
   cd ..
 fi
 
