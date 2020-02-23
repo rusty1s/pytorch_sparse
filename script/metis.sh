@@ -20,7 +20,7 @@ else
   cmake ..
   cmake --build . --config "Release" --target ALL_BUILD
 
-  ls -lah libmets/Release
+  ls -lah libmetis/Release
 
   cp libmetis/Release/metis.lib ../..
   cp libmetis/Release/metis.lib /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/lib/x64
