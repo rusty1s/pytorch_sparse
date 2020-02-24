@@ -8,8 +8,7 @@ expected_torch_version = (1, 4)
 
 try:
     for library in [
-            '_version', '_convert', '_diag', '_spmm', '_spspmm',
-            '_metis_wrapper'
+            '_version', '_convert', '_diag', '_spmm', '_spspmm', '_metis'
     ]:
         torch.ops.load_library(importlib.machinery.PathFinder().find_spec(
             library, [osp.dirname(__file__)]).origin)

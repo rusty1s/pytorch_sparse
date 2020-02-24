@@ -1,7 +1,7 @@
 #include <Python.h>
 #include <torch/script.h>
 
-#include "cpu/metis_wrapper_cpu.h"
+#include "cpu/metis_cpu.h"
 
 #include <metis.h>
 

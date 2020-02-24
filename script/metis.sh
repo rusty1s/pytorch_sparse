@@ -20,22 +20,6 @@ else
   cmake .. -A x64  # Ensure we are building with x64
   cmake --build . --config "Release" --target ALL_BUILD
   cp libmetis/Release/metis.lib /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/lib/x64
-
-  # ls /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/bin/HostX86/x64
-
-  # /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/bin/HostX86/x64/dumpbin.exe libmetis/Release/metis.lib
-
-  # cmake .. -DSHARED=1
-  # cmake --build . --config "Release" --target ALL_BUILD
-  # # cp libmetis/Release/metis.lib ../..
-  # cp libmetis/Release/metis.dll /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/bin
-
-  # ls /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/bin
-
-  # cmake .. -DSHARED=1
-  # cmake --build . --config "Release" --target ALL_BUILD
-  # cp libmetis/Release/metis.dll /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/bin/x64
-
   cp ../include/metis.h /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/include
 
   cd ..

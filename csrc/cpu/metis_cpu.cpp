@@ -1,4 +1,4 @@
-#include "metis_wrapper_cpu.h"
+#include "metis_cpu.h"
 
 #include <metis.h>
 
