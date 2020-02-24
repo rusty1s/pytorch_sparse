@@ -17,6 +17,8 @@ else
 
   cd build || exit
 
+  cmake --help
+
   cmake ..
   cmake --build . --config "Release" --target ALL_BUILD
   # cp libmetis/Release/metis.lib ../..
