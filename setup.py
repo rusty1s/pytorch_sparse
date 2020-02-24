@@ -16,10 +16,18 @@ if os.getenv('FORCE_CPU', '0') == '1':
 
 BUILD_DOCS = os.getenv('BUILD_DOCS', '0') == '1'
 
+WITH_METIS = False
+if os.getenv('WITH_METIS', '0') == '1':
+    WITH_METIS = True
+
 
 def get_extensions():
     Extension = CppExtension
     define_macros = []
+    libraries = []
+    if WITH_METIS:
+        define_macros += [('WITH_METIS', None)]
+        libraries += ['metis']
     extra_compile_args = {'cxx': []}
     extra_link_args = []
 
@@ -32,9 +40,9 @@ def get_extensions():
         extra_compile_args['nvcc'] = nvcc_flags
 
         if sys.platform == 'win32':
-            extra_link_args = ['cusparse.lib']
+            extra_link_args += ['cusparse.lib']
         else:
-            extra_link_args = ['-lcusparse', '-l', 'cusparse']
+            extra_link_args += ['-lcusparse', '-l', 'cusparse']
 
     extensions_dir = osp.join(osp.dirname(osp.abspath(__file__)), 'csrc')
     main_files = glob.glob(osp.join(extensions_dir, '*.cpp'))
@@ -59,6 +67,7 @@ def get_extensions():
             define_macros=define_macros,
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args,
+            libraries=libraries,
         )
         extensions += [extension]
 
@@ -71,7 +80,7 @@ tests_require = ['pytest', 'pytest-cov']
 
 setup(
     name='torch_sparse',
-    version='0.5.1',
+    version='0.6.0',
     author='Matthias Fey',
     author_email='matthias.fey@tu-dortmund.de',
     url='https://github.com/rusty1s/pytorch_sparse',

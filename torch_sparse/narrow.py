@@ -1,11 +1,9 @@
 from typing import Tuple
 
-import torch
 from torch_sparse.storage import SparseStorage
 from torch_sparse.tensor import SparseTensor
 
 
-@torch.jit.script
 def narrow(src: SparseTensor, dim: int, start: int,
            length: int) -> SparseTensor:
     if dim < 0:
@@ -31,7 +29,7 @@ def narrow(src: SparseTensor, dim: int, start: int,
         if value is not None:
             value = value.narrow(0, row_start, row_length)
 
-        sparse_sizes = torch.Size([length, src.sparse_size(1)])
+        sparse_sizes = (length, src.sparse_size(1))
 
         rowcount = src.storage._rowcount
         if rowcount is not None:
@@ -54,7 +52,7 @@ def narrow(src: SparseTensor, dim: int, start: int,
         if value is not None:
             value = value[mask]
 
-        sparse_sizes = torch.Size([src.sparse_size(0), length])
+        sparse_sizes = (src.sparse_size(0), length)
 
         colptr = src.storage._colptr
         if colptr is not None:
@@ -80,7 +78,6 @@ def narrow(src: SparseTensor, dim: int, start: int,
             raise ValueError
 
 
-@torch.jit.script
 def __narrow_diag__(src: SparseTensor, start: Tuple[int, int],
                     length: Tuple[int, int]) -> SparseTensor:
     # This function builds the inverse operation of `cat_diag` and should hence

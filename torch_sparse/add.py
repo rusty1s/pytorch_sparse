@@ -5,7 +5,6 @@ from torch_scatter import gather_csr
 from torch_sparse.tensor import SparseTensor
 
 
-@torch.jit.script
 def add(src: SparseTensor, other: torch.Tensor) -> SparseTensor:
     rowptr, col, value = src.csr()
     if other.size(0) == src.size(0) and other.size(1) == 1:  # Row-wise...
@@ -24,7 +23,6 @@ def add(src: SparseTensor, other: torch.Tensor) -> SparseTensor:
     return src.set_value(value, layout='coo')
 
 
-@torch.jit.script
 def add_(src: SparseTensor, other: torch.Tensor) -> SparseTensor:
     rowptr, col, value = src.csr()
     if other.size(0) == src.size(0) and other.size(1) == 1:  # Row-wise...
@@ -44,7 +42,6 @@ def add_(src: SparseTensor, other: torch.Tensor) -> SparseTensor:
     return src.set_value_(value, layout='coo')
 
 
-@torch.jit.script
 def add_nnz(src: SparseTensor, other: torch.Tensor,
             layout: Optional[str] = None) -> SparseTensor:
     value = src.storage.value()
@@ -55,7 +52,6 @@ def add_nnz(src: SparseTensor, other: torch.Tensor,
     return src.set_value(value, layout=layout)
 
 
-@torch.jit.script
 def add_nnz_(src: SparseTensor, other: torch.Tensor,
              layout: Optional[str] = None) -> SparseTensor:
     value = src.storage.value()

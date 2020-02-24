@@ -5,7 +5,6 @@ from torch_sparse.storage import SparseStorage
 from torch_sparse.tensor import SparseTensor
 
 
-@torch.jit.script
 def remove_diag(src: SparseTensor, k: int = 0) -> SparseTensor:
     row, col, value = src.coo()
     inv_mask = row != col if k == 0 else row != (col - k)
@@ -25,24 +24,14 @@ def remove_diag(src: SparseTensor, k: int = 0) -> SparseTensor:
             colcount = colcount.clone()
             colcount[col[mask]] -= 1
 
-    storage = SparseStorage(
-        row=new_row,
-        rowptr=None,
-        col=new_col,
-        value=value,
-        sparse_sizes=src.sparse_sizes(),
-        rowcount=rowcount,
-        colptr=None,
-        colcount=colcount,
-        csr2csc=None,
-        csc2csr=None,
-        is_sorted=True)
+    storage = SparseStorage(row=new_row, rowptr=None, col=new_col, value=value,
+                            sparse_sizes=src.sparse_sizes(), rowcount=rowcount,
+                            colptr=None, colcount=colcount, csr2csc=None,
+                            csc2csr=None, is_sorted=True)
     return src.from_storage(storage)
 
 
-@torch.jit.script
-def set_diag(src: SparseTensor,
-             values: Optional[torch.Tensor] = None,
+def set_diag(src: SparseTensor, values: Optional[torch.Tensor] = None,
              k: int = 0) -> SparseTensor:
     src = remove_diag(src, k=k)
     row, col, value = src.coo()
@@ -69,8 +58,7 @@ def set_diag(src: SparseTensor,
         if values is not None:
             new_value[inv_mask] = values
         else:
-            new_value[inv_mask] = torch.ones((num_diag, ),
-                                             dtype=value.dtype,
+            new_value[inv_mask] = torch.ones((num_diag, ), dtype=value.dtype,
                                              device=value.device)
 
     rowcount = src.storage._rowcount
@@ -83,22 +71,13 @@ def set_diag(src: SparseTensor,
         colcount = colcount.clone()
         colcount[start + k:start + num_diag + k] += 1
 
-    storage = SparseStorage(
-        row=new_row,
-        rowptr=None,
-        col=new_col,
-        value=new_value,
-        sparse_sizes=src.sparse_sizes(),
-        rowcount=rowcount,
-        colptr=None,
-        colcount=colcount,
-        csr2csc=None,
-        csc2csr=None,
-        is_sorted=True)
+    storage = SparseStorage(row=new_row, rowptr=None, col=new_col,
+                            value=new_value, sparse_sizes=src.sparse_sizes(),
+                            rowcount=rowcount, colptr=None, colcount=colcount,
+                            csr2csc=None, csc2csr=None, is_sorted=True)
     return src.from_storage(storage)
 
 
-@torch.jit.script
 def fill_diag(src: SparseTensor, fill_value: int, k: int = 0) -> SparseTensor:
     num_diag = min(src.sparse_size(0), src.sparse_size(1) - k)
     if k < 0:

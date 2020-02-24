@@ -4,7 +4,6 @@ import torch
 from torch_sparse.tensor import SparseTensor
 
 
-@torch.jit.script
 def spmm_sum(src: SparseTensor, other: torch.Tensor) -> torch.Tensor:
     rowptr, col, value = src.csr()
 
@@ -24,12 +23,10 @@ def spmm_sum(src: SparseTensor, other: torch.Tensor) -> torch.Tensor:
                                            csr2csc, other)
 
 
-@torch.jit.script
 def spmm_add(src: SparseTensor, other: torch.Tensor) -> torch.Tensor:
     return spmm_sum(src, other)
 
 
-@torch.jit.script
 def spmm_mean(src: SparseTensor, other: torch.Tensor) -> torch.Tensor:
     rowptr, col, value = src.csr()
 
@@ -51,21 +48,18 @@ def spmm_mean(src: SparseTensor, other: torch.Tensor) -> torch.Tensor:
                                             colptr, csr2csc, other)
 
 
-@torch.jit.script
 def spmm_min(src: SparseTensor,
              other: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
     rowptr, col, value = src.csr()
     return torch.ops.torch_sparse.spmm_min(rowptr, col, value, other)
 
 
-@torch.jit.script
 def spmm_max(src: SparseTensor,
              other: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
     rowptr, col, value = src.csr()
     return torch.ops.torch_sparse.spmm_max(rowptr, col, value, other)
 
 
-@torch.jit.script
 def spmm(src: SparseTensor, other: torch.Tensor,
          reduce: str = "sum") -> torch.Tensor:
     if reduce == 'sum' or reduce == 'add':
@@ -80,7 +74,6 @@ def spmm(src: SparseTensor, other: torch.Tensor,
         raise ValueError
 
 
-@torch.jit.script
 def spspmm_sum(src: SparseTensor, other: SparseTensor) -> SparseTensor:
     assert src.sparse_size(1) == other.sparse_size(0)
     rowptrA, colA, valueA = src.csr()
@@ -88,21 +81,14 @@ def spspmm_sum(src: SparseTensor, other: SparseTensor) -> SparseTensor:
     M, K = src.sparse_size(0), other.sparse_size(1)
     rowptrC, colC, valueC = torch.ops.torch_sparse.spspmm_sum(
         rowptrA, colA, valueA, rowptrB, colB, valueB, K)
-    return SparseTensor(
-        row=None,
-        rowptr=rowptrC,
-        col=colC,
-        value=valueC,
-        sparse_sizes=torch.Size([M, K]),
-        is_sorted=True)
+    return SparseTensor(row=None, rowptr=rowptrC, col=colC, value=valueC,
+                        sparse_sizes=(M, K), is_sorted=True)
 
 
-@torch.jit.script
 def spspmm_add(src: SparseTensor, other: SparseTensor) -> SparseTensor:
     return spspmm_sum(src, other)
 
 
-@torch.jit.script
 def spspmm(src: SparseTensor, other: SparseTensor,
            reduce: str = "sum") -> SparseTensor:
     if reduce == 'sum' or reduce == 'add':
@@ -113,8 +99,7 @@ def spspmm(src: SparseTensor, other: SparseTensor,
         raise ValueError
 
 
-def matmul(src: SparseTensor,
-           other: Union[torch.Tensor, SparseTensor],
+def matmul(src: SparseTensor, other: Union[torch.Tensor, SparseTensor],
            reduce: str = "sum"):
     if torch.is_tensor(other):
         return spmm(src, other, reduce)

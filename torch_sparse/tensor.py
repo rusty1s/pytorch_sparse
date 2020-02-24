@@ -16,7 +16,8 @@ class SparseTensor(object):
                  rowptr: Optional[torch.Tensor] = None,
                  col: Optional[torch.Tensor] = None,
                  value: Optional[torch.Tensor] = None,
-                 sparse_sizes: List[int] = None, is_sorted: bool = False):
+                 sparse_sizes: Optional[Tuple[int, int]] = None,
+                 is_sorted: bool = False):
         self.storage = SparseStorage(row=row, rowptr=rowptr, col=col,
                                      value=value, sparse_sizes=sparse_sizes,
                                      rowcount=None, colptr=None, colcount=None,
@@ -45,7 +46,8 @@ class SparseTensor(object):
             value = mat[row, col]
 
         return SparseTensor(row=row, rowptr=None, col=col, value=value,
-                            sparse_sizes=mat.size()[:2], is_sorted=True)
+                            sparse_sizes=(mat.size(0), mat.size(1)),
+                            is_sorted=True)
 
     @classmethod
     def from_torch_sparse_coo_tensor(self, mat: torch.Tensor,
@@ -59,7 +61,8 @@ class SparseTensor(object):
             value = mat._values()
 
         return SparseTensor(row=row, rowptr=None, col=col, value=value,
-                            sparse_sizes=mat.size()[:2], is_sorted=True)
+                            sparse_sizes=(mat.size(0), mat.size(1)),
+                            is_sorted=True)
 
     @classmethod
     def eye(self, M: int, N: Optional[int] = None,
@@ -105,10 +108,9 @@ class SparseTensor(object):
             csr2csc = csc2csr = row
 
         storage: SparseStorage = SparseStorage(
-            row=row, rowptr=rowptr, col=col, value=value,
-            sparse_sizes=torch.Size([M, N]), rowcount=rowcount, colptr=colptr,
-            colcount=colcount, csr2csc=csr2csc, csc2csr=csc2csr,
-            is_sorted=True)
+            row=row, rowptr=rowptr, col=col, value=value, sparse_sizes=(M, N),
+            rowcount=rowcount, colptr=colptr, colcount=colcount,
+            csr2csc=csr2csc, csc2csr=csc2csr, is_sorted=True)
 
         self = SparseTensor.__new__(SparseTensor)
         self.storage = storage
@@ -160,13 +162,13 @@ class SparseTensor(object):
                   layout: Optional[str] = None):
         return self.from_storage(self.storage.set_value(value, layout))
 
-    def sparse_sizes(self) -> List[int]:
+    def sparse_sizes(self) -> Tuple[int, int]:
         return self.storage.sparse_sizes()
 
     def sparse_size(self, dim: int) -> int:
         return self.storage.sparse_sizes()[dim]
 
-    def sparse_resize(self, sparse_sizes: List[int]):
+    def sparse_resize(self, sparse_sizes: Tuple[int, int]):
         return self.from_storage(self.storage.sparse_resize(sparse_sizes))
 
     def is_coalesced(self) -> bool:
@@ -206,11 +208,12 @@ class SparseTensor(object):
         return self.set_value(value, layout='coo')
 
     def sizes(self) -> List[int]:
-        sizes = self.sparse_sizes()
+        sparse_sizes = self.sparse_sizes()
         value = self.storage.value()
         if value is not None:
-            sizes = list(sizes) + list(value.size())[1:]
-        return sizes
+            return list(sparse_sizes) + list(value.size())[1:]
+        else:
+            return list(sparse_sizes)
 
     def size(self, dim: int) -> int:
         return self.sizes()[dim]
@@ -268,7 +271,7 @@ class SparseTensor(object):
         N = max(self.size(0), self.size(1))
 
         out = SparseTensor(row=row, rowptr=None, col=col, value=value,
-                           sparse_sizes=torch.Size([N, N]), is_sorted=False)
+                           sparse_sizes=(N, N), is_sorted=False)
         out = out.coalesce(reduce)
         return out
 
