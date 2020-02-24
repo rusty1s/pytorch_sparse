@@ -32,7 +32,7 @@ def get_extensions():
         extra_compile_args['nvcc'] = nvcc_flags
 
         if sys.platform == 'win32':
-            extra_link_args += ['cusparse.lib']
+            extra_link_args += ['cusparse.lib', 'metis.lib']
         else:
             extra_link_args += ['-lcusparse', '-l', 'cusparse']
 
@@ -59,7 +59,7 @@ def get_extensions():
             define_macros=define_macros,
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args,
-            libraries=['metis'],
+            # libraries=['metis'],
         )
         extensions += [extension]
 

@@ -17,17 +17,17 @@ else
 
   cd build || exit
 
-  cmake .. -DSHARED=0
+  cmake ..
   cmake --build . --config "Release" --target ALL_BUILD
   # cp libmetis/Release/metis.lib ../..
   cp libmetis/Release/metis.lib /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/lib/x64
 
-  cmake .. -DSHARED=1
-  cmake --build . --config "Release" --target ALL_BUILD
-  # cp libmetis/Release/metis.lib ../..
-  cp libmetis/Release/metis.dll /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/bin
+  # cmake .. -DSHARED=1
+  # cmake --build . --config "Release" --target ALL_BUILD
+  # # cp libmetis/Release/metis.lib ../..
+  # cp libmetis/Release/metis.dll /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/bin
 
-  ls /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/bin
+  # ls /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/bin
 
   # cmake .. -DSHARED=1
   # cmake --build . --config "Release" --target ALL_BUILD
