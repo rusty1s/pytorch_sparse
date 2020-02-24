@@ -32,9 +32,9 @@ def get_extensions():
         extra_compile_args['nvcc'] = nvcc_flags
 
         if sys.platform == 'win32':
-            extra_link_args = ['cusparse.lib']
+            extra_link_args += ['cusparse.lib']
         else:
-            extra_link_args = ['-lcusparse', '-l', 'cusparse']
+            extra_link_args += ['-lcusparse', '-l', 'cusparse']
 
     extensions_dir = osp.join(osp.dirname(osp.abspath(__file__)), 'csrc')
     main_files = glob.glob(osp.join(extensions_dir, '*.cpp'))
@@ -59,7 +59,7 @@ def get_extensions():
             define_macros=define_macros,
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args,
-            libraries=['metis'],
+            # libraries=['metis'],
         )
         extensions += [extension]
 
