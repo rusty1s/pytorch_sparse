@@ -21,7 +21,7 @@ def get_extensions():
     Extension = CppExtension
     define_macros = []
     extra_compile_args = {'cxx': []}
-    extra_link_args = []
+    extra_link_args = ['metis.lib']
 
     if WITH_CUDA:
         Extension = CUDAExtension
@@ -32,7 +32,7 @@ def get_extensions():
         extra_compile_args['nvcc'] = nvcc_flags
 
         if sys.platform == 'win32':
-            extra_link_args += ['cusparse.lib', 'metis.lib']
+            extra_link_args += ['cusparse.lib']
         else:
             extra_link_args += ['-lcusparse', '-l', 'cusparse']
 
