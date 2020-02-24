@@ -22,7 +22,9 @@ else
   # cp libmetis/Release/metis.lib ../..
   cp libmetis/Release/metis.lib /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/lib/x64
 
-  DUMPBIN /EXPORTS /SYMBOLS libmetis/Release/metis.lib
+  ls /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/bin/HostX86/x64
+
+  /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/bin/HostX86/x64/dumpbin.exe /EXPORTS /SYMBOLS libmetis/Release/metis.lib
 
   # cmake .. -DSHARED=1
   # cmake --build . --config "Release" --target ALL_BUILD

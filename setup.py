@@ -21,7 +21,7 @@ def get_extensions():
     Extension = CppExtension
     define_macros = []
     extra_compile_args = {'cxx': []}
-    extra_link_args = ['metis.lib', '/VERBOSE']
+    extra_link_args = ['/VERBOSE']
 
     if WITH_CUDA:
         Extension = CUDAExtension
@@ -59,7 +59,7 @@ def get_extensions():
             define_macros=define_macros,
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args,
-            # libraries=['metis'],
+            libraries=['metis'],
         )
         extensions += [extension]
 
