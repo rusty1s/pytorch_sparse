@@ -18,7 +18,7 @@ torch::Tensor partition_cpu(torch::Tensor rowptr, torch::Tensor col,
   auto part_data = part.data_ptr<int64_t>();
 
   if (recursive) {
-    METIS PartGraphRecursive(&nvtxs, &ncon, xadj, adjncy, NULL, NULL, NULL,
+    METIS_PartGraphRecursive(&nvtxs, &ncon, xadj, adjncy, NULL, NULL, NULL,
                              &num_parts, NULL, NULL, NULL, &objval, part_data);
   } else {
     METIS_PartGraphKway(&nvtxs, &ncon, xadj, adjncy, NULL, NULL, NULL,
