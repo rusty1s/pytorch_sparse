@@ -21,4 +21,5 @@ def partition(
     return out, partptr, perm
 
 
-SparseTensor.partition = lambda self, num_parts: partition(self, num_parts)
+SparseTensor.partition = lambda self, num_parts, recursive=False: partition(
+    self, num_parts, recursive)
