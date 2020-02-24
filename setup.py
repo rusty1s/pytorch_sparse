@@ -21,7 +21,7 @@ def get_extensions():
     Extension = CppExtension
     define_macros = []
     extra_compile_args = {'cxx': []}
-    extra_link_args = ['/VERBOSE']
+    extra_link_args = []
 
     if WITH_CUDA:
         Extension = CUDAExtension
