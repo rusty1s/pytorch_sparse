@@ -4,8 +4,8 @@
 
 #include "utils.h"
 
-torch::Tensor partition_kway_cpu(torch::Tensor rowptr, torch::Tensor col,
-                                 int64_t num_parts) {
+torch::Tensor partition_cpu(torch::Tensor rowptr, torch::Tensor col,
+                            int64_t num_parts, bool recursive) {
   CHECK_CPU(rowptr);
   CHECK_CPU(col);
 
@@ -17,8 +17,13 @@ torch::Tensor partition_kway_cpu(torch::Tensor rowptr, torch::Tensor col,
   auto part = torch::empty(nvtxs, rowptr.options());
   auto part_data = part.data_ptr<int64_t>();
 
-  METIS_PartGraphKway(&nvtxs, &ncon, xadj, adjncy, NULL, NULL, NULL, &num_parts,
-                      NULL, NULL, NULL, &objval, part_data);
+  if (recursive) {
+    METIS PartGraphRecursive(&nvtxs, &ncon, xadj, adjncy, NULL, NULL, NULL,
+                             &num_parts, NULL, NULL, NULL, &objval, part_data);
+  } else {
+    METIS_PartGraphKway(&nvtxs, &ncon, xadj, adjncy, NULL, NULL, NULL,
+                        &num_parts, NULL, NULL, NULL, &objval, part_data);
+  }
 
   return part;
 }

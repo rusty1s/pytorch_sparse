@@ -5,12 +5,13 @@ from torch_sparse.tensor import SparseTensor
 from torch_sparse.permute import permute
 
 
-def partition_kway(
-        src: SparseTensor,
-        num_parts: int) -> Tuple[SparseTensor, torch.Tensor, torch.Tensor]:
+def partition(
+    src: SparseTensor, num_parts: int, recursive: bool = False
+) -> Tuple[SparseTensor, torch.Tensor, torch.Tensor]:
 
     rowptr, col = src.storage.rowptr().cpu(), src.storage.col().cpu()
-    cluster = torch.ops.torch_sparse.partition_kway(rowptr, col, num_parts)
+    cluster = torch.ops.torch_sparse.partition(rowptr, col, num_parts,
+                                               recursive)
     cluster = cluster.to(src.device())
 
     cluster, perm = cluster.sort()
@@ -20,5 +21,4 @@ def partition_kway(
     return out, partptr, perm
 
 
-SparseTensor.partition_kway = lambda self, num_parts: partition_kway(
-    self, num_parts)
+SparseTensor.partition = lambda self, num_parts: partition(self, num_parts)

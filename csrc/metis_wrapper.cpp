@@ -9,8 +9,8 @@
 PyMODINIT_FUNC PyInit__metis_wrapper(void) { return NULL; }
 #endif
 
-torch::Tensor partition_kway(torch::Tensor rowptr, torch::Tensor col,
-                             int64_t num_parts) {
+torch::Tensor partition(torch::Tensor rowptr, torch::Tensor col,
+                        int64_t num_parts, bool recursive) {
   if (rowptr.device().is_cuda()) {
 #ifdef WITH_CUDA
     AT_ERROR("No CUDA version supported");
@@ -18,9 +18,9 @@ torch::Tensor partition_kway(torch::Tensor rowptr, torch::Tensor col,
     AT_ERROR("Not compiled with CUDA support");
 #endif
   } else {
-    return partition_kway_cpu(rowptr, col, num_parts);
+    return partition_kway_cpu(rowptr, col, num_parts, recursive);
   }
 }
 
-static auto registry = torch::RegisterOperators().op(
-    "torch_sparse::partition_kway", &partition_kway);
+static auto registry =
+    torch::RegisterOperators().op("torch_sparse::partition", &partition);
