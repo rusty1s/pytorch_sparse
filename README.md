@@ -59,7 +59,8 @@ $ echo $CPATH
 >>> /usr/local/cuda/include:...
 ```
 
-Afterwards, download and install the [METIS library](http://glaros.dtc.umn.edu/gkhome/metis/metis/download) by following the instructions in the `Install.txt` file.
+If you want to additionally build `torch-sparse` with METIS support, *e.g.* for partioning, please download and install the [METIS library](http://glaros.dtc.umn.edu/gkhome/metis/metis/download) by following the instructions in the `Install.txt` file.
+Afterwards, set the environment variable `WITH_METIS=1`.
 
 Then run:
 
@@ -67,11 +68,11 @@ Then run:
 pip install torch-scatter torch-sparse
 ```
 
-When running in a docker container without nvidia driver, PyTorch needs to evaluate the compute capabilities and may fail.
+When running in a docker container without NVIDIA driver, PyTorch needs to evaluate the compute capabilities and may fail.
 In this case, ensure that the compute capabilities are set via `TORCH_CUDA_ARCH_LIST`, *e.g.*:
 
 ```
-export TORCH_CUDA_ARCH_LIST = "6.0 6.1 7.2+PTX 7.5+PTX"
+export TORCH_CUDA_ARCH_LIST="6.0 6.1 7.2+PTX 7.5+PTX"
 ```
 
 ## Functions

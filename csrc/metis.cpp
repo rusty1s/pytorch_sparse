@@ -3,10 +3,8 @@
 
 #include "cpu/metis_cpu.h"
 
-#include <metis.h>
-
 #ifdef _WIN32
-PyMODINIT_FUNC PyInit__metis_wrapper(void) { return NULL; }
+PyMODINIT_FUNC PyInit__metis(void) { return NULL; }
 #endif
 
 torch::Tensor partition(torch::Tensor rowptr, torch::Tensor col,

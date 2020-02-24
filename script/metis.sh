@@ -1,6 +1,7 @@
 #!/bin/bash
 
 METIS=metis-5.1.0
+export WITH_METIS=1
 
 wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz
 tar -xvzf ${METIS}.tar.gz

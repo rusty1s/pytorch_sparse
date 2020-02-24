@@ -16,10 +16,18 @@ if os.getenv('FORCE_CPU', '0') == '1':
 
 BUILD_DOCS = os.getenv('BUILD_DOCS', '0') == '1'
 
+WITH_METIS = False
+if os.getenv('WITH_METIS', '0') == '1':
+    WITH_METIS = True
+
 
 def get_extensions():
     Extension = CppExtension
     define_macros = []
+    libraries = []
+    if WITH_METIS:
+        define_macros += [('WITH_METIS', None)]
+        libraries += ['metis']
     extra_compile_args = {'cxx': []}
     extra_link_args = []
 
@@ -59,7 +67,7 @@ def get_extensions():
             define_macros=define_macros,
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args,
-            libraries=['metis'],
+            libraries=libraries,
         )
         extensions += [extension]
 
