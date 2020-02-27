@@ -3,5 +3,6 @@ source=torch_sparse
 [report]
 exclude_lines =
     pragma: no cover
-    cuda
-    backward
+    torch.jit.script
+    raise
+    except
