@@ -4,7 +4,6 @@ from torch_sparse.storage import SparseStorage
 from torch_sparse.tensor import SparseTensor
 
 
-@torch.jit.script
 def t(src: SparseTensor) -> SparseTensor:
     csr2csc = src.storage.csr2csc()
 
@@ -20,7 +19,7 @@ def t(src: SparseTensor) -> SparseTensor:
         rowptr=src.storage._colptr,
         col=row[csr2csc],
         value=value,
-        sparse_sizes=torch.Size([sparse_sizes[1], sparse_sizes[0]]),
+        sparse_sizes=(sparse_sizes[1], sparse_sizes[0]),
         rowcount=src.storage._colcount,
         colptr=src.storage._rowptr,
         colcount=src.storage._rowcount,
@@ -54,7 +53,7 @@ def transpose(index, value, m, n, coalesced=True):
     row, col = col, row
 
     if coalesced:
-        sparse_sizes = torch.Size([n, m])
+        sparse_sizes = (n, m)
         storage = SparseStorage(row=row, col=col, value=value,
                                 sparse_sizes=sparse_sizes, is_sorted=False)
         storage = storage.coalesce()

@@ -5,7 +5,6 @@ from torch_sparse.storage import SparseStorage
 from torch_sparse.tensor import SparseTensor
 
 
-@torch.jit.script
 def cat(tensors: List[SparseTensor], dim: int) -> SparseTensor:
     assert len(tensors) > 0
     if dim < 0:
@@ -142,7 +141,6 @@ def cat(tensors: List[SparseTensor], dim: int) -> SparseTensor:
             '[{-tensors[0].dim()}, {tensors[0].dim() - 1}], but got {dim}.')
 
 
-@torch.jit.script
 def cat_diag(tensors: List[SparseTensor]) -> SparseTensor:
     assert len(tensors) > 0
 

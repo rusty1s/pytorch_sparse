@@ -6,7 +6,6 @@ from torch_sparse.storage import SparseStorage, get_layout
 from torch_sparse.tensor import SparseTensor
 
 
-@torch.jit.script
 def index_select(src: SparseTensor, dim: int,
                  idx: torch.Tensor) -> SparseTensor:
     dim = src.dim() + dim if dim < 0 else dim
@@ -32,7 +31,7 @@ def index_select(src: SparseTensor, dim: int,
         if value is not None:
             value = value[perm]
 
-        sparse_sizes = torch.Size([idx.size(0), src.sparse_size(1)])
+        sparse_sizes = (idx.size(0), src.sparse_size(1))
 
         storage = SparseStorage(row=row, rowptr=rowptr, col=col, value=value,
                                 sparse_sizes=sparse_sizes, rowcount=rowcount,
@@ -62,7 +61,7 @@ def index_select(src: SparseTensor, dim: int,
         if value is not None:
             value = value[perm][csc2csr]
 
-        sparse_sizes = torch.Size([src.sparse_size(0), idx.size(0)])
+        sparse_sizes = (src.sparse_size(0), idx.size(0))
 
         storage = SparseStorage(row=row, rowptr=None, col=col, value=value,
                                 sparse_sizes=sparse_sizes, rowcount=None,
@@ -79,7 +78,6 @@ def index_select(src: SparseTensor, dim: int,
             raise ValueError
 
 
-@torch.jit.script
 def index_select_nnz(src: SparseTensor, idx: torch.Tensor,
                      layout: Optional[str] = None) -> SparseTensor:
     assert idx.dim() == 1
