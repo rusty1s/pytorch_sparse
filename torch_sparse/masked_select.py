@@ -91,6 +91,6 @@ def masked_select_nnz(src: SparseTensor, mask: torch.Tensor,
 
 SparseTensor.masked_select = lambda self, dim, mask: masked_select(
     self, dim, mask)
-tmp = lambda src, mask, layout=None: masked_select_nnz(  # noqa
-    src, mask, layout)
+tmp = lambda self, mask, layout=None: masked_select_nnz(  # noqa
+    self, mask, layout)
 SparseTensor.masked_select_nnz = tmp
