@@ -109,9 +109,9 @@ def matmul(src: SparseTensor, other: Union[torch.Tensor, SparseTensor],
         raise ValueError
 
 
-SparseTensor.spmm = lambda self, other, reduce=None: spmm(self, other, reduce)
-SparseTensor.spspmm = lambda self, other, reduce=None: spspmm(
+SparseTensor.spmm = lambda self, other, reduce="sum": spmm(self, other, reduce)
+SparseTensor.spspmm = lambda self, other, reduce="sum": spspmm(
     self, other, reduce)
-SparseTensor.matmul = lambda self, other, reduce=None: matmul(
+SparseTensor.matmul = lambda self, other, reduce="sum": matmul(
     self, other, reduce)
 SparseTensor.__matmul__ = lambda self, other: matmul(self, other, 'sum')
