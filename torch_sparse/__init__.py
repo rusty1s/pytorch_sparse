@@ -55,6 +55,7 @@ from .reduce import sum, mean, min, max  # noqa
 from .matmul import matmul  # noqa
 from .cat import cat, cat_diag  # noqa
 from .metis import partition  # noqa
+from .saint import sample_node, sample_edge, sample_rw  # noqa
 
 from .convert import to_torch_sparse, from_torch_sparse  # noqa
 from .convert import to_scipy, from_scipy  # noqa
@@ -95,6 +96,9 @@ __all__ = [
     'cat',
     'cat_diag',
     'partition',
+    'sample_node',
+    'sample_edge',
+    'sample_rw',
     'to_torch_sparse',
     'from_torch_sparse',
     'to_scipy',
