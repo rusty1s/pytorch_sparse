@@ -46,13 +46,16 @@ def sample_edge(src: SparseTensor,
 def sample_rw(src: SparseTensor, num_root_nodes: int,
               walk_length: int) -> Tuple[torch.Tensor, torch.Tensor]:
 
+    rowptr, col, _ = src.csr()
+
     start = np.random.choice(src.size(0), size=num_root_nodes, replace=False)
     start = torch.from_numpy(start).to(src.device())
 
-    # get random walks of length `walk_length`:
-    # => `rw.size(1) == walk_length + 1
+    out = torch.ops.torch_sparse.random_walk(rowptr, col, start, walk_length)
 
-    return None, None
+    node_idx = out.flatten().unique()
+
+    return src.permute(node_idx), node_idx
 
 
 SparseTensor.sample_node = sample_node
