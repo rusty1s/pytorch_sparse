@@ -7,7 +7,7 @@ from torch_sparse.tensor import SparseTensor
 
 
 def sample_node(src: SparseTensor,
-                num_nodes: int) -> Tuple[torch.Tensor, torch.Tensor]:
+                num_nodes: int) -> Tuple[SparseTensor, torch.Tensor]:
     row, col, _ = src.coo()
 
     inv_in_deg = src.storage.colcount().to(torch.float).pow_(-1)
@@ -25,7 +25,7 @@ def sample_node(src: SparseTensor,
 
 
 def sample_edge(src: SparseTensor,
-                num_edges: int) -> Tuple[torch.Tensor, torch.Tensor]:
+                num_edges: int) -> Tuple[SparseTensor, torch.Tensor]:
 
     row, col, _ = src.coo()
 
@@ -44,7 +44,7 @@ def sample_edge(src: SparseTensor,
 
 
 def sample_rw(src: SparseTensor, num_root_nodes: int,
-              walk_length: int) -> Tuple[torch.Tensor, torch.Tensor]:
+              walk_length: int) -> Tuple[SparseTensor, torch.Tensor]:
 
     rowptr, col, _ = src.csr()
 
