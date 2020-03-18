@@ -49,7 +49,7 @@ def sample_rw(src: SparseTensor, num_root_nodes: int,
     rowptr, col, _ = src.csr()
 
     start = np.random.choice(src.size(0), size=num_root_nodes, replace=False)
-    start = torch.from_numpy(start).to(src.device())
+    start = torch.from_numpy(start).to(src.device(), torch.long)
 
     out = torch.ops.torch_sparse.random_walk(rowptr, col, start, walk_length)
 
