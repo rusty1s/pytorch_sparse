@@ -55,8 +55,9 @@ from .mul import mul, mul_, mul_nnz, mul_nnz_  # noqa
 from .reduce import sum, mean, min, max  # noqa
 from .matmul import matmul  # noqa
 from .cat import cat, cat_diag  # noqa
+from .rw import random_walk  # noqa
 from .metis import partition  # noqa
-from .saint import sample_node, sample_edge, sample_rw  # noqa
+from .saint import saint_subgraph  # noqa
 
 from .convert import to_torch_sparse, from_torch_sparse  # noqa
 from .convert import to_scipy, from_scipy  # noqa
@@ -96,10 +97,9 @@ __all__ = [
     'matmul',
     'cat',
     'cat_diag',
+    'random_walk',
     'partition',
-    'sample_node',
-    'sample_edge',
-    'sample_rw',
+    'saint_subgraph',
     'to_torch_sparse',
     'from_torch_sparse',
     'to_scipy',
