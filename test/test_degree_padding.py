@@ -71,8 +71,21 @@ def test_bin_assignment(device):
     for i in range(102):
         if i == 2:
             start.record()
+        for perm, count in zip(perms, bin_count):
+            torch.ops.torch_sparse.padded_index_select(x, rowptr, col, perm,
+                                                       count, torch.tensor(0.))
+    end.record()
+    torch.cuda.synchronize()
+    print(start.elapsed_time(end))
+
+    print('-----------')
+
+    for i in range(102):
+        if i == 2:
+            start.record()
         torch.ops.torch_sparse.padded_index_select(x, rowptr, col, perms[0],
-                                                   bin_count[0])
+                                                   bin_count[0],
+                                                   torch.tensor(0.))
     end.record()
     torch.cuda.synchronize()
     print(start.elapsed_time(end))
@@ -80,7 +93,8 @@ def test_bin_assignment(device):
         if i == 2:
             start.record()
         torch.ops.torch_sparse.padded_index_select(x, rowptr, col, perms[1],
-                                                   bin_count[1])
+                                                   bin_count[1],
+                                                   torch.tensor(0.))
     end.record()
     torch.cuda.synchronize()
     print(start.elapsed_time(end))
@@ -88,7 +102,8 @@ def test_bin_assignment(device):
         if i == 2:
             start.record()
         torch.ops.torch_sparse.padded_index_select(x, rowptr, col, perms[2],
-                                                   bin_count[2])
+                                                   bin_count[2],
+                                                   torch.tensor(0.))
     end.record()
     torch.cuda.synchronize()
     print(start.elapsed_time(end))

@@ -24,10 +24,12 @@ std::vector<torch::Tensor> bin_assignment(torch::Tensor rowcount,
 
 std::tuple<torch::Tensor, torch::Tensor>
 padded_index_select(torch::Tensor src, torch::Tensor rowptr, torch::Tensor col,
-                    torch::Tensor index, int64_t length) {
+                    torch::Tensor index, int64_t length,
+                    torch::Tensor fill_value) {
   if (src.device().is_cuda()) {
 #ifdef WITH_CUDA
-    return padded_index_select_cuda(src, rowptr, col, index, length);
+    return padded_index_select_cuda(src, rowptr, col, index, length,
+                                    fill_value);
 #else
     AT_ERROR("Not compiled with CUDA support");
 #endif
