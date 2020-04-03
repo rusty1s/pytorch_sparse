@@ -16,23 +16,24 @@ def test_padded_index_select(device):
     col = torch.tensor([0, 1, 2, 3, 0, 2, 3, 1, 3, 2])
     idx = torch.tensor([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
     adj = SparseTensor(row=row, col=col).to(device)
-
     binptr = torch.tensor([0, 3, 5], device=device)
 
-    idx, mask, size, length, offset = torch.ops.torch_sparse.padded_index(
-        adj.storage.rowptr(), adj.storage.rowcount(), binptr)
+    data = torch.ops.torch_sparse.padded_index(adj.storage.rowptr(),
+                                               adj.storage.col(),
+                                               adj.storage.rowcount(), binptr)
+    node_perm, row_perm, col_perm, mask, size, length = data
 
-    print(size)
-    print(length)
-    print(offset)
+    print('node perm', node_perm)
+    print('row perm', row_perm)
+    print('col perm', col_perm)
+    print('mask', mask)
+    print('size', size)
+    print('length', length)
 
-    print(idx)
-    print(mask)
-
-    x = torch.tensor([[0], [1], [2], [3]], dtype=torch.float, device=device)
-    out = torch.ops.torch_sparse.padded_index_select(x, adj.storage.col(), idx,
-                                                     torch.tensor(0.))
-    print(out)
+    # x = torch.tensor([[0], [1], [2], [3]], dtype=torch.float, device=device)
+    # out = torch.ops.torch_sparse.padded_index_select(x, adj.storage.col(), idx,
+    #                                                  torch.tensor(0.))
+    # print(out)
 
     dataset = Planetoid('/tmp/Planetoid', name='PubMed')
     data = dataset[0]
@@ -41,12 +42,10 @@ def test_padded_index_select(device):
     adj = SparseTensor(row=row, col=col)
     rowcount = adj.storage.rowcount().to(device)
     rowptr = adj.storage.rowptr().to(device)
-
-    bin_strategy = torch.tensor([[1, 4], [4, 11], [11, 30]]).to(device)
     binptr = torch.tensor([0, 4, 11, 30, 50, 80, 120, 140, 2000]).to(device)
 
-    deg = degree(row, dtype=torch.long)
-    bins = torch.bincount(deg)
+    # deg = degree(row, dtype=torch.long)
+    # bins = torch.bincount(deg)
     # print(bins.size())
     # print(bins[:200])
     # for i in range(110):
@@ -57,23 +56,24 @@ def test_padded_index_select(device):
     # end.record()
     # torch.cuda.synchronize()
     # print('bin assignment', start.elapsed_time(end))
-    idx, mask, size, length, offset = torch.ops.torch_sparse.padded_index(
-        rowptr, rowcount, binptr)
-    print(size)
-    print(length)
-    print(offset)
-    print(mask[:10])
-    print(idx[:10])
-
-    x = torch.randn(data.num_nodes, 256).to(device)
+    # idx, mask, size, length, offset = torch.ops.torch_sparse.padded_index(
+    #     rowptr, rowcount, binptr)
+    # print(size)
+    # print(length)
+    # print(offset)
+    # print(mask[:10])
+    # print(idx[:10])
 
     for i in range(110):
         if i == 10:
             start.record()
-        torch.ops.torch_sparse.padded_index(rowptr, rowcount, binptr)
+        torch.ops.torch_sparse.padded_index(rowptr, col, rowcount, binptr)
     end.record()
     torch.cuda.synchronize()
     print('padded index', start.elapsed_time(end))
+    return
+
+    x = torch.randn(data.num_nodes, 512).to(device)
 
     for i in range(110):
         if i == 10:

@@ -10,16 +10,15 @@ PyMODINIT_FUNC PyInit__padding(void) { return NULL; }
 #endif
 
 std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor,
-           torch::Tensor>
-padded_index(torch::Tensor rowptr, torch::Tensor rowcount,
+           std::vector<int64_t>, std::vector<int64_t>>
+padded_index(torch::Tensor rowptr, torch::Tensor col, torch::Tensor rowcount,
              torch::Tensor binptr) {
-  return padded_index_cuda(rowptr, rowcount, binptr);
+  return padded_index_cuda(rowptr, col, rowcount, binptr);
 }
 
-torch::Tensor padded_index_select(torch::Tensor src, torch::Tensor col,
-                                  torch::Tensor index,
+torch::Tensor padded_index_select(torch::Tensor src, torch::Tensor index,
                                   torch::Tensor fill_value) {
-  return padded_index_select_cuda(src, col, index, fill_value);
+  return padded_index_select_cuda(src, index, fill_value);
 }
 
 static auto registry =
