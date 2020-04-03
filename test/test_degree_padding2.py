@@ -25,17 +25,67 @@ def test_padded_index_select(device):
 
     deg = degree(row, dtype=torch.long)
     bins = torch.bincount(deg)
-    print(bins.size())
-    print(bins[:200])
+    # print(bins.size())
+    # print(bins[:200])
+    # for i in range(110):
+    #     if i == 10:
+    #         start.record()
+    #     perms, lengths = torch.ops.torch_sparse.bin_assignment(
+    #         rowcount, binptr)
+    # end.record()
+    # torch.cuda.synchronize()
+    # print('bin assignment', start.elapsed_time(end))
+    idx, mask, size, length, offset = torch.ops.torch_sparse.padded_index(
+        rowptr, rowcount, binptr)
+    print(size)
+    print(length)
+    print(offset)
+    print(mask[:10])
+    print(idx[:10])
+
+    x = torch.randn(data.num_nodes, 128).to(device)
+
     for i in range(110):
         if i == 10:
             start.record()
-        perms, lengths = torch.ops.torch_sparse.bin_assignment(
-            rowcount, binptr)
+        torch.ops.torch_sparse.padded_index(rowptr, rowcount, binptr)
     end.record()
     torch.cuda.synchronize()
-    print(start.elapsed_time(end))
-    return
+    print('padded index', start.elapsed_time(end))
+
+    for i in range(110):
+        if i == 10:
+            start.record()
+        torch.ops.torch_sparse.padded_index_select(x, col, idx,
+                                                   torch.tensor(0.))
+    end.record()
+    torch.cuda.synchronize()
+    print('padded index select', start.elapsed_time(end))
+
+    for i in range(110):
+        if i == 10:
+            start.record()
+        torch.repeat_interleave(rowcount, rowcount)
+    end.record()
+    torch.cuda.synchronize()
+    print('repeat', start.elapsed_time(end))
+
+    for i in range(110):
+        if i == 10:
+            start.record()
+        rowcount.cumsum(0)
+    end.record()
+    torch.cuda.synchronize()
+    print('cumsum', start.elapsed_time(end))
+
+    rowcount2 = rowcount.unsqueeze(1).repeat(1, 5).contiguous()
+    for i in range(110):
+        if i == 10:
+            start.record()
+        rowcount2.cumsum(0)
+    end.record()
+    torch.cuda.synchronize()
+    print('cumsum', start.elapsed_time(end))
 
     for i in range(110):
         if i == 10:
@@ -43,9 +93,7 @@ def test_padded_index_select(device):
         rowcount.sort()
     end.record()
     torch.cuda.synchronize()
-    print(start.elapsed_time(end))
-
-    x = torch.randn(data.num_nodes, 128).to(device)
+    print('sort', start.elapsed_time(end))
 
     for i in range(110):
         if i == 10:
@@ -53,7 +101,8 @@ def test_padded_index_select(device):
         x.index_select(0, col)
     end.record()
     torch.cuda.synchronize()
-    print(start.elapsed_time(end))
+    print('index_select', start.elapsed_time(end))
+    return
 
     for i in range(110):
         if i == 10:
@@ -64,14 +113,12 @@ def test_padded_index_select(device):
                                                        torch.tensor(0.))
     end.record()
     torch.cuda.synchronize()
-    print(start.elapsed_time(end))
+    print('padded_index_select', start.elapsed_time(end))
 
     for perm, length in zip(perms, lengths):
         out, mask = torch.ops.torch_sparse.padded_index_select(
             x, rowptr, col, perm, length, torch.tensor(0.))
         print(out.size(), mask.size(), out.numel(), (out != 0).sum().item())
-
-    return
 
     lengths = bin_strategy[:, 1].view(-1).tolist()
 
