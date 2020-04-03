@@ -19,7 +19,7 @@ padded_index(torch::Tensor rowptr, torch::Tensor rowcount,
 torch::Tensor padded_index_select(torch::Tensor src, torch::Tensor col,
                                   torch::Tensor index,
                                   torch::Tensor fill_value) {
-  return padded_index_select(src, col, index, fill_value);
+  return padded_index_select_cuda(src, col, index, fill_value);
 }
 
 static auto registry =

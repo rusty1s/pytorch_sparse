@@ -91,6 +91,8 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor,
            torch::Tensor>
 padded_index_cuda(torch::Tensor rowptr, torch::Tensor rowcount,
                   torch::Tensor binptr) {
+  // TODO: Add checks
+
   cudaSetDevice(rowcount.get_device());
   auto stream = at::cuda::getCurrentCUDAStream();
   size_t mpc = at::cuda::getCurrentDeviceProperties()->multiProcessorCount;
@@ -148,9 +150,9 @@ __global__ void padded_index_select_kernel(const scalar_t *__restrict__ src,
     int64_t lane_idx = thread_idx % F;
     int64_t index_idx = __ldg(index + row_idx);
 
-    scalar_tmp = fill_value;
+    scalar_t tmp = fill_value;
     if (index_idx != -1) {
-      tmp = src[__ldg(col + index_idx) + lane_idx];
+      tmp = src[__ldg(col + index_idx) * F + lane_idx];
     }
 
     out[thread_idx] = tmp;
@@ -160,6 +162,8 @@ __global__ void padded_index_select_kernel(const scalar_t *__restrict__ src,
 torch::Tensor padded_index_select_cuda(torch::Tensor src, torch::Tensor col,
                                        torch::Tensor index,
                                        torch::Tensor fill_value) {
+  // TODO: Add checks
+
   cudaSetDevice(src.get_device());
   auto stream = at::cuda::getCurrentCUDAStream();
   size_t mpc = at::cuda::getCurrentDeviceProperties()->multiProcessorCount;

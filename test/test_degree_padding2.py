@@ -12,6 +12,28 @@ def test_padded_index_select(device):
     start = torch.cuda.Event(enable_timing=True)
     end = torch.cuda.Event(enable_timing=True)
 
+    row = torch.tensor([0, 0, 0, 0, 1, 1, 1, 2, 2, 3])
+    col = torch.tensor([0, 1, 2, 3, 0, 2, 3, 1, 3, 2])
+    idx = torch.tensor([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    adj = SparseTensor(row=row, col=col).to(device)
+
+    binptr = torch.tensor([0, 3, 5], device=device)
+
+    idx, mask, size, length, offset = torch.ops.torch_sparse.padded_index(
+        adj.storage.rowptr(), adj.storage.rowcount(), binptr)
+
+    print(size)
+    print(length)
+    print(offset)
+
+    print(idx)
+    print(mask)
+
+    x = torch.tensor([[0], [1], [2], [3]], dtype=torch.float, device=device)
+    out = torch.ops.torch_sparse.padded_index_select(x, adj.storage.col(), idx,
+                                                     torch.tensor(0.))
+    print(out)
+
     dataset = Planetoid('/tmp/Planetoid', name='PubMed')
     data = dataset[0]
     row, col = data.edge_index.to(device)
@@ -43,7 +65,7 @@ def test_padded_index_select(device):
     print(mask[:10])
     print(idx[:10])
 
-    x = torch.randn(data.num_nodes, 128).to(device)
+    x = torch.randn(data.num_nodes, 256).to(device)
 
     for i in range(110):
         if i == 10:
