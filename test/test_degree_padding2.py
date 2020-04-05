@@ -30,10 +30,17 @@ def test_padded_index_select(device):
     print('size', size)
     print('length', length)
 
-    # x = torch.tensor([[0], [1], [2], [3]], dtype=torch.float, device=device)
-    # out = torch.ops.torch_sparse.padded_index_select(x, adj.storage.col(), idx,
-    #                                                  torch.tensor(0.))
-    # print(out)
+    x = torch.tensor([[0], [1], [2], [3]], dtype=torch.float, device=device)
+    x.requires_grad_()
+    out = torch.ops.torch_sparse.padded_index_select(x, col_perm,
+                                                     torch.tensor(0.))
+    print(out)
+
+    grad_out = torch.tensor(
+        [[0], [1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11]],
+        dtype=torch.float, device=device)
+    out.backward(grad_out)
+    print(x.grad)
 
     dataset = Planetoid('/tmp/Planetoid', name='PubMed')
     data = dataset[0]
