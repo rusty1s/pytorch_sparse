@@ -64,6 +64,17 @@ def test_padded_index_select(device):
     # print(mask[:10])
     # print(idx[:10])
 
+    x = torch.randn(adj.size(0), 512).to(device)
+
+    data = torch.ops.torch_sparse.padded_index(rowptr, col, rowcount, binptr)
+    node_perm, row_perm, col_perm, mask, node_sizes, edge_sizes = data
+
+    out = torch.ops.torch_sparse.padded_index_select(x, col_perm,
+                                                     torch.tensor(0.))
+    outs = out.split(edge_sizes)
+    for out, size in zip(outs, node_sizes):
+        print(out.view(size, -1, x.size(-1)).shape)
+
     for i in range(110):
         if i == 10:
             start.record()
@@ -71,15 +82,13 @@ def test_padded_index_select(device):
     end.record()
     torch.cuda.synchronize()
     print('padded index', start.elapsed_time(end))
-    return
-
-    x = torch.randn(data.num_nodes, 512).to(device)
 
     for i in range(110):
         if i == 10:
             start.record()
-        torch.ops.torch_sparse.padded_index_select(x, col, idx,
-                                                   torch.tensor(0.))
+        out = torch.ops.torch_sparse.padded_index_select(
+            x, col_perm, torch.tensor(0.))
+        out.split(edge_sizes)
     end.record()
     torch.cuda.synchronize()
     print('padded index select', start.elapsed_time(end))

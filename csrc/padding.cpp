@@ -16,9 +16,33 @@ padded_index(torch::Tensor rowptr, torch::Tensor col, torch::Tensor rowcount,
   return padded_index_cuda(rowptr, col, rowcount, binptr);
 }
 
+using torch::autograd::AutogradContext;
+using torch::autograd::Variable;
+using torch::autograd::variable_list;
+
+class PaddedIndexSelect : public torch::autograd::Function<PaddedIndexSelect> {
+public:
+  static variable_list forward(AutogradContext *ctx, Variable src,
+                               Variable index, Variable fill_value) {
+    ctx->saved_data["N"] = src.size(0);
+    auto out = padded_index_select_cuda(src, index, fill_value);
+    ctx->save_for_backward({index});
+    return {out};
+  }
+
+  static variable_list backward(AutogradContext *ctx, variable_list grad_outs) {
+    auto grad_out = grad_outs[0];
+    auto saved = ctx->get_saved_variables();
+    auto index = saved[0];
+    auto N = ctx->saved_data["N"].toInt();
+    auto grad_in = padded_index_scatter_cuda(grad_out, index, N);
+    return {grad_in, Variable(), Variable()};
+  }
+};
+
 torch::Tensor padded_index_select(torch::Tensor src, torch::Tensor index,
                                   torch::Tensor fill_value) {
-  return padded_index_select_cuda(src, index, fill_value);
+  return PaddedIndexSelect::apply(src, index, fill_value)[0];
 }
 
 static auto registry =

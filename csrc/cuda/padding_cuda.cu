@@ -2,6 +2,7 @@
 
 #include <ATen/cuda/CUDAContext.h>
 
+#include "atomics.cuh"
 #include "utils.cuh"
 
 #define THREADS 1024
@@ -225,7 +226,7 @@ torch::Tensor padded_index_select_cuda(torch::Tensor src, torch::Tensor index,
   size_t E = index.numel();
   size_t F = src.size(-1);
 
-  auto out = torch::empty(E * F, src.options());
+  auto out = torch::empty({(int)E, (int)F}, src.options());
 
   AT_DISPATCH_ALL_TYPES(src.scalar_type(), "padded_index_select_kernel", [&] {
     scalar_t *fill;
@@ -242,6 +243,50 @@ torch::Tensor padded_index_select_cuda(torch::Tensor src, torch::Tensor index,
             src.data_ptr<scalar_t>(), index.data_ptr<int64_t>(),
             out.data_ptr<scalar_t>(), fill[0], E, F);
   });
+
+  return out;
+}
+
+template <typename scalar_t>
+__global__ void padded_index_scatter_kernel(const scalar_t *__restrict__ src,
+                                            const int64_t *__restrict__ index,
+                                            scalar_t *__restrict__ out,
+                                            const size_t E, const size_t F) {
+
+  for (ptrdiff_t thread_idx = blockDim.x * blockIdx.x + threadIdx.x;
+       thread_idx < E * F; thread_idx += gridDim.x * blockDim.x) {
+
+    int64_t index_idx = __ldg(index + thread_idx / F);
+    if (index_idx != -1) {
+      atomAdd(out + index_idx * F + thread_idx % F, src[thread_idx]);
+    }
+  }
+}
+
+torch::Tensor padded_index_scatter_cuda(torch::Tensor src, torch::Tensor index,
+                                        int64_t N) {
+  CHECK_CUDA(src);
+  CHECK_CUDA(index);
+  CHECK_INPUT(src.dim() == 2);
+  CHECK_INPUT(index.dim() == 1);
+  CHECK_INPUT(src.size(0) == index.size(0));
+
+  cudaSetDevice(src.get_device());
+  auto stream = at::cuda::getCurrentCUDAStream();
+  size_t mpc = at::cuda::getCurrentDeviceProperties()->multiProcessorCount;
+
+  size_t E = index.numel();
+  size_t F = src.size(-1);
+
+  auto out = torch::zeros({N, (int)F}, src.options());
+
+  AT_DISPATCH_FLOATING_TYPES(
+      src.scalar_type(), "padded_index_scatter_kernel", [&] {
+        padded_index_scatter_kernel<scalar_t>
+            <<<std::min(BLOCKS(E * F), mpc * 8), THREADS, 0, stream>>>(
+                src.data_ptr<scalar_t>(), index.data_ptr<int64_t>(),
+                out.data_ptr<scalar_t>(), E, F);
+      });
 
   return out;
 }

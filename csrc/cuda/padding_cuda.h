@@ -9,3 +9,6 @@ padded_index_cuda(torch::Tensor rowptr, torch::Tensor col,
 
 torch::Tensor padded_index_select_cuda(torch::Tensor src, torch::Tensor index,
                                        torch::Tensor fill_value);
+
+torch::Tensor padded_index_scatter_cuda(torch::Tensor src, torch::Tensor index,
+                                        int64_t N);
