@@ -4,9 +4,7 @@ import pytest
 import torch
 from torch_sparse import SparseTensor, padded_index_select
 
-from .utils import grad_dtypes, tensor
-
-devices = [torch.device('cuda')]
+from .utils import grad_dtypes, devices, tensor
 
 
 @pytest.mark.parametrize('dtype,device', product(grad_dtypes, devices))
