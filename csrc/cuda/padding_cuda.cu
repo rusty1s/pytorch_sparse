@@ -136,8 +136,8 @@ padded_index_cuda(torch::Tensor rowptr, torch::Tensor col,
   size_t B = binptr.numel() - 1;
   size_t N = rowcount.numel();
 
-  auto bin = torch::empty(N, rowptr.options());
-  auto idx = torch::empty(N, rowptr.options());
+  auto bin = torch::empty(N, col.options());
+  auto idx = torch::empty(N, col.options());
 
   auto d_info = torch::zeros(5 * B + 2, col.options().dtype(torch::kInt));
   auto d_node_size = d_info.narrow(0, 0, B);
@@ -156,7 +156,7 @@ padded_index_cuda(torch::Tensor rowptr, torch::Tensor col,
       d_edge_size.data_ptr<int>(), d_node_offset.data_ptr<int>(),
       d_edge_offset.data_ptr<int>(), B);
 
-  auto node_perm = torch::empty(N, rowptr.options());
+  auto node_perm = torch::empty(N, col.options());
 
   node_perm_kernel<<<std::min(BLOCKS(N), mpc * 8), THREADS, 0, stream>>>(
       bin.data_ptr<int64_t>(), idx.data_ptr<int64_t>(),
