@@ -2,7 +2,7 @@ from itertools import product
 
 import pytest
 import torch
-from torch_sparse import SparseTensor
+from torch_sparse import SparseTensor, padded_index_select
 
 from .utils import grad_dtypes, tensor
 
@@ -14,11 +14,9 @@ def test_padded_index_select(dtype, device):
     row = torch.tensor([0, 0, 0, 0, 1, 1, 1, 2, 2, 3])
     col = torch.tensor([0, 1, 2, 3, 0, 2, 3, 1, 3, 2])
     adj = SparseTensor(row=row, col=col).to(device)
-    rowptr, col, _ = adj.csr()
-    rowcount = adj.storage.rowcount()
     binptr = torch.tensor([0, 3, 5], device=device)
 
-    data = torch.ops.torch_sparse.padded_index(rowptr, col, rowcount, binptr)
+    data = adj.padded_index(binptr)
     node_perm, row_perm, col_perm, mask, node_size, edge_size = data
 
     assert node_perm.tolist() == [2, 3, 0, 1]
@@ -29,21 +27,21 @@ def test_padded_index_select(dtype, device):
     assert edge_size == [4, 8]
 
     x = tensor([0, 1, 2, 3], dtype, device).view(-1, 1).requires_grad_()
-    fill_value = torch.tensor(0., dtype=dtype)
-    out = torch.ops.torch_sparse.padded_index_select(x, col_perm, fill_value)
+    x_j = padded_index_select(x, col_perm)
 
-    assert out.flatten().tolist() == [1, 3, 2, 0, 0, 1, 2, 3, 0, 2, 3, 0]
+    assert x_j.flatten().tolist() == [1, 3, 2, 0, 0, 1, 2, 3, 0, 2, 3, 0]
 
     grad_out = tensor([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], dtype, device)
-    out.backward(grad_out.view(-1, 1))
+    x_j.backward(grad_out.view(-1, 1))
 
     assert x.grad.flatten().tolist() == [12, 5, 17, 18]
 
 
-@pytest.mark.parametrize('device', devices)
-def test_padded_index_select_runtime(device):
+def test_padded_index_select_runtime():
     return
     from torch_geometric.datasets import Planetoid
+
+    device = torch.device('cuda')
     start = torch.cuda.Event(enable_timing=True)
     end = torch.cuda.Event(enable_timing=True)
 
