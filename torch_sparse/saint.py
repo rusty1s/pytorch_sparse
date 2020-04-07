@@ -15,13 +15,9 @@ def saint_subgraph(src: SparseTensor, node_idx: torch.Tensor
     if value is not None:
         value = value[edge_index]
 
-    out = SparseTensor(
-        row=row,
-        rowptr=None,
-        col=col,
-        value=value,
-        sparse_sizes=(node_idx.size(0), node_idx.size(0)),
-        is_sorted=True)
+    out = SparseTensor(row=row, rowptr=None, col=col, value=value,
+                       sparse_sizes=(node_idx.size(0), node_idx.size(0)),
+                       is_sorted=True)
 
     return out, edge_index
 
