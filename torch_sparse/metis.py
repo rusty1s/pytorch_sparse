@@ -10,7 +10,8 @@ def partition(
 ) -> Tuple[SparseTensor, torch.Tensor, torch.Tensor]:
 
     rowptr, col = src.storage.rowptr().cpu(), src.storage.col().cpu()
-    cluster = torch.ops.torch_sparse.partition(rowptr, col, num_parts,
+    adjwgt=src.storage.value().cpu()
+    cluster = torch.ops.torch_sparse.partition(rowptr, col, num_parts,adjwgt,
                                                recursive)
     cluster = cluster.to(src.device())
 
