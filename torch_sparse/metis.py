@@ -34,5 +34,4 @@ def partition(src: SparseTensor, num_parts: int, recursive: bool = False
     return out, partptr, perm
 
 
-SparseTensor.partition = lambda self, num_parts, recursive=False: partition(
-    self, num_parts, recursive)
+SparseTensor.partition = partition
