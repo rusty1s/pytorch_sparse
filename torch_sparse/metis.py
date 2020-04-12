@@ -7,11 +7,11 @@ from torch_sparse.utils import cartesian1d
 
 
 def metis_wgt(x):
-    if len(x.unique()) == 1:
-        return None
     t1, t2 = cartesian1d(x, x)
     diff = t1 - t2
     diff = diff[diff != 0]
+    if len(diff) == 0:
+        return x.long()
     res = diff.abs().min()
     bod = x.max() - x.min()
     scale = (res / bod).item()
