@@ -3,7 +3,7 @@ import os.path as osp
 
 import torch
 
-__version__ = '0.6.0'
+__version__ = '0.6.2'
 expected_torch_version = (1, 4)
 
 try:
