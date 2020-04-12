@@ -8,7 +8,8 @@ expected_torch_version = (1, 4)
 
 try:
     for library in [
-            '_version', '_convert', '_diag', '_spmm', '_spspmm', '_metis'
+            '_version', '_convert', '_diag', '_spmm', '_spspmm', '_metis',
+            '_rw', '_saint', '_padding'
     ]:
         torch.ops.load_library(importlib.machinery.PathFinder().find_spec(
             library, [osp.dirname(__file__)]).origin)
@@ -54,7 +55,10 @@ from .mul import mul, mul_, mul_nnz, mul_nnz_  # noqa
 from .reduce import sum, mean, min, max  # noqa
 from .matmul import matmul  # noqa
 from .cat import cat, cat_diag  # noqa
+from .rw import random_walk  # noqa
 from .metis import partition  # noqa
+from .saint import saint_subgraph  # noqa
+from .padding import padded_index, padded_index_select  # noqa
 
 from .convert import to_torch_sparse, from_torch_sparse  # noqa
 from .convert import to_scipy, from_scipy  # noqa
@@ -94,7 +98,11 @@ __all__ = [
     'matmul',
     'cat',
     'cat_diag',
+    'random_walk',
     'partition',
+    'saint_subgraph',
+    'padded_index',
+    'padded_index_select',
     'to_torch_sparse',
     'from_torch_sparse',
     'to_scipy',
