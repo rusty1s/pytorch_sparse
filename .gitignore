@@ -6,3 +6,4 @@ dist/
 *.egg-info/
 .coverage
 *.so
+.idea/
