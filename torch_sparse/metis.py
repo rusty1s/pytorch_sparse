@@ -3,10 +3,15 @@ from typing import Tuple
 import torch
 from torch_sparse.tensor import SparseTensor
 from torch_sparse.permute import permute
-from torch_sparse.utils import cartesian1d
 
 
-def metis_wgt(x):
+def cartesian1d(x, y):
+    a1, a2 = torch.meshgrid([x, y])
+    coos = torch.stack([a1, a2]).T.reshape(-1, 2)
+    return coos.split(1, dim=1)
+
+
+def metis_weight(x):
     t1, t2 = cartesian1d(x, x)
     diff = t1 - t2
     diff = diff[diff != 0]
@@ -22,10 +27,12 @@ def metis_wgt(x):
 
 def partition(src: SparseTensor, num_parts: int, recursive: bool = False
               ) -> Tuple[SparseTensor, torch.Tensor, torch.Tensor]:
-    rowptr, col = src.storage.rowptr().cpu(), src.storage.col().cpu()
-    edge_wgt = src.storage.value().cpu()
-    edge_wgt = metis_wgt(edge_wgt)
-    cluster = torch.ops.torch_sparse.partition(rowptr, col, num_parts, edge_wgt,
+    rowptr, col, value = src.csr()
+    rowptr, col = rowptr.cpu(), col.cpu()
+    if value is not None and value.dim() == 1:
+        value = value.detach().cpu()
+        value = metis_weight(value)
+    cluster = torch.ops.torch_sparse.partition(rowptr, col, value, num_parts,
                                                recursive)
     cluster = cluster.to(src.device())
 
