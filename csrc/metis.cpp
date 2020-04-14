@@ -7,7 +7,7 @@ PyMODINIT_FUNC PyInit__metis(void) { return NULL; }
 #endif
 
 torch::Tensor partition(torch::Tensor rowptr, torch::Tensor col,int64_t num_parts,
-                        torch::Tensor edge_wgt,bool recursive) {
+                        torch::optional<torch::Tensor> edge_wgt,bool recursive) {
   if (rowptr.device().is_cuda()) {
 #ifdef WITH_CUDA
     AT_ERROR("No CUDA version supported");

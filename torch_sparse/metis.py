@@ -11,7 +11,7 @@ def metis_wgt(x):
     diff = t1 - t2
     diff = diff[diff != 0]
     if len(diff) == 0:
-        return torch.ones(x.shape, dtype=torch.long)
+        return None
     res = diff.abs().min()
     bod = x.max() - x.min()
     scale = (res / bod).item()
