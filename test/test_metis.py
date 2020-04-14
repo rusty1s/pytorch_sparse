@@ -12,11 +12,12 @@ def test_metis(device):
     assert partptr.numel() == 3
     assert perm.numel() == 6
 
-    mat, partptr, perm = weighted_mat.partition(num_parts=2, recursive=True)
+    unweighted_mat = SparseTensor.from_dense(torch.ones((6, 6), device=device))
+    mat, partptr, perm = unweighted_mat.partition(num_parts=2, recursive=True)
     assert partptr.numel() == 3
     assert perm.numel() == 6
 
-    unweighted_mat = SparseTensor.from_dense(torch.ones((6, 6), device=device))
+    unweighted_mat = unweighted_mat.set_value(None)
     mat, partptr, perm = unweighted_mat.partition(num_parts=2, recursive=True)
     assert partptr.numel() == 3
     assert perm.numel() == 6

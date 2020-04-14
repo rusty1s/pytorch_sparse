@@ -1,7 +1,7 @@
-#include "cpu/metis_cpu.h"
-
 #include <Python.h>
 #include <torch/script.h>
+
+#include "cpu/metis_cpu.h"
 
 #ifdef _WIN32
 PyMODINIT_FUNC PyInit__metis(void) { return NULL; }
