@@ -4,23 +4,13 @@ import os.path as osp
 import torch
 
 __version__ = '0.6.2'
-expected_torch_version = (1, 4)
 
-try:
-    for library in [
-            '_version', '_convert', '_diag', '_spmm', '_spspmm', '_metis',
-            '_rw', '_saint', '_padding'
-    ]:
-        torch.ops.load_library(importlib.machinery.PathFinder().find_spec(
-            library, [osp.dirname(__file__)]).origin)
-except OSError as e:
-    major, minor = [int(x) for x in torch.__version__.split('.')[:2]]
-    t_major, t_minor = expected_torch_version
-    if major != t_major or (major == t_major and minor != t_minor):
-        raise RuntimeError(
-            f'Expected PyTorch version {t_major}.{t_minor} but found '
-            f'version {major}.{minor}.')
-    raise OSError(e)
+for library in [
+        '_version', '_convert', '_diag', '_spmm', '_spspmm', '_metis', '_rw',
+        '_saint', '_padding'
+]:
+    torch.ops.load_library(importlib.machinery.PathFinder().find_spec(
+        library, [osp.dirname(__file__)]).origin)
 
 if torch.version.cuda is not None:  # pragma: no cover
     cuda_version = torch.ops.torch_sparse.cuda_version()
