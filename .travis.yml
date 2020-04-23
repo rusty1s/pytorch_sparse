@@ -80,7 +80,7 @@ deploy:
   acl: public_read
   on:
     all_branches: true
-    repo: rusty1s/pytorch_scatter
+    repo: rusty1s/pytorch_sparse
     condition: $TRAVIS_TAG != "" || $TRAVIS_COMMIT_MESSAGE =~ ci-deploy
 notifications:
   email: false
