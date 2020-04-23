@@ -12,25 +12,17 @@ from torch_sparse.utils import is_scalar
 class SparseTensor(object):
     storage: SparseStorage
 
-    def __init__(self,
-                 row: Optional[torch.Tensor] = None,
+    def __init__(self, row: Optional[torch.Tensor] = None,
                  rowptr: Optional[torch.Tensor] = None,
                  col: Optional[torch.Tensor] = None,
                  value: Optional[torch.Tensor] = None,
                  sparse_sizes: Optional[Tuple[int, int]] = None,
                  is_sorted: bool = False):
-        self.storage = SparseStorage(
-            row=row,
-            rowptr=rowptr,
-            col=col,
-            value=value,
-            sparse_sizes=sparse_sizes,
-            rowcount=None,
-            colptr=None,
-            colcount=None,
-            csr2csc=None,
-            csc2csr=None,
-            is_sorted=is_sorted)
+        self.storage = SparseStorage(row=row, rowptr=rowptr, col=col,
+                                     value=value, sparse_sizes=sparse_sizes,
+                                     rowcount=None, colptr=None, colcount=None,
+                                     csr2csc=None, csc2csr=None,
+                                     is_sorted=is_sorted)
 
     @classmethod
     def from_storage(self, storage: SparseStorage):
@@ -53,17 +45,12 @@ class SparseTensor(object):
         if has_value:
             value = mat[row, col]
 
-        return SparseTensor(
-            row=row,
-            rowptr=None,
-            col=col,
-            value=value,
-            sparse_sizes=(mat.size(0), mat.size(1)),
-            is_sorted=True)
+        return SparseTensor(row=row, rowptr=None, col=col, value=value,
+                            sparse_sizes=(mat.size(0), mat.size(1)),
+                            is_sorted=True)
 
     @classmethod
-    def from_torch_sparse_coo_tensor(self,
-                                     mat: torch.Tensor,
+    def from_torch_sparse_coo_tensor(self, mat: torch.Tensor,
                                      has_value: bool = True):
         mat = mat.coalesce()
         index = mat._indices()
@@ -73,20 +60,13 @@ class SparseTensor(object):
         if has_value:
             value = mat._values()
 
-        return SparseTensor(
-            row=row,
-            rowptr=None,
-            col=col,
-            value=value,
-            sparse_sizes=(mat.size(0), mat.size(1)),
-            is_sorted=True)
+        return SparseTensor(row=row, rowptr=None, col=col, value=value,
+                            sparse_sizes=(mat.size(0), mat.size(1)),
+                            is_sorted=True)
 
     @classmethod
-    def eye(self,
-            M: int,
-            N: Optional[int] = None,
-            options: Optional[torch.Tensor] = None,
-            has_value: bool = True,
+    def eye(self, M: int, N: Optional[int] = None,
+            options: Optional[torch.Tensor] = None, has_value: bool = True,
             fill_cache: bool = False):
 
         N = M if N is None else N
@@ -104,8 +84,8 @@ class SparseTensor(object):
         value: Optional[torch.Tensor] = None
         if has_value:
             if options is not None:
-                value = torch.ones(
-                    row.numel(), dtype=options.dtype, device=row.device)
+                value = torch.ones(row.numel(), dtype=options.dtype,
+                                   device=row.device)
             else:
                 value = torch.ones(row.numel(), device=row.device)
 
@@ -128,17 +108,9 @@ class SparseTensor(object):
             csr2csc = csc2csr = row
 
         storage: SparseStorage = SparseStorage(
-            row=row,
-            rowptr=rowptr,
-            col=col,
-            value=value,
-            sparse_sizes=(M, N),
-            rowcount=rowcount,
-            colptr=colptr,
-            colcount=colcount,
-            csr2csc=csr2csc,
-            csc2csr=csc2csr,
-            is_sorted=True)
+            row=row, rowptr=rowptr, col=col, value=value, sparse_sizes=(M, N),
+            rowcount=rowcount, colptr=colptr, colcount=colcount,
+            csr2csc=csr2csc, csc2csr=csc2csr, is_sorted=True)
 
         self = SparseTensor.__new__(SparseTensor)
         self.storage = storage
@@ -181,14 +153,12 @@ class SparseTensor(object):
     def has_value(self) -> bool:
         return self.storage.has_value()
 
-    def set_value_(self,
-                   value: Optional[torch.Tensor],
+    def set_value_(self, value: Optional[torch.Tensor],
                    layout: Optional[str] = None):
         self.storage.set_value_(value, layout)
         return self
 
-    def set_value(self,
-                  value: Optional[torch.Tensor],
+    def set_value(self, value: Optional[torch.Tensor],
                   layout: Optional[str] = None):
         return self.from_storage(self.storage.set_value(value, layout))
 
@@ -217,31 +187,23 @@ class SparseTensor(object):
 
     # Utility functions #######################################################
 
-    def fill_value_(self,
-                    fill_value: float,
+    def fill_value_(self, fill_value: float,
                     options: Optional[torch.Tensor] = None):
         if options is not None:
-            value = torch.full((self.nnz(), ),
-                               fill_value,
-                               dtype=options.dtype,
+            value = torch.full((self.nnz(), ), fill_value, dtype=options.dtype,
                                device=self.device())
         else:
-            value = torch.full((self.nnz(), ),
-                               fill_value,
+            value = torch.full((self.nnz(), ), fill_value,
                                device=self.device())
         return self.set_value_(value, layout='coo')
 
-    def fill_value(self,
-                   fill_value: float,
+    def fill_value(self, fill_value: float,
                    options: Optional[torch.Tensor] = None):
         if options is not None:
-            value = torch.full((self.nnz(), ),
-                               fill_value,
-                               dtype=options.dtype,
+            value = torch.full((self.nnz(), ), fill_value, dtype=options.dtype,
                                device=self.device())
         else:
-            value = torch.full((self.nnz(), ),
-                               fill_value,
+            value = torch.full((self.nnz(), ), fill_value,
                                device=self.device())
         return self.set_value(value, layout='coo')
 
@@ -308,13 +270,8 @@ class SparseTensor(object):
 
         N = max(self.size(0), self.size(1))
 
-        out = SparseTensor(
-            row=row,
-            rowptr=None,
-            col=col,
-            value=value,
-            sparse_sizes=(N, N),
-            is_sorted=False)
+        out = SparseTensor(row=row, rowptr=None, col=col, value=value,
+                           sparse_sizes=(N, N), is_sorted=False)
         out = out.coalesce(reduce)
         return out
 
@@ -337,8 +294,7 @@ class SparseTensor(object):
         else:
             return False
 
-    def requires_grad_(self,
-                       requires_grad: bool = True,
+    def requires_grad_(self, requires_grad: bool = True,
                        options: Optional[torch.Tensor] = None):
         if requires_grad and not self.has_value():
             self.fill_value_(1., options=options)
@@ -359,8 +315,8 @@ class SparseTensor(object):
         if value is not None:
             return value
         else:
-            return torch.tensor(
-                0., dtype=torch.float, device=self.storage.col().device)
+            return torch.tensor(0., dtype=torch.float,
+                                device=self.storage.col().device)
 
     def device(self):
         return self.storage.col().device
@@ -368,8 +324,7 @@ class SparseTensor(object):
     def cpu(self):
         return self.device_as(torch.tensor(0.), non_blocking=False)
 
-    def cuda(self,
-             options: Optional[torch.Tensor] = None,
+    def cuda(self, options: Optional[torch.Tensor] = None,
              non_blocking: bool = False):
         if options is not None:
             return self.device_as(options, non_blocking)
@@ -432,19 +387,19 @@ class SparseTensor(object):
         row, col, value = self.coo()
 
         if value is not None:
-            mat = torch.zeros(
-                self.sizes(), dtype=value.dtype, device=self.device())
+            mat = torch.zeros(self.sizes(), dtype=value.dtype,
+                              device=self.device())
         elif options is not None:
-            mat = torch.zeros(
-                self.sizes(), dtype=options.dtype, device=self.device())
+            mat = torch.zeros(self.sizes(), dtype=options.dtype,
+                              device=self.device())
         else:
             mat = torch.zeros(self.sizes(), device=self.device())
 
         if value is not None:
             mat[row, col] = value
         else:
-            mat[row, col] = torch.ones(
-                self.nnz(), dtype=mat.dtype, device=mat.device)
+            mat[row, col] = torch.ones(self.nnz(), dtype=mat.dtype,
+                                       device=mat.device)
 
         return mat
 
@@ -454,8 +409,8 @@ class SparseTensor(object):
         index = torch.stack([row, col], dim=0)
         if value is None:
             if options is not None:
-                value = torch.ones(
-                    self.nnz(), dtype=options.dtype, device=self.device())
+                value = torch.ones(self.nnz(), dtype=options.dtype,
+                                   device=self.device())
             else:
                 value = torch.ones(self.nnz(), device=self.device())
 
@@ -479,7 +434,7 @@ def is_shared(self: SparseTensor) -> bool:
 def to(self, *args: Optional[List[Any]],
        **kwargs: Optional[Dict[str, Any]]) -> SparseTensor:
 
-    device, dtype, non_blocking = torch._C._nn._parse_to(*args, **kwargs)
+    device, dtype, non_blocking = torch._C._nn._parse_to(*args, **kwargs)[:3]
 
     if dtype is not None:
         self = self.type_as(torch.tensor(0., dtype=dtype))
@@ -580,25 +535,16 @@ def from_scipy(mat: ScipySparseMatrix, has_value: bool = True) -> SparseTensor:
         value = torch.from_numpy(mat.data)
     sparse_sizes = mat.shape[:2]
 
-    storage = SparseStorage(
-        row=row,
-        rowptr=rowptr,
-        col=col,
-        value=value,
-        sparse_sizes=sparse_sizes,
-        rowcount=None,
-        colptr=colptr,
-        colcount=None,
-        csr2csc=None,
-        csc2csr=None,
-        is_sorted=True)
+    storage = SparseStorage(row=row, rowptr=rowptr, col=col, value=value,
+                            sparse_sizes=sparse_sizes, rowcount=None,
+                            colptr=colptr, colcount=None, csr2csc=None,
+                            csc2csr=None, is_sorted=True)
 
     return SparseTensor.from_storage(storage)
 
 
 @torch.jit.ignore
-def to_scipy(self: SparseTensor,
-             layout: Optional[str] = None,
+def to_scipy(self: SparseTensor, layout: Optional[str] = None,
              dtype: Optional[torch.dtype] = None) -> ScipySparseMatrix:
     assert self.dim() == 2
     layout = get_layout(layout)
