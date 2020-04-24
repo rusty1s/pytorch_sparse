@@ -61,7 +61,7 @@ install:
   - source script/torch.sh
   - pip install torch-scatter==latest+${IDX} -f https://s3.eu-central-1.amazonaws.com/pytorch-geometric.com/whl/torch-1.5.0.html
   - pip install flake8 codecov
-  - if [ "${TRAVIS_OS_NAME}" != "windows" ]; then python setup.py install; else travis_wait 30 python setup.py install > /dev/null; fi
+  - if [ "${TRAVIS_OS_NAME}" != "windows" ]; then python setup.py install; else travis_wait 30 python setup.py install; fi
 script:
   - flake8 .
   - python setup.py test
