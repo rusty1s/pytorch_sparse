@@ -47,6 +47,7 @@ from .matmul import matmul  # noqa
 from .cat import cat, cat_diag  # noqa
 from .rw import random_walk  # noqa
 from .metis import partition  # noqa
+from .bandwidth import reverse_cuthill_mckee  # noqa
 from .saint import saint_subgraph  # noqa
 from .padding import padded_index, padded_index_select  # noqa
 
@@ -90,6 +91,7 @@ __all__ = [
     'cat_diag',
     'random_walk',
     'partition',
+    'reverse_cuthill_mckee',
     'saint_subgraph',
     'padded_index',
     'padded_index_select',
