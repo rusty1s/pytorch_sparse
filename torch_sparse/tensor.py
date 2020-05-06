@@ -243,6 +243,15 @@ class SparseTensor(object):
     def avg_col_length(self) -> float:
         return self.nnz() / self.sparse_size(1)
 
+    def bandwidth(self) -> int:
+        row, col, _ = self.coo()
+        return int((row - col).abs_().max())
+
+    def bandwidth_proportion(self, bandwidth: int) -> float:
+        row, col, _ = self.coo()
+        tmp = (row - col).abs_()
+        return int((tmp <= bandwidth).sum()) / self.nnz()
+
     def is_quadratic(self) -> bool:
         return self.sparse_size(0) == self.sparse_size(1)
 
