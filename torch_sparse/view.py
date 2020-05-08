@@ -28,13 +28,9 @@ def _view(src: SparseTensor, n: int, layout: str = 'csr') -> SparseTensor:
 
     storage = SparseStorage(
         row=row,
-        rowptr=src.storage._rowptr,
         col=col,
         value=value,
         sparse_sizes=sparse_sizes,
-        rowcount=src.storage._rowcount,
-        colptr=src.storage._colptr,
-        colcount=src.storage._colcount,
         csr2csc=src.storage._csr2csc,
         csc2csr=src.storage._csc2csr,
         is_sorted=True,
