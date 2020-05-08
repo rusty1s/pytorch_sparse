@@ -8,9 +8,10 @@ def _view(src: SparseTensor, n: int, layout: str = 'csr') -> SparseTensor:
     row, col, value = src.coo()
     sparse_sizes = src.storage.sparse_sizes()
 
-    if sparse_sizes[0] * sparse_sizes[1] % n == 0:
+    if sparse_sizes[0] * sparse_sizes[1] % n != 0:
         raise RuntimeError(
-            f"shape '[-1, {n}]' is invalid for input of size {sparse_sizes[0] * sparse_sizes[1]}")
+            f"shape '[-1, {n}]' is invalid for input of size "
+            f"{sparse_sizes[0] * sparse_sizes[1]}")
 
     assert layout == 'csr' or layout == 'csc'
 
