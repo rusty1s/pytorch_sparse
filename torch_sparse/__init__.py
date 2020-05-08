@@ -55,6 +55,7 @@ from .convert import to_torch_sparse, from_torch_sparse  # noqa
 from .convert import to_scipy, from_scipy  # noqa
 from .coalesce import coalesce  # noqa
 from .transpose import transpose  # noqa
+from .view import view  # noqa
 from .eye import eye  # noqa
 from .spmm import spmm  # noqa
 from .spspmm import spspmm  # noqa
@@ -101,6 +102,7 @@ __all__ = [
     'from_scipy',
     'coalesce',
     'transpose',
+    'view',
     'eye',
     'spmm',
     'spspmm',
