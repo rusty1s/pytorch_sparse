@@ -31,6 +31,15 @@ class SparseTensor(object):
         return self
 
     @classmethod
+    def from_edge_index(self, edge_index: torch.Tensor,
+                        edge_attr: Optional[torch.Tensor] = None,
+                        sparse_sizes: Optional[Tuple[int, int]] = None,
+                        is_sorted: bool = False):
+        return SparseTensor(row=edge_index[0], rowptr=None, col=edge_index[1],
+                            value=edge_attr, sparse_sizes=sparse_sizes,
+                            is_sorted=is_sorted)
+
+    @classmethod
     def from_dense(self, mat: torch.Tensor, has_value: bool = True):
         if mat.dim() > 2:
             index = mat.abs().sum([i for i in range(2, mat.dim())]).nonzero()
