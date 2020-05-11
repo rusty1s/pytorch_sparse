@@ -122,3 +122,24 @@ def test_coalesce(dtype, device):
     assert storage.row().tolist() == [0, 0, 1, 1]
     assert storage.col().tolist() == [0, 1, 0, 1]
     assert storage.value().tolist() == [1, 2, 3, 4]
+
+
+@pytest.mark.parametrize('dtype,device', product(dtypes, devices))
+def test_sparse_reshape(dtype, device):
+    row, col = tensor([[0, 1, 2, 3], [0, 1, 2, 3]], torch.long, device)
+    storage = SparseStorage(row=row, col=col)
+
+    storage = storage.sparse_reshape(2, 8)
+    assert storage.sparse_sizes() == (2, 8)
+    assert storage.row().tolist() == [0, 0, 1, 1]
+    assert storage.col().tolist() == [0, 5, 2, 7]
+
+    storage = storage.sparse_reshape(-1, 4)
+    assert storage.sparse_sizes() == (4, 4)
+    assert storage.row().tolist() == [0, 1, 2, 3]
+    assert storage.col().tolist() == [0, 1, 2, 3]
+
+    storage = storage.sparse_reshape(2, -1)
+    assert storage.sparse_sizes() == (2, 8)
+    assert storage.row().tolist() == [0, 0, 1, 1]
+    assert storage.col().tolist() == [0, 5, 2, 7]
