@@ -260,6 +260,31 @@ class SparseStorage(object):
                              colcount=colcount, csr2csc=self._csr2csc,
                              csc2csr=self._csc2csr, is_sorted=True)
 
+    def sparse_reshape(self, num_rows: int, num_cols: int):
+        assert num_rows > 0 or num_rows == -1
+        assert num_cols > 0 or num_cols == -1
+        assert num_rows > 0 or num_cols > 0
+
+        total = self.sparse_size(0) * self.sparse_size(1)
+
+        if num_rows == -1:
+            num_rows = total // num_cols
+
+        if num_cols == -1:
+            num_cols = total // num_rows
+
+        assert num_rows * num_cols == total
+
+        idx = self.sparse_size(1) * self.row() + self.col()
+
+        row = idx / num_cols
+        col = idx % num_cols
+
+        return SparseStorage(row=row, rowptr=None, col=col, value=self._value,
+                             sparse_sizes=(num_rows, num_cols), rowcount=None,
+                             colptr=None, colcount=None, csr2csc=None,
+                             csc2csr=None, is_sorted=True)
+
     def has_rowcount(self) -> bool:
         return self._rowcount is not None
 

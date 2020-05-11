@@ -171,6 +171,10 @@ class SparseTensor(object):
     def sparse_resize(self, sparse_sizes: Tuple[int, int]):
         return self.from_storage(self.storage.sparse_resize(sparse_sizes))
 
+    def sparse_reshape(self, num_rows: int, num_cols: int):
+        return self.from_storage(
+            self.storage.sparse_reshape(num_rows, num_cols))
+
     def is_coalesced(self) -> bool:
         return self.storage.is_coalesced()
 
