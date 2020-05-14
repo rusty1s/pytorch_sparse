@@ -277,7 +277,7 @@ class SparseStorage(object):
 
         idx = self.sparse_size(1) * self.row() + self.col()
 
-        row = idx / num_cols
+        row = idx // num_cols
         col = idx % num_cols
 
         return SparseStorage(row=row, rowptr=None, col=col, value=self._value,
