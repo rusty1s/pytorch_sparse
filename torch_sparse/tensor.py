@@ -260,6 +260,10 @@ class SparseTensor(object):
         row, col, _ = self.coo()
         return int((row - col).abs_().max())
 
+    def avg_bandwidth(self) -> float:
+        row, col, _ = self.coo()
+        return float((row - col).abs_().to(torch.float).mean())
+
     def bandwidth_proportion(self, bandwidth: int) -> float:
         row, col, _ = self.coo()
         tmp = (row - col).abs_()
@@ -537,8 +541,8 @@ SparseTensor.__repr__ = __repr__
 
 # Scipy Conversions ###########################################################
 
-ScipySparseMatrix = Union[scipy.sparse.coo_matrix, scipy.sparse.
-                          csr_matrix, scipy.sparse.csc_matrix]
+ScipySparseMatrix = Union[scipy.sparse.coo_matrix, scipy.sparse.csr_matrix,
+                          scipy.sparse.csc_matrix]
 
 
 @torch.jit.ignore
