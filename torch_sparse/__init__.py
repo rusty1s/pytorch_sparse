@@ -50,6 +50,7 @@ from .metis import partition  # noqa
 from .bandwidth import reverse_cuthill_mckee  # noqa
 from .saint import saint_subgraph  # noqa
 from .padding import padded_index, padded_index_select  # noqa
+from .sample import sample  # noqa
 
 from .convert import to_torch_sparse, from_torch_sparse  # noqa
 from .convert import to_scipy, from_scipy  # noqa
