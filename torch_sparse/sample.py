@@ -25,13 +25,16 @@ def sample(src: SparseTensor, num_neighbors: int,
 def sample_adj(src: SparseTensor, subset: torch.Tensor, num_neighbors: int,
                replace: bool = False) -> Tuple[SparseTensor, torch.Tensor]:
 
-    rowptr, col, _ = src.csr()
+    rowptr, col, value = src.csr()
     rowcount = src.storage.rowcount()
 
     rowptr, col, n_id, e_id = torch.ops.torch_sparse.sample_adj(
         rowptr, col, rowcount, subset, num_neighbors, replace)
 
-    out = SparseTensor(rowptr=rowptr, row=None, col=col, value=e_id,
+    if value is not None:
+        value = value[e_id]
+
+    out = SparseTensor(rowptr=rowptr, row=None, col=col, value=value,
                        sparse_sizes=(subset.size(0), n_id.size(0)),
                        is_sorted=True)
 

@@ -409,7 +409,7 @@ class SparseTensor(object):
 
     # Conversions #############################################################
 
-    def to_dense(self, options: Optional[torch.Tensor] = None):
+    def to_dense(self, options: Optional[torch.Tensor] = None) -> torch.Tensor:
         row, col, value = self.coo()
 
         if value is not None:
@@ -541,8 +541,8 @@ SparseTensor.__repr__ = __repr__
 
 # Scipy Conversions ###########################################################
 
-ScipySparseMatrix = Union[scipy.sparse.coo_matrix, scipy.sparse.csr_matrix,
-                          scipy.sparse.csc_matrix]
+ScipySparseMatrix = Union[scipy.sparse.coo_matrix, scipy.sparse.
+                          csr_matrix, scipy.sparse.csc_matrix]
 
 
 @torch.jit.ignore
@@ -600,24 +600,3 @@ def to_scipy(self: SparseTensor, layout: Optional[str] = None,
 
 SparseTensor.from_scipy = from_scipy
 SparseTensor.to_scipy = to_scipy
-
-# Hacky fixes #################################################################
-
-# Fix standard operators of `torch.Tensor` for PyTorch<=1.3.
-# https://github.com/pytorch/pytorch/pull/31769
-TORCH_MAJOR = int(torch.__version__.split('.')[0])
-TORCH_MINOR = int(torch.__version__.split('.')[1])
-if (TORCH_MAJOR < 1) or (TORCH_MAJOR == 1 and TORCH_MINOR <= 3):
-
-    def add(self, other):
-        if torch.is_tensor(other) or is_scalar(other):
-            return self.add(other)
-        return NotImplemented
-
-    def mul(self, other):
-        if torch.is_tensor(other) or is_scalar(other):
-            return self.mul(other)
-        return NotImplemented
-
-    torch.Tensor.__add__ = add
-    torch.Tensor.__mul__ = mul
