@@ -7,7 +7,7 @@ __version__ = '0.6.3'
 
 for library in [
         '_version', '_convert', '_diag', '_spmm', '_spspmm', '_metis', '_rw',
-        '_saint', '_padding'
+        '_saint', '_padding', '_sample'
 ]:
     torch.ops.load_library(importlib.machinery.PathFinder().find_spec(
         library, [osp.dirname(__file__)]).origin)
@@ -50,7 +50,7 @@ from .metis import partition  # noqa
 from .bandwidth import reverse_cuthill_mckee  # noqa
 from .saint import saint_subgraph  # noqa
 from .padding import padded_index, padded_index_select  # noqa
-from .sample import sample  # noqa
+from .sample import sample, sample_adj  # noqa
 
 from .convert import to_torch_sparse, from_torch_sparse  # noqa
 from .convert import to_scipy, from_scipy  # noqa

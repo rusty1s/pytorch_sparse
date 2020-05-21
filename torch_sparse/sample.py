@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Tuple
 
 import torch
 from torch_sparse.tensor import SparseTensor
@@ -22,4 +22,21 @@ def sample(src: SparseTensor, num_neighbors: int,
     return col[rand]
 
 
+def sample_adj(src: SparseTensor, subset: torch.Tensor, num_neighbors: int,
+               replace: bool = False) -> Tuple[SparseTensor, torch.Tensor]:
+
+    rowptr, col, _ = src.csr()
+    rowcount = src.storage.rowcount()
+
+    rowptr, col, n_id, e_id = torch.ops.torch_sparse.sample_adj(
+        rowptr, col, rowcount, subset, num_neighbors, replace)
+
+    out = SparseTensor(rowptr=rowptr, row=None, col=col, value=e_id,
+                       sparse_sizes=(subset.size(0), n_id.size(0)),
+                       is_sorted=True)
+
+    return out, n_id
+
+
 SparseTensor.sample = sample
+SparseTensor.sample_adj = sample_adj
