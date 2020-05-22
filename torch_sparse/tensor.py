@@ -5,7 +5,6 @@ import torch
 import scipy.sparse
 
 from torch_sparse.storage import SparseStorage, get_layout
-from torch_sparse.utils import is_scalar
 
 
 @torch.jit.script
