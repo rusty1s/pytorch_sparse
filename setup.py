@@ -80,7 +80,7 @@ tests_require = ['pytest', 'pytest-cov']
 
 setup(
     name='torch_sparse',
-    version='0.6.3',
+    version='0.6.4',
     author='Matthias Fey',
     author_email='matthias.fey@tu-dortmund.de',
     url='https://github.com/rusty1s/pytorch_sparse',
