@@ -4,7 +4,14 @@ from torch_sparse.tensor import SparseTensor
 
 from .utils import devices
 
+try:
+    torch.ops.torch_sparse.partition
+    with_metis = True
+except RuntimeError:
+    with_metis = False
 
+
+@pytest.mark.skipif(not with_metis, reason='Not compiled with METIS support')
 @pytest.mark.parametrize('device', devices)
 def test_metis(device):
     value1 = torch.randn(6 * 6, device=device).view(6, 6)
