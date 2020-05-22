@@ -32,7 +32,30 @@ sample_adj_cpu(torch::Tensor rowptr, torch::Tensor col, torch::Tensor rowcount,
     n_ids.push_back(i);
   }
 
-  if (replace) { // Sample with replacement ====================================
+  if (num_neighbors < 0) { // No sampling ======================================
+
+    int64_t r, c, e, offset = 0;
+    for (int64_t i = 0; i < idx.size(0); i++) {
+      r = idx_data[i];
+
+      for (int64_t j = 0; j < rowcount_data[r]; j++) {
+        e = rowptr_data[r] + j;
+        c = col_data[e];
+
+        if (n_id_map.count(c) == 0) {
+          n_id_map[c] = n_ids.size();
+          n_ids.push_back(c);
+        }
+
+        cols.push_back(n_id_map[c]);
+        e_ids.push_back(e);
+      }
+      offset = cols.size();
+      out_rowptr_data[i + 1] = offset;
+    }
+  }
+
+  else if (replace) { // Sample with replacement ===============================
 
     int64_t r, c, e, offset = 0;
     for (int64_t i = 0; i < idx.size(0); i++) {
