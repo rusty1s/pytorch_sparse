@@ -7,6 +7,9 @@ from torch_sparse.utils import Final
 
 layouts: Final[List[str]] = ['coo', 'csr', 'csc']
 
+# FIXME: Remove once `/` on `LongTensors` is officially removed from PyTorch.
+warnings.filterwarnings("ignore", category=UserWarning)
+
 
 def get_layout(layout: Optional[str] = None) -> str:
     if layout is None:
@@ -277,8 +280,9 @@ class SparseStorage(object):
 
         idx = self.sparse_size(1) * self.row() + self.col()
 
-        row = idx // num_cols
+        row = idx / num_cols
         col = idx % num_cols
+        assert row.dtype == torch.long and col.dtype == torch.long
 
         return SparseStorage(row=row, rowptr=None, col=col, value=self._value,
                              sparse_sizes=(num_rows, num_cols), rowcount=None,
