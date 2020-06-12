@@ -100,13 +100,13 @@ def spspmm(src: SparseTensor, other: SparseTensor,
 
 
 @torch.jit._overload  # noqa: F811
-def matmul(src, other, reduce):
+def matmul(src, other, reduce):  # noqa: F811
     # type: (SparseTensor, torch.Tensor, str) -> torch.Tensor
     pass
 
 
 @torch.jit._overload  # noqa: F811
-def matmul(src, other, reduce):
+def matmul(src, other, reduce):  # noqa: F811
     # type: (SparseTensor, SparseTensor, str) -> SparseTensor
     pass
 
