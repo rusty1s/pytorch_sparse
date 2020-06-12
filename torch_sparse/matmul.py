@@ -99,14 +99,24 @@ def spspmm(src: SparseTensor, other: SparseTensor,
         raise ValueError
 
 
-def matmul(src: SparseTensor, other: Union[torch.Tensor, SparseTensor],
-           reduce: str = "sum"):
-    if torch.is_tensor(other):
+@torch.jit._overload  # noqa: F811
+def matmul(src, other, reduce):
+    # type: (SparseTensor, torch.Tensor, str) -> torch.Tensor
+    pass
+
+
+@torch.jit._overload  # noqa: F811
+def matmul(src, other, reduce):
+    # type: (SparseTensor, SparseTensor, str) -> SparseTensor
+    pass
+
+
+def matmul(src, other, reduce="sum"):  # noqa: F811
+    if isinstance(other, torch.Tensor):
         return spmm(src, other, reduce)
     elif isinstance(other, SparseTensor):
         return spspmm(src, other, reduce)
-    else:
-        raise ValueError
+    raise ValueError
 
 
 SparseTensor.spmm = lambda self, other, reduce="sum": spmm(self, other, reduce)

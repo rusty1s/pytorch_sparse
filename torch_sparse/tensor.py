@@ -540,8 +540,8 @@ SparseTensor.__repr__ = __repr__
 
 # Scipy Conversions ###########################################################
 
-ScipySparseMatrix = Union[scipy.sparse.coo_matrix, scipy.sparse.
-                          csr_matrix, scipy.sparse.csc_matrix]
+ScipySparseMatrix = Union[scipy.sparse.coo_matrix, scipy.sparse.csr_matrix,
+                          scipy.sparse.csc_matrix]
 
 
 @torch.jit.ignore
