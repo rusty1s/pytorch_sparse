@@ -459,13 +459,14 @@ class SparseStorage(object):
         csc2csr = self._csc2csr
         if csc2csr is not None:
             csc2csr = csc2csr.clone()
+
         return SparseStorage(row=row, rowptr=rowptr, col=col, value=value,
                              sparse_sizes=self._sparse_sizes,
                              rowcount=rowcount, colptr=colptr,
                              colcount=colcount, csr2csc=csr2csc,
                              csc2csr=csc2csr, is_sorted=True)
 
-    def type_as(self, tensor=torch.Tensor):
+    def type_as(self, tensor: torch.Tensor):
         value = self._value
         if value is not None:
             if tensor.dtype == value.dtype:
@@ -504,7 +505,44 @@ class SparseStorage(object):
         csc2csr = self._csc2csr
         if csc2csr is not None:
             csc2csr = csc2csr.to(tensor.device, non_blocking=non_blocking)
+
         return SparseStorage(row=row, rowptr=rowptr, col=col, value=value,
+                             sparse_sizes=self._sparse_sizes,
+                             rowcount=rowcount, colptr=colptr,
+                             colcount=colcount, csr2csc=csr2csc,
+                             csc2csr=csc2csr, is_sorted=True)
+
+    def cuda(self):
+        new_col = self._col.cuda()
+        if new_col.device == self._col.device:
+            return self
+
+        row = self._row
+        if row is not None:
+            row = row.cuda()
+        rowptr = self._rowptr
+        if rowptr is not None:
+            rowptr = rowptr.cuda()
+        value = self._value
+        if value is not None:
+            value = value.cuda()
+        rowcount = self._rowcount
+        if rowcount is not None:
+            rowcount = rowcount.cuda()
+        colptr = self._colptr
+        if colptr is not None:
+            colptr = colptr.cuda()
+        colcount = self._colcount
+        if colcount is not None:
+            colcount = colcount.cuda()
+        csr2csc = self._csr2csc
+        if csr2csc is not None:
+            csr2csc = csr2csc.cuda()
+        csc2csr = self._csc2csr
+        if csc2csr is not None:
+            csc2csr = csc2csr.cuda()
+
+        return SparseStorage(row=row, rowptr=rowptr, col=new_col, value=value,
                              sparse_sizes=self._sparse_sizes,
                              rowcount=rowcount, colptr=colptr,
                              colcount=colcount, csr2csc=csr2csc,
@@ -536,6 +574,7 @@ class SparseStorage(object):
         csc2csr = self._csc2csr
         if csc2csr is not None:
             csc2csr = csc2csr.pin_memory()
+
         return SparseStorage(row=row, rowptr=rowptr, col=col, value=value,
                              sparse_sizes=self._sparse_sizes,
                              rowcount=rowcount, colptr=colptr,

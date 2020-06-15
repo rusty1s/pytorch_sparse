@@ -78,7 +78,8 @@ def set_diag(src: SparseTensor, values: Optional[torch.Tensor] = None,
     return src.from_storage(storage)
 
 
-def fill_diag(src: SparseTensor, fill_value: int, k: int = 0) -> SparseTensor:
+def fill_diag(src: SparseTensor, fill_value: float,
+              k: int = 0) -> SparseTensor:
     num_diag = min(src.sparse_size(0), src.sparse_size(1) - k)
     if k < 0:
         num_diag = min(src.sparse_size(0) + k, src.sparse_size(1))
