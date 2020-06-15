@@ -1,7 +1,6 @@
 from itertools import product
 
 import pytest
-import torch
 from torch_sparse.tensor import SparseTensor
 
 from .utils import dtypes, devices

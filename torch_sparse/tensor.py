@@ -397,7 +397,8 @@ class SparseTensor(object):
 
         return mat
 
-    def to_torch_sparse_coo_tensor(self, dtype: Optional[int] = None):
+    def to_torch_sparse_coo_tensor(
+            self, dtype: Optional[int] = None) -> torch.Tensor:
         row, col, value = self.coo()
         index = torch.stack([row, col], dim=0)
 
