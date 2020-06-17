@@ -3,8 +3,8 @@
 if [ "${TRAVIS_OS_NAME}" != "windows" ]; then
   python setup.py install
 else
-  echo "python setup.py install"
+  echo "pip install .[test]"
   while sleep 540; do echo "=====[ Still running after $SECONDS seconds ]====="; done &
-  python setup.py install | tail -n 1000
+  pip install .\[test\] | tail -n 1000
   kill %1
 fi
