@@ -79,6 +79,7 @@ $ echo $CPATH
 ```
 
 If you want to additionally build `torch-sparse` with METIS support, *e.g.* for partioning, please download and install the [METIS library](http://glaros.dtc.umn.edu/gkhome/metis/metis/download) by following the instructions in the `Install.txt` file.
+Note that METIS needs to be installed with 64 bit `IDXTYPEWIDTH` by changing `include/metis.h`.
 Afterwards, set the environment variable `WITH_METIS=1`.
 
 Then run:
