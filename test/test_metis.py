@@ -30,3 +30,8 @@ def test_metis(device):
                                          weighted=False)
         assert partptr.numel() == 3
         assert perm.numel() == 6
+
+        _, partptr, perm = mat.partition(num_parts=1, recursive=False,
+                                         weighted=True)
+        assert partptr.numel() == 2
+        assert perm.numel() == 6

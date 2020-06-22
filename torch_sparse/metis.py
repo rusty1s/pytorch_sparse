@@ -33,8 +33,13 @@ def partition(src: SparseTensor, num_parts: int, recursive: bool = False,
     else:
         value = None
 
-    cluster = torch.ops.torch_sparse.partition(rowptr, col, value, num_parts,
-                                               recursive)
+    if num_parts > 1:
+        cluster = torch.ops.torch_sparse.partition(rowptr, col, value,
+                                                   num_parts, recursive)
+    elif num_parts == 1:
+        cluster = torch.zeros((src.size(0)), dtype=torch.long)
+    else:
+        raise ValueError
     cluster = cluster.to(src.device())
 
     cluster, perm = cluster.sort()
