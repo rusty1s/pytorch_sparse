@@ -22,6 +22,13 @@ def weight2metis(weight: torch.Tensor) -> Optional[torch.Tensor]:
 def partition(src: SparseTensor, num_parts: int, recursive: bool = False,
               weighted=False
               ) -> Tuple[SparseTensor, torch.Tensor, torch.Tensor]:
+
+    assert num_parts >= 1
+    if num_parts == 1:
+        partptr = torch.tensor([0, src.size(0)], device=src.device())
+        perm = torch.arange(src.size(0), device=src.device())
+        return src, partptr, perm
+
     rowptr, col, value = src.csr()
     rowptr, col = rowptr.cpu(), col.cpu()
 
