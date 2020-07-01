@@ -44,7 +44,7 @@ from .add import add, add_, add_nnz, add_nnz_  # noqa
 from .mul import mul, mul_, mul_nnz, mul_nnz_  # noqa
 from .reduce import sum, mean, min, max  # noqa
 from .matmul import matmul  # noqa
-from .cat import cat, cat_diag  # noqa
+from .cat import cat  # noqa
 from .rw import random_walk  # noqa
 from .metis import partition  # noqa
 from .bandwidth import reverse_cuthill_mckee  # noqa
@@ -89,7 +89,6 @@ __all__ = [
     'max',
     'matmul',
     'cat',
-    'cat_diag',
     'random_walk',
     'partition',
     'reverse_cuthill_mckee',

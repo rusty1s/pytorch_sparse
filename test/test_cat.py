@@ -1,7 +1,7 @@
 import pytest
 import torch
 from torch_sparse.tensor import SparseTensor
-from torch_sparse.cat import cat, cat_diag
+from torch_sparse.cat import cat
 
 from .utils import devices, tensor
 
@@ -31,7 +31,7 @@ def test_cat(device):
     assert not out.storage.has_rowptr()
     assert out.storage.num_cached_keys() == 2
 
-    out = cat_diag([mat1, mat2])
+    out = cat([mat1, mat2], dim=(0, 1))
     assert out.to_dense().tolist() == [[1, 1, 0, 0, 0], [0, 0, 1, 0, 0],
                                        [0, 0, 0, 1, 1], [0, 0, 0, 0, 1],
                                        [0, 0, 0, 1, 0]]
