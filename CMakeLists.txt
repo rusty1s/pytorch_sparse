@@ -13,7 +13,7 @@ endif()
 find_package(Python3 COMPONENTS Development)
 find_package(Torch REQUIRED)
 
-#file(GLOB HEADERS csrc/scatter.h)
+#file(GLOB HEADERS csrc/sparse.h)
 file(GLOB OPERATOR_SOURCES csrc/cpu/*.h csrc/cpu/*.cpp csrc/*.cpp)
 if(WITH_CUDA)
   file(GLOB OPERATOR_SOURCES ${OPERATOR_SOURCES} csrc/cuda/*.h csrc/cuda/*.cu)
@@ -56,15 +56,13 @@ install(EXPORT TorchSparseTargets
 install(FILES ${HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 install(FILES
   csrc/cpu/convert_cpu.h
+  csrc/cpu/diag_cpu.h
   csrc/cpu/metis_cpu.h
   csrc/cpu/rw_cpu.h
-  csrc/cpu/sample_cpu.h
-  csrc/cpu/spspmm_cpu.h
-  csrc/cpu/diag_cpu.h
-  csrc/cpu/reducer.h
   csrc/cpu/saint_cpu.h
+  csrc/cpu/sample_cpu.h
   csrc/cpu/spmm_cpu.h
-  csrc/cpu/utils.h
+  csrc/cpu/spspmm_cpu.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/cpu)
 if(WITH_CUDA)
   install(FILES
