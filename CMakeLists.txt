@@ -9,8 +9,6 @@ if(WITH_CUDA)
   enable_language(CUDA)
   add_definitions(-D__CUDA_NO_HALF_OPERATORS__)
   add_definitions(-DWITH_CUDA)
-  set_property(TARGET torch_cuda PROPERTY INTERFACE_COMPILE_OPTIONS "")
-  set_property(TARGET torch_cpu PROPERTY INTERFACE_COMPILE_OPTIONS "")
 endif()
 
 find_package(Python3 COMPONENTS Development)
@@ -75,4 +73,9 @@ if(WITH_CUDA)
     csrc/cuda/spmm_cuda.h
     csrc/cuda/spspmm_cuda.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/cuda)
+endif()
+
+if(WITH_CUDA)
+  set_property(TARGET torch_cuda PROPERTY INTERFACE_COMPILE_OPTIONS "")
+  set_property(TARGET torch_cpu PROPERTY INTERFACE_COMPILE_OPTIONS "")
 endif()
