@@ -442,6 +442,8 @@ def __getitem__(self: SparseTensor, index: Any) -> SparseTensor:
     out = self
     while len(index) > 0:
         item = index.pop(0)
+        if isinstance(item, (list, tuple)):
+            item = torch.tensor(item, dtype=torch.long, device=self.device())
         if isinstance(item, int):
             out = out.select(dim, item)
             dim += 1
