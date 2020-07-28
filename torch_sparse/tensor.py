@@ -66,7 +66,7 @@ class SparseTensor(object):
 
         value: Optional[torch.Tensor] = None
         if has_value:
-            value = mat._values()
+            value = mat.values()
 
         return SparseTensor(row=row, rowptr=None, col=col, value=value,
                             sparse_sizes=(mat.size(0), mat.size(1)),

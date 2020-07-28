@@ -35,7 +35,7 @@ def reduction(src: SparseTensor, dim: Optional[int] = None,
 
         if dim == 0 and value is not None:
             col = src.storage.col()
-            return scatter(value, col, dim=0, dim_size=src.size(0))
+            return scatter(value, col, 0, None, src.size(1), reduce)
         elif dim == 0 and value is None:
             if reduce == 'sum' or reduce == 'add':
                 return src.storage.colcount().to(src.dtype())
