@@ -7,7 +7,7 @@ __version__ = '0.6.6'
 
 for library in [
         '_version', '_convert', '_diag', '_spmm', '_spspmm', '_metis', '_rw',
-        '_saint', '_sample'
+        '_saint', '_sample', '_relabel'
 ]:
     torch.ops.load_library(importlib.machinery.PathFinder().find_spec(
         library, [osp.dirname(__file__)]).origin)
