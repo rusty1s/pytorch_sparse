@@ -123,7 +123,7 @@ class SparseTensor(object):
     def clone(self):
         return self.from_storage(self.storage.clone())
 
-    def type_as(self, tensor=torch.Tensor):
+    def type_as(self, tensor: torch.Tensor):
         value = self.storage.value()
         if value is None or tensor.dtype == value.dtype:
             return self
@@ -397,8 +397,8 @@ class SparseTensor(object):
 
         return mat
 
-    def to_torch_sparse_coo_tensor(self, dtype: Optional[int] = None
-                                   ) -> torch.Tensor:
+    def to_torch_sparse_coo_tensor(
+            self, dtype: Optional[int] = None) -> torch.Tensor:
         row, col, value = self.coo()
         index = torch.stack([row, col], dim=0)
 
@@ -505,8 +505,8 @@ SparseTensor.__repr__ = __repr__
 
 # Scipy Conversions ###########################################################
 
-ScipySparseMatrix = Union[scipy.sparse.coo_matrix, scipy.sparse.
-                          csr_matrix, scipy.sparse.csc_matrix]
+ScipySparseMatrix = Union[scipy.sparse.coo_matrix, scipy.sparse.csr_matrix,
+                          scipy.sparse.csc_matrix]
 
 
 @torch.jit.ignore
