@@ -19,9 +19,10 @@ def weight2metis(weight: torch.Tensor) -> Optional[torch.Tensor]:
     return weight_ratio.to(torch.long)
 
 
-def partition(src: SparseTensor, num_parts: int, recursive: bool = False,
-              weighted=False
-              ) -> Tuple[SparseTensor, torch.Tensor, torch.Tensor]:
+def partition(
+        src: SparseTensor, num_parts: int, recursive: bool = False,
+        weighted: bool = False
+) -> Tuple[SparseTensor, torch.Tensor, torch.Tensor]:
 
     assert num_parts >= 1
     if num_parts == 1:
