@@ -21,6 +21,7 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor>
 subgraph(torch::Tensor idx, torch::Tensor rowptr, torch::Tensor row,
          torch::Tensor col);
 
+std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
 sample_adj(torch::Tensor rowptr, torch::Tensor col, torch::Tensor rowcount,
            torch::Tensor idx, int64_t num_neighbors, bool replace);
 
