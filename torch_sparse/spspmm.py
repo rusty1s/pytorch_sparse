@@ -1,9 +1,10 @@
 import torch
+import pytorch_indexing as pytorch_indexing
 from torch_sparse.tensor import SparseTensor
 from torch_sparse.matmul import matmul
+from torch_sparse.coalesce import coalesce
 
-
-def spspmm(indexA, valueA, indexB, valueB, m, k, n, coalesced=False):
+def spspmm(indexA, valueA, indexB, valueB, m, k, n, autograd=True, data_split=1, coalesced=False):
     """Matrix product of two sparse tensors. Both input sparse matrices need to
     be coalesced (use the :obj:`coalesced` attribute to force).
 
@@ -21,13 +22,66 @@ def spspmm(indexA, valueA, indexB, valueB, m, k, n, coalesced=False):
 
     :rtype: (:class:`LongTensor`, :class:`Tensor`)
     """
-
-    A = SparseTensor(row=indexA[0], col=indexA[1], value=valueA,
+    if autograd == True:
+        with torch.no_grad():
+            rowA, colA = indexA
+            rowB, colB = indexB
+            inc = int(k//data_split) + 1
+            indsA, indsB = pytorch_indexing.compare_all_elements(colA, rowB, k, data_split=data_split)
+            prod_inds = torch.cat((rowA[indsA].unsqueeze(0), colB[indsB].unsqueeze(0)), dim=0)
+        prod_vals = valueA[indsA]*valueB[indsB]
+        return coalesce(prod_inds, prod_vals, m, n)
+    else:
+        A = SparseTensor(row=indexA[0], col=indexA[1], value=valueA,
                      sparse_sizes=(m, k), is_sorted=not coalesced)
-    B = SparseTensor(row=indexB[0], col=indexB[1], value=valueB,
+        B = SparseTensor(row=indexB[0], col=indexB[1], value=valueB,
                      sparse_sizes=(k, n), is_sorted=not coalesced)
+        C = matmul(A, B)
+        row, col, value = C.coo()
+        return torch.stack([row, col], dim=0), value
 
-    C = matmul(A, B)
-    row, col, value = C.coo()
+def test_spspmm_autograd_setvals():
+    indexA = torch.tensor([[0, 0, 1, 2, 2], [1, 2, 0, 0, 1]])
+    valueA = torch.tensor([1, 2, 3, 4, 5])
+    indexB = torch.tensor([[0, 2], [1, 0]])
+    valueB = torch.tensor([2, 4])
 
-    return torch.stack([row, col], dim=0), value
+    indexC, valueC = spspmm(indexA, valueA, indexB, valueB, 3, 3, 2, autograd=True, data_split=1)
+    assert indexC.tolist() == [[0, 1, 2], [0, 1, 1]]
+    assert valueC.tolist() == [8, 6, 8]
+
+def test_spspmm_autograd_setvals_data_split21():
+    indexA = torch.tensor([[0, 0, 1, 2, 2], [1, 2, 0, 0, 1]])
+    valueA = torch.tensor([1, 2, 3, 4, 5])
+    indexB = torch.tensor([[0, 2], [1, 0]])
+    valueB = torch.tensor([2, 4])
+
+    indexC, valueC = spspmm(indexA, valueA, indexB, valueB, 3, 3, 2, autograd=True, data_split=21)
+    assert indexC.tolist() == [[0, 1, 2], [0, 1, 1]]
+    assert valueC.tolist() == [8, 6, 8]
+
+def test_spspmm_matches_cuda_vals_datasplit1():
+    n = 7
+    nz = 2**n
+    vals1 = torch.rand(nz, requires_grad=True)
+    inds1 = torch.LongTensor(2,nz).random_(0, 2**n)
+    inds1, vals1 = coalesce(inds1, vals1, 2**n, 2**n)
+    vals2 = torch.rand(nz, requires_grad=True)
+    inds2 = torch.LongTensor(2,nz).random_(0, 2**n)
+    inds2, vals2 = coalesce(inds2, vals2, 2**n, 2**n)
+    my_prod_inds, my_prod_vals = spspmm(inds1, vals1, inds2, vals2, 2**n, 2**n, 2**n, autograd=True)
+    prod_inds, prod_vals = spspmm(inds1, vals1, inds2, vals2, 2**n, 2**n, 2**n, autograd=False)
+    assert torch.allclose(prod_vals, my_prod_vals) and torch.all(torch.eq(prod_inds, my_prod_inds))
+
+def test_spspmm_matches_cuda_vals_datasplit17():
+    n = 7
+    nz = 2**n
+    vals1 = torch.rand(nz, requires_grad=True)
+    inds1 = torch.LongTensor(2,nz).random_(0, 2**n)
+    inds1, vals1 = coalesce(inds1, vals1, 2**n, 2**n)
+    vals2 = torch.rand(nz, requires_grad=True)
+    inds2 = torch.LongTensor(2,nz).random_(0, 2**n)
+    inds2, vals2 = coalesce(inds2, vals2, 2**n, 2**n)
+    my_prod_inds, my_prod_vals = spspmm(inds1, vals1, inds2, vals2, 2**n, 2**n, 2**n, autograd=True, data_split=17)
+    prod_inds, prod_vals = spspmm(inds1, vals1, inds2, vals2, 2**n, 2**n, 2**n, autograd=False)
+    assert torch.allclose(prod_vals, my_prod_vals) and torch.all(torch.eq(prod_inds, my_prod_inds))
