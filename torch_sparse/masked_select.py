@@ -65,7 +65,7 @@ def masked_select(src: SparseTensor, dim: int,
     else:
         value = src.storage.value()
         if value is not None:
-            idx = mask.nonzero(as_tuple=False).flatten()
+            idx = mask.nonzero().flatten()
             return src.set_value(value.index_select(dim - 1, idx),
                                  layout='coo')
         else:

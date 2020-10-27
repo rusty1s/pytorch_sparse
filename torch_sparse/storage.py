@@ -379,7 +379,7 @@ class SparseStorage(object):
 
         value = self._value
         if value is not None:
-            ptr = mask.nonzero(as_tuple=False).flatten()
+            ptr = mask.nonzero().flatten()
             ptr = torch.cat([ptr, ptr.new_full((1, ), value.size(0))])
             value = segment_csr(value, ptr, reduce=reduce)
             value = value[0] if isinstance(value, tuple) else value
