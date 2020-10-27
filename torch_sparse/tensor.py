@@ -41,9 +41,10 @@ class SparseTensor(object):
     @classmethod
     def from_dense(self, mat: torch.Tensor, has_value: bool = True):
         if mat.dim() > 2:
-            index = mat.abs().sum([i for i in range(2, mat.dim())]).nonzero()
+            index = mat.abs().sum([i for i in range(2, mat.dim())
+                                   ]).nonzero(as_tuple=False)
         else:
-            index = mat.nonzero()
+            index = mat.nonzero(as_tuple=False)
         index = index.t()
 
         row = index[0]
