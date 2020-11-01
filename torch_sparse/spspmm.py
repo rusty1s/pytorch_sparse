@@ -23,14 +23,7 @@ def spspmm(indexA, valueA, indexB, valueB, m, k, n, autograd=True, data_split=1,
     :rtype: (:class:`LongTensor`, :class:`Tensor`)
     """
     if autograd == True:
-        with torch.no_grad():
-            rowA, colA = indexA
-            rowB, colB = indexB
-            inc = int(k//data_split) + 1
-            indsA, indsB = pytorch_indexing.compare_all_elements(colA, rowB, k, data_split=data_split)
-            prod_inds = torch.cat((rowA[indsA].unsqueeze(0), colB[indsB].unsqueeze(0)), dim=0)
-        prod_vals = valueA[indsA]*valueB[indsB]
-        return coalesce(prod_inds, prod_vals, m, n)
+        return pytorch_indexing.spspmm(indexA, valueA, indexB, valueB, m, k, n, data_split=data_split)
     else:
         A = SparseTensor(row=indexA[0], col=indexA[1], value=valueA,
                      sparse_sizes=(m, k), is_sorted=not coalesced)
