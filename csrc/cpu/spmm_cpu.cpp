@@ -1,5 +1,7 @@
 #include "spmm_cpu.h"
 
+#include <ATen/Parallel.h>
+
 #include "reducer.h"
 #include "utils.h"
 
@@ -47,19 +49,22 @@ spmm_cpu(torch::Tensor rowptr, torch::Tensor col,
     auto mat_data = mat.data_ptr<scalar_t>();
     auto out_data = out.data_ptr<scalar_t>();
 
-    scalar_t val;
-    std::vector<scalar_t> vals(K);
-    int64_t row_start, row_end, c;
-    std::vector<int64_t> args(K);
-
     AT_DISPATCH_REDUCTION_TYPES(reduce, [&] {
       AT_DISPATCH_HAS_VALUE(optional_value, [&] {
         if (HAS_VALUE) {
           value_data = optional_value.value().data_ptr<scalar_t>();
         }
 
-        for (auto b = 0; b < B; b++) {
-          for (auto m = 0; m < M; m++) {
+        int64_t grain_size = at::internal::GRAIN_SIZE / (K * (col.numel() / M));
+        at::parallel_for(0, B * M, grain_size, [&](int64_t begin, int64_t end) {
+          scalar_t val;
+          std::vector<scalar_t> vals(K);
+          int64_t row_start, row_end, b, m, c;
+          std::vector<int64_t> args(K);
+
+          for (auto i = begin; i < end; i++) {
+            b = i / M, m = i % M;
+
             row_start = rowptr_data[m], row_end = rowptr_data[m + 1];
 
             for (auto k = 0; k < K; k++)
@@ -86,7 +91,7 @@ spmm_cpu(torch::Tensor rowptr, torch::Tensor col,
                                                arg_out_data + offset + k,
                                                args[k], row_end - row_start);
           }
-        }
+        });
       });
     });
   });

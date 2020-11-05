@@ -5,6 +5,7 @@ import glob
 from setuptools import setup, find_packages
 
 import torch
+from torch.__config__ import parallel_info
 from torch.utils.cpp_extension import BuildExtension
 from torch.utils.cpp_extension import CppExtension, CUDAExtension, CUDA_HOME
 
@@ -30,6 +31,16 @@ def get_extensions():
         libraries += ['metis']
     extra_compile_args = {'cxx': []}
     extra_link_args = []
+
+    info = parallel_info()
+    if 'parallel backend: OpenMP' in info and 'OpenMP not found' not in info:
+        extra_compile_args['cxx'] += ['-DAT_PARALLEL_OPENMP']
+        if sys.platform == 'win32':
+            extra_compile_args['cxx'] += ['/openmp']
+        else:
+            extra_compile_args['cxx'] += ['-fopenmp']
+    else:
+        print('Compiling without OpenMP...')
 
     if WITH_CUDA:
         Extension = CUDAExtension
