@@ -3,6 +3,7 @@ from typing import Optional, List, Tuple, Dict, Union, Any
 
 import torch
 import scipy.sparse
+from torch_scatter import segment_csr
 
 from torch_sparse.storage import SparseStorage, get_layout
 
@@ -270,17 +271,33 @@ class SparseTensor(object):
             return bool((value1 == value2).all())
 
     def to_symmetric(self, reduce: str = "sum"):
-        row, col, value = self.coo()
-
-        row, col = torch.cat([row, col], dim=0), torch.cat([col, row], dim=0)
-        if value is not None:
-            value = torch.cat([value, value], dim=0)
-
         N = max(self.size(0), self.size(1))
 
-        out = SparseTensor(row=row, rowptr=None, col=col, value=value,
-                           sparse_sizes=(N, N), is_sorted=False)
-        out = out.coalesce(reduce)
+        row, col, value = self.coo()
+        idx = col.new_full((2 * col.numel() + 1, ), -1)
+        idx[1:row.numel() + 1] = row
+        idx[row.numel() + 1:] = col
+        idx[1:] *= N
+        idx[1:row.numel() + 1] += col
+        idx[row.numel() + 1:] += row
+
+        idx, perm = idx.sort()
+        perm = perm[1:].sub_(1)
+
+        mask = idx[1:] > idx[:-1]
+        idx2 = perm[mask]
+
+        if value is not None:
+            ptr = mask.nonzero().flatten()
+            ptr = torch.cat([ptr, ptr.new_full((1, ), perm.size(0))])
+            value = torch.cat([value, value])[perm]
+            value = segment_csr(value, ptr, reduce=reduce)
+
+        new_row = torch.cat([row, col], dim=0, out=perm)[idx2]
+        new_col = torch.cat([col, row], dim=0, out=perm)[idx2]
+
+        out = SparseTensor(row=new_row, rowptr=None, col=new_col, value=value,
+                           sparse_sizes=(N, N), is_sorted=True)
         return out
 
     def detach_(self):

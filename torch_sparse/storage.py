@@ -382,7 +382,6 @@ class SparseStorage(object):
             ptr = mask.nonzero().flatten()
             ptr = torch.cat([ptr, ptr.new_full((1, ), value.size(0))])
             value = segment_csr(value, ptr, reduce=reduce)
-            value = value[0] if isinstance(value, tuple) else value
 
         return SparseStorage(row=row, rowptr=None, col=col, value=value,
                              sparse_sizes=self._sparse_sizes, rowcount=None,
