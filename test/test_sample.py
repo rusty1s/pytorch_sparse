@@ -20,3 +20,7 @@ def test_sample_adj():
     out, n_id = sample_adj(adj_t, torch.arange(2, 6), num_neighbors=2,
                            replace=True)
     assert out.nnz() == 8
+
+    out, n_id = sample_adj(adj_t, torch.arange(2, 6), num_neighbors=2,
+                           replace=False)
+    assert out.nnz() == 7  # node 3 has only one edge...
