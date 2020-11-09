@@ -26,10 +26,9 @@ def sample_adj(src: SparseTensor, subset: torch.Tensor, num_neighbors: int,
                replace: bool = False) -> Tuple[SparseTensor, torch.Tensor]:
 
     rowptr, col, value = src.csr()
-    rowcount = src.storage.rowcount()
 
     rowptr, col, n_id, e_id = torch.ops.torch_sparse.sample_adj(
-        rowptr, col, rowcount, subset, num_neighbors, replace)
+        rowptr, col, subset, num_neighbors, replace)
 
     if value is not None:
         value = value[e_id]
