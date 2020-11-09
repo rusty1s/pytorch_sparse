@@ -7,6 +7,23 @@ from torch_sparse.storage import SparseStorage
 from .utils import dtypes, devices, tensor
 
 
+@pytest.mark.parametrize('device', devices)
+def test_ind2ptr(device):
+    row = tensor([2, 2, 4, 5, 5, 6], torch.long, device)
+    rowptr = torch.ops.torch_sparse.ind2ptr(row, 8)
+    assert rowptr.tolist() == [0, 0, 0, 2, 2, 3, 5, 6, 6]
+
+    row = torch.ops.torch_sparse.ptr2ind(rowptr, 6)
+    assert row.tolist() == [2, 2, 4, 5, 5, 6]
+
+    row = tensor([], torch.long, device)
+    rowptr = torch.ops.torch_sparse.ind2ptr(row, 8)
+    assert rowptr.tolist() == [0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+    row = torch.ops.torch_sparse.ptr2ind(rowptr, 0)
+    assert row.tolist() == []
+
+
 @pytest.mark.parametrize('dtype,device', product(dtypes, devices))
 def test_storage(dtype, device):
     row, col = tensor([[0, 0, 1, 1], [0, 1, 0, 1]], torch.long, device)

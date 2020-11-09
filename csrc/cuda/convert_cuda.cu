@@ -28,6 +28,10 @@ torch::Tensor ind2ptr_cuda(torch::Tensor ind, int64_t M) {
   cudaSetDevice(ind.get_device());
 
   auto out = torch::empty(M + 1, ind.options());
+
+  if (ind.numel() == 0)
+    return out.zero_();
+
   auto ind_data = ind.data_ptr<int64_t>();
   auto out_data = out.data_ptr<int64_t>();
   auto stream = at::cuda::getCurrentCUDAStream();
