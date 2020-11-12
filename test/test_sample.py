@@ -15,7 +15,7 @@ def test_sample_adj():
     row, col, val = out.coo()
     assert row.tolist() == [0, 0, 0, 0, 1, 2, 2, 3, 3]
     assert col.tolist() == [2, 3, 4, 5, 4, 0, 3, 0, 2]
-    assert val.tolist() == [5, 6, 7, 8, 9, 10, 11, 12, 13]
+    assert val.tolist() == [7, 8, 5, 6, 9, 10, 11, 12, 13]
 
     out, n_id = sample_adj(adj_t, torch.arange(2, 6), num_neighbors=2,
                            replace=True)
