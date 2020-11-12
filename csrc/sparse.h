@@ -11,6 +11,10 @@ torch::Tensor partition(torch::Tensor rowptr, torch::Tensor col,
                         torch::optional<torch::Tensor> optional_value,
                         int64_t num_parts, bool recursive);
 
+torch::Tensor mt_partition(torch::Tensor rowptr, torch::Tensor col,
+                           torch::optional<torch::Tensor> optional_value,
+                           int64_t num_parts, bool recursive);
+
 std::tuple<torch::Tensor, torch::Tensor> relabel(torch::Tensor col,
                                                  torch::Tensor idx);
 

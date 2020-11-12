@@ -17,9 +17,8 @@ if os.getenv('FORCE_CPU', '0') == '1':
 
 BUILD_DOCS = os.getenv('BUILD_DOCS', '0') == '1'
 
-WITH_METIS = False
-if os.getenv('WITH_METIS', '0') == '1':
-    WITH_METIS = True
+WITH_METIS = True if os.getenv('WITH_METIS', '0') == '1' else False
+WITH_MTMETIS = True if os.getenv('WITH_MTMETIS', '0') == '1' else False
 
 
 def get_extensions():
@@ -29,6 +28,13 @@ def get_extensions():
     if WITH_METIS:
         define_macros += [('WITH_METIS', None)]
         libraries += ['metis']
+    if WITH_MTMETIS:
+        define_macros += [('WITH_MTMETIS', None)]
+        define_macros += [('MTMETIS_64BIT_VERTICES', None)]
+        define_macros += [('MTMETIS_64BIT_EDGES', None)]
+        define_macros += [('MTMETIS_64BIT_WEIGHTS', None)]
+        define_macros += [('MTMETIS_64BIT_PARTITIONS', None)]
+        libraries += ['mtmetis', 'wildriver']
     extra_compile_args = {'cxx': []}
     extra_link_args = []
 
