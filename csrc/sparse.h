@@ -18,6 +18,12 @@ torch::Tensor mt_partition(torch::Tensor rowptr, torch::Tensor col,
 std::tuple<torch::Tensor, torch::Tensor> relabel(torch::Tensor col,
                                                  torch::Tensor idx);
 
+std::tuple<torch::Tensor, torch::Tensor, torch::optional<torch::Tensor>,
+           torch::Tensor>
+relabel_one_hop(torch::Tensor rowptr, torch::Tensor col,
+                torch::optional<torch::Tensor> optional_value,
+                torch::Tensor idx);
+
 torch::Tensor random_walk(torch::Tensor rowptr, torch::Tensor col,
                           torch::Tensor start, int64_t walk_length);
 
