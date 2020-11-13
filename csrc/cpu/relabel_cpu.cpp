@@ -71,7 +71,7 @@ relabel_one_hop_cpu(torch::Tensor rowptr, torch::Tensor col,
   int64_t v, w, c, row_start, row_end, offset = 0;
   for (int64_t i = 0; i < idx.numel(); i++) {
     v = idx_data[i];
-    n_id_map[i] = v;
+    n_id_map[v] = i;
     offset += rowptr_data[v + 1] - rowptr_data[v];
     out_rowptr_data[i + 1] = offset;
   }
@@ -135,8 +135,8 @@ relabel_one_hop_cpu(torch::Tensor rowptr, torch::Tensor col,
       torch::cat({out_rowptr, torch::full({(int64_t)n_ids.size()},
                                           out_col.numel(), rowptr.options())});
 
-  idx = torch::cat(
-      {idx, torch::from_blob(n_ids.data(), {(int64_t)n_ids.size()})});
+  idx = torch::cat({idx, torch::from_blob(n_ids.data(), {(int64_t)n_ids.size()},
+                                          idx.options())});
 
   return std::make_tuple(out_rowptr, out_col, out_value, idx);
 }
