@@ -46,7 +46,7 @@ std::tuple<torch::Tensor, torch::Tensor, torch::optional<torch::Tensor>,
            torch::Tensor>
 relabel_one_hop_cpu(torch::Tensor rowptr, torch::Tensor col,
                     torch::optional<torch::Tensor> optional_value,
-                    torch::Tensor idx) {
+                    torch::Tensor idx, bool bipartite) {
 
   CHECK_CPU(rowptr);
   CHECK_CPU(col);
@@ -131,9 +131,10 @@ relabel_one_hop_cpu(torch::Tensor rowptr, torch::Tensor col,
     }
   }
 
-  out_rowptr =
-      torch::cat({out_rowptr, torch::full({(int64_t)n_ids.size()},
-                                          out_col.numel(), rowptr.options())});
+  if (bipartite)
+    out_rowptr = torch::cat(
+        {out_rowptr, torch::full({(int64_t)n_ids.size()}, out_col.numel(),
+                                 rowptr.options())});
 
   idx = torch::cat({idx, torch::from_blob(n_ids.data(), {(int64_t)n_ids.size()},
                                           idx.options())});
