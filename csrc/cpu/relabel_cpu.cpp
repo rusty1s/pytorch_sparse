@@ -131,7 +131,7 @@ relabel_one_hop_cpu(torch::Tensor rowptr, torch::Tensor col,
     }
   }
 
-  if (bipartite)
+  if (!bipartite)
     out_rowptr = torch::cat(
         {out_rowptr, torch::full({(int64_t)n_ids.size()}, out_col.numel(),
                                  rowptr.options())});
