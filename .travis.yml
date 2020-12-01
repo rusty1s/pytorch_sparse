@@ -111,7 +111,7 @@ install:
   - source activate test
   - conda install pytorch=${TORCH_VERSION} ${TOOLKIT} -c pytorch --yes
   - source script/torch.sh
-  - pip install torch-scatter==latest+${IDX} -f https://pytorch-geometric.com/whl/torch-${TORCH_VERSION}.html
+  - pip install torch-scatter -f https://pytorch-geometric.com/whl/torch-${TORCH_VERSION}+${IDX}.html
   - pip install flake8 codecov
   - pip install scipy==1.4.1
   - source script/install.sh
