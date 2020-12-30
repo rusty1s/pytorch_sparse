@@ -15,13 +15,13 @@ def spmm(index, value, m, n, matrix):
     :rtype: :class:`Tensor`
     """
 
-    assert n == matrix.size(0)
+    assert n == matrix.size(-2)
 
     row, col = index
     matrix = matrix if matrix.dim() > 1 else matrix.unsqueeze(-1)
 
-    out = matrix[col]
+    out = matrix.index_select(-2, col)
     out = out * value.unsqueeze(-1)
-    out = scatter_add(out, row, dim=0, dim_size=m)
+    out = scatter_add(out, row, dim=-2, dim_size=m)
 
     return out
