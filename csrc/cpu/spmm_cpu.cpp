@@ -56,8 +56,8 @@ spmm_cpu(torch::Tensor rowptr, torch::Tensor col,
               value_data = optional_value.value().data_ptr<scalar_t>();
             }
 
-            int64_t grain_size =
-                at::internal::GRAIN_SIZE / (K * (col.numel() / M));
+            int64_t grain_size = at::internal::GRAIN_SIZE /
+                                 (K * std::max(col.numel() / M, (int64_t)1));
             at::parallel_for(
                 0, B * M, grain_size, [&](int64_t begin, int64_t end) {
                   scalar_t val;
