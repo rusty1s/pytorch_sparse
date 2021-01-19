@@ -39,7 +39,7 @@ from .select import select  # noqa
 from .index_select import index_select, index_select_nnz  # noqa
 from .masked_select import masked_select, masked_select_nnz  # noqa
 from .permute import permute  # noqa
-from .diag import remove_diag, set_diag, fill_diag  # noqa
+from .diag import remove_diag, set_diag, fill_diag, get_diag  # noqa
 from .add import add, add_, add_nnz, add_nnz_  # noqa
 from .mul import mul, mul_, mul_nnz, mul_nnz_  # noqa
 from .reduce import sum, mean, min, max  # noqa
@@ -75,6 +75,7 @@ __all__ = [
     'remove_diag',
     'set_diag',
     'fill_diag',
+    'get_diag',
     'add',
     'add_',
     'add_nnz',

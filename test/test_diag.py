@@ -52,3 +52,15 @@ def test_fill_diag(dtype, device):
 
     mat = mat.fill_diag(-8, k=-1)
     mat = mat.fill_diag(-8, k=1)
+
+
+@pytest.mark.parametrize('dtype,device', product(dtypes, devices))
+def test_get_diag(dtype, device):
+    row, col = tensor([[0, 0, 1, 2], [0, 1, 2, 2]], torch.long, device)
+    value = tensor([[1, 1], [2, 2], [3, 3], [4, 4]], dtype, device)
+    mat = SparseTensor(row=row, col=col, value=value)
+    assert mat.get_diag().tolist() == [[1, 1], [0, 0], [4, 4]]
+
+    row, col = tensor([[0, 0, 1, 2], [0, 1, 2, 2]], torch.long, device)
+    mat = SparseTensor(row=row, col=col)
+    assert mat.get_diag().tolist() == [1, 0, 1]

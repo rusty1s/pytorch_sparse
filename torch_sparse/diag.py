@@ -1,6 +1,7 @@
 from typing import Optional
 
 import torch
+from torch import Tensor
 from torch_sparse.storage import SparseStorage
 from torch_sparse.tensor import SparseTensor
 
@@ -31,7 +32,7 @@ def remove_diag(src: SparseTensor, k: int = 0) -> SparseTensor:
     return src.from_storage(storage)
 
 
-def set_diag(src: SparseTensor, values: Optional[torch.Tensor] = None,
+def set_diag(src: SparseTensor, values: Optional[Tensor] = None,
              k: int = 0) -> SparseTensor:
     src = remove_diag(src, k=k)
     row, col, value = src.coo()
@@ -51,7 +52,7 @@ def set_diag(src: SparseTensor, values: Optional[torch.Tensor] = None,
     new_col[mask] = col
     new_col[inv_mask] = diag.add_(k)
 
-    new_value: Optional[torch.Tensor] = None
+    new_value: Optional[Tensor] = None
     if value is not None:
         new_value = value.new_empty((mask.size(0), ) + value.size()[1:])
         new_value[mask] = value
@@ -92,8 +93,25 @@ def fill_diag(src: SparseTensor, fill_value: float,
         return set_diag(src, None, k)
 
 
+def get_diag(src: SparseTensor) -> Tensor:
+    row, col, value = src.coo()
+
+    if value is None:
+        value = torch.ones(row.size(0))
+
+    sizes = list(value.size())
+    sizes[0] = min(src.size(0), src.size(1))
+
+    out = value.new_zeros(sizes)
+
+    mask = row == col
+    out[row[mask]] = value[mask]
+    return out
+
+
 SparseTensor.remove_diag = lambda self, k=0: remove_diag(self, k)
 SparseTensor.set_diag = lambda self, values=None, k=0: set_diag(
     self, values, k)
 SparseTensor.fill_diag = lambda self, fill_value, k=0: fill_diag(
     self, fill_value, k)
+SparseTensor.get_diag = lambda self: get_diag(self)
