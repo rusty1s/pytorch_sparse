@@ -35,8 +35,8 @@ def get_extensions():
         define_macros += [('MTMETIS_64BIT_WEIGHTS', None)]
         define_macros += [('MTMETIS_64BIT_PARTITIONS', None)]
         libraries += ['mtmetis', 'wildriver']
-    extra_compile_args = {'cxx': []}
-    extra_link_args = []
+    extra_compile_args = {'cxx': ['-O2']}
+    extra_link_args = ['-s']
 
     info = parallel_info()
     if 'parallel backend: OpenMP' in info and 'OpenMP not found' not in info:
@@ -53,7 +53,7 @@ def get_extensions():
         define_macros += [('WITH_CUDA', None)]
         nvcc_flags = os.getenv('NVCC_FLAGS', '')
         nvcc_flags = [] if nvcc_flags == '' else nvcc_flags.split(' ')
-        nvcc_flags += ['-arch=sm_35', '--expt-relaxed-constexpr']
+        nvcc_flags += ['-arch=sm_35', '--expt-relaxed-constexpr', '-O2']
         extra_compile_args['nvcc'] = nvcc_flags
 
         if sys.platform == 'win32':
