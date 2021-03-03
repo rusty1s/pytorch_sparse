@@ -8,7 +8,11 @@
 #endif
 
 #ifdef _WIN32
-PyMODINIT_FUNC PyInit__diag(void) { return NULL; }
+#ifdef WITH_CUDA
+PyMODINIT_FUNC PyInit__diag_cuda(void) { return NULL; }
+#else
+PyMODINIT_FUNC PyInit__diag_cpu(void) { return NULL; }
+#endif
 #endif
 
 torch::Tensor non_diag_mask(torch::Tensor row, torch::Tensor col, int64_t M,

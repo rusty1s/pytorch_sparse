@@ -8,7 +8,11 @@
 #endif
 
 #ifdef _WIN32
-PyMODINIT_FUNC PyInit__convert(void) { return NULL; }
+#ifdef WITH_CUDA
+PyMODINIT_FUNC PyInit__convert_cuda(void) { return NULL; }
+#else
+PyMODINIT_FUNC PyInit__convert_cpu(void) { return NULL; }
+#endif
 #endif
 
 torch::Tensor ind2ptr(torch::Tensor ind, int64_t M) {

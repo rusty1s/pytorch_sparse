@@ -8,7 +8,11 @@
 #endif
 
 #ifdef _WIN32
-PyMODINIT_FUNC PyInit__rw(void) { return NULL; }
+#ifdef WITH_CUDA
+PyMODINIT_FUNC PyInit__rw_cuda(void) { return NULL; }
+#else
+PyMODINIT_FUNC PyInit__rw_cpu(void) { return NULL; }
+#endif
 #endif
 
 torch::Tensor random_walk(torch::Tensor rowptr, torch::Tensor col,

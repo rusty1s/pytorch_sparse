@@ -4,7 +4,11 @@
 #include "cpu/relabel_cpu.h"
 
 #ifdef _WIN32
-PyMODINIT_FUNC PyInit__relabel(void) { return NULL; }
+#ifdef WITH_CUDA
+PyMODINIT_FUNC PyInit__relablel_cuda(void) { return NULL; }
+#else
+PyMODINIT_FUNC PyInit__relabel_cpu(void) { return NULL; }
+#endif
 #endif
 
 std::tuple<torch::Tensor, torch::Tensor> relabel(torch::Tensor col,
