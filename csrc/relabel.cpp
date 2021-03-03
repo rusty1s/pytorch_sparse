@@ -5,7 +5,7 @@
 
 #ifdef _WIN32
 #ifdef WITH_CUDA
-PyMODINIT_FUNC PyInit__relablel_cuda(void) { return NULL; }
+PyMODINIT_FUNC PyInit__relabel_cuda(void) { return NULL; }
 #else
 PyMODINIT_FUNC PyInit__relabel_cpu(void) { return NULL; }
 #endif
