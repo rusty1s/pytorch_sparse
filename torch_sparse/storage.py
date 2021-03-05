@@ -141,16 +141,12 @@ class SparseStorage(object):
 
     @classmethod
     def empty(self):
-        self = SparseStorage.__new__(SparseStorage)
-        self._row = None
-        self._rowptr = None
-        self._value = None
-        self._rowcount = None
-        self._colptr = None
-        self._colcount = None
-        self._csr2csc = None
-        self._csc2csr = None
-        return self
+        row = torch.tensor([], dtype=torch.long)
+        col = torch.tensor([], dtype=torch.long)
+        return SparseStorage(row=row, rowptr=None, col=col, value=None,
+                             sparse_sizes=(0, 0), rowcount=None, colptr=None,
+                             colcount=None, csr2csc=None, csc2csr=None,
+                             is_sorted=True)
 
     def has_row(self) -> bool:
         return self._row is not None

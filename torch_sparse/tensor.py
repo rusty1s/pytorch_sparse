@@ -26,9 +26,15 @@ class SparseTensor(object):
 
     @classmethod
     def from_storage(self, storage: SparseStorage):
-        self = SparseTensor.__new__(SparseTensor)
-        self.storage = storage
-        return self
+        out = SparseTensor(row=storage._row, rowptr=storage._rowptr,
+                           col=storage._col, value=storage._value,
+                           sparse_sizes=storage._sparse_sizes, is_sorted=True)
+        out.storage._rowcount = storage._rowcount
+        out.storage._colptr = storage._colptr
+        out.storage._colcount = storage._colcount
+        out.storage._csr2csc = storage._csr2csc
+        out.storage._csc2csr = storage._csc2csr
+        return out
 
     @classmethod
     def from_edge_index(self, edge_index: torch.Tensor,
@@ -109,14 +115,14 @@ class SparseTensor(object):
                 colcount[M:] = 0
             csr2csc = csc2csr = row
 
-        storage: SparseStorage = SparseStorage(
-            row=row, rowptr=rowptr, col=col, value=value, sparse_sizes=(M, N),
-            rowcount=rowcount, colptr=colptr, colcount=colcount,
-            csr2csc=csr2csc, csc2csr=csc2csr, is_sorted=True)
-
-        self = SparseTensor.__new__(SparseTensor)
-        self.storage = storage
-        return self
+        out = SparseTensor(row=row, rowptr=rowptr, col=col, value=value,
+                           sparse_sizes=(M, N), is_sorted=True)
+        out.storage._rowcount = rowcount
+        out.storage._colptr = colptr
+        out.storage._colcount = colcount
+        out.storage._csr2csc = csr2csc
+        out.storage._csc2csr = csc2csr
+        return out
 
     def copy(self):
         return self.from_storage(self.storage)
