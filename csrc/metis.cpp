@@ -13,6 +13,7 @@ PyMODINIT_FUNC PyInit__metis_cpu(void) { return NULL; }
 
 torch::Tensor partition(torch::Tensor rowptr, torch::Tensor col,
                         torch::optional<torch::Tensor> optional_value,
+                        torch::optional<torch::Tensor> vweights,
                         int64_t num_parts, bool recursive) {
   if (rowptr.device().is_cuda()) {
 #ifdef WITH_CUDA
@@ -21,12 +22,13 @@ torch::Tensor partition(torch::Tensor rowptr, torch::Tensor col,
     AT_ERROR("Not compiled with CUDA support");
 #endif
   } else {
-    return partition_cpu(rowptr, col, optional_value, num_parts, recursive);
+    return partition_cpu(rowptr, col, optional_value, vweights, num_parts, recursive);
   }
 }
 
 torch::Tensor mt_partition(torch::Tensor rowptr, torch::Tensor col,
                            torch::optional<torch::Tensor> optional_value,
+                           torch::optional<torch::Tensor> vweights,
                            int64_t num_parts, bool recursive,
                            int64_t num_workers) {
   if (rowptr.device().is_cuda()) {
@@ -36,7 +38,7 @@ torch::Tensor mt_partition(torch::Tensor rowptr, torch::Tensor col,
     AT_ERROR("Not compiled with CUDA support");
 #endif
   } else {
-    return mt_partition_cpu(rowptr, col, optional_value, num_parts, recursive,
+    return mt_partition_cpu(rowptr, col, optional_value, vweights, num_parts, recursive,
                             num_workers);
   }
 }

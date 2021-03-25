@@ -21,6 +21,7 @@ def weight2metis(weight: torch.Tensor) -> Optional[torch.Tensor]:
 
 def partition(
         src: SparseTensor, num_parts: int, recursive: bool = False,
+        vweights: torch.tensor = None,
         weighted: bool = False
 ) -> Tuple[SparseTensor, torch.Tensor, torch.Tensor]:
 
@@ -41,7 +42,13 @@ def partition(
     else:
         value = None
 
-    cluster = torch.ops.torch_sparse.partition(rowptr, col, value, num_parts,
+    if vweights is not None:
+        assert vweights.numel() == rowptr.numel() - 1
+        vweights = vweights.view(-1).detach().cpu()
+        if vweights.is_floating_point():
+            vweights = weight2metis(vweights)
+
+    cluster = torch.ops.torch_sparse.partition(rowptr, col, value, vweights, num_parts,
                                                recursive)
     cluster = cluster.to(src.device())
 
