@@ -1,4 +1,6 @@
 import pytest
+from itertools import product
+
 import torch
 from torch_sparse.tensor import SparseTensor
 
@@ -12,32 +14,24 @@ except RuntimeError:
 
 
 @pytest.mark.skipif(not with_metis, reason='Not compiled with METIS support')
-@pytest.mark.parametrize('device', devices)
-def test_metis(device):
-    value1 = torch.randn(6 * 6, device=device).view(6, 6)
-    value2 = torch.arange(6 * 6, dtype=torch.long, device=device).view(6, 6)
-    value3 = torch.ones(6 * 6, device=device).view(6, 6)
+@pytest.mark.parametrize('device,weighted', product(devices, [False, True]))
+def test_metis(device, weighted):
+    mat1 = torch.randn(6 * 6, device=device).view(6, 6)
+    mat2 = torch.arange(6 * 6, dtype=torch.long, device=device).view(6, 6)
+    mat3 = torch.ones(6 * 6, device=device).view(6, 6)
 
-    vwgts = torch.rand(6, device=device)
+    vec1 = None
+    vec2 = torch.rand(6, device=device)
 
-    for value in [value1, value2, value3]:
-        for vwgt in [None, vwgts]:
-            mat = SparseTensor.from_dense(value)
+    for mat, vec in product([mat1, mat2, mat3], [vec1, vec2]):
+        mat = SparseTensor.from_dense(mat)
 
-            _, partptr, perm = mat.partition(num_parts=2, recursive=False,
-                                             vweights=vwgt,
-                                             weighted=True)
-            assert partptr.numel() == 3
-            assert perm.numel() == 6
+        _, partptr, perm = mat.partition(num_parts=1, recursive=False,
+                                         weighted=weighted, node_weight=vec)
+        assert partptr.numel() == 2
+        assert perm.numel() == 6
 
-            _, partptr, perm = mat.partition(num_parts=2, recursive=False,
-                                             vweights=vwgt,
-                                             weighted=False)
-            assert partptr.numel() == 3
-            assert perm.numel() == 6
-
-            _, partptr, perm = mat.partition(num_parts=1, recursive=False,
-                                             vweights=vwgt,
-                                             weighted=True)
-            assert partptr.numel() == 2
-            assert perm.numel() == 6
+        _, partptr, perm = mat.partition(num_parts=2, recursive=False,
+                                         weighted=weighted, node_weight=vec)
+        assert partptr.numel() == 3
+        assert perm.numel() == 6
