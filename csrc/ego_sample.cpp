@@ -11,9 +11,9 @@ PyMODINIT_FUNC PyInit__ego_sample_cpu(void) { return NULL; }
 #endif
 #endif
 
-// Returns `rowptr`, `col`, `n_id`, `e_id`, `ptr`
+// Returns `rowptr`, `col`, `n_id`, `e_id`, `ptr`, `root_n_id`
 std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor,
-           torch::Tensor>
+           torch::Tensor, torch::Tensor>
 ego_k_hop_sample_adj(torch::Tensor rowptr, torch::Tensor col, torch::Tensor idx,
                      int64_t depth, int64_t num_neighbors, bool replace) {
   if (rowptr.device().is_cuda()) {
