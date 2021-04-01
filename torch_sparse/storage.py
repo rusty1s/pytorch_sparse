@@ -59,6 +59,8 @@ class SparseStorage(object):
             sparse_sizes = (int(M), int(N))
         else:
             assert len(sparse_sizes) == 2
+            if row is not None:
+                assert row.max().item() < sparse_sizes[0]
             assert col.max().item() < sparse_sizes[1]
 
         if row is not None:
@@ -67,7 +69,6 @@ class SparseStorage(object):
             assert row.dim() == 1
             assert row.numel() == col.numel()
             row = row.contiguous()
-            assert row.max().item() < sparse_sizes[0]
 
         if rowptr is not None:
             assert rowptr.dtype == torch.long
