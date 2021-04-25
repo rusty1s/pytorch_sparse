@@ -113,8 +113,8 @@ For scattering, any operation of [`torch_scatter`](https://github.com/rusty1s/py
 
 * **index** *(LongTensor)* - The index tensor of sparse matrix.
 * **value** *(Tensor)* - The value tensor of sparse matrix.
-* **m** *(int)* - The first dimension of corresponding dense matrix.
-* **n** *(int)* - The second dimension of corresponding dense matrix.
+* **m** *(int)* - The first dimension of sparse matrix.
+* **n** *(int)* - The second dimension of sparse matrix.
 * **op** *(string, optional)* - The scatter operation to use. (default: `"add"`)
 
 #### Returns
@@ -158,8 +158,8 @@ Transposes dimensions 0 and 1 of a sparse matrix.
 
 * **index** *(LongTensor)* - The index tensor of sparse matrix.
 * **value** *(Tensor)* - The value tensor of sparse matrix.
-* **m** *(int)* - The first dimension of corresponding dense matrix.
-* **n** *(int)* - The second dimension of corresponding dense matrix.
+* **m** *(int)* - The first dimension of sparse matrix.
+* **n** *(int)* - The second dimension of sparse matrix.
 * **coalesced** *(bool, optional)* - If set to `False`, will not coalesce the output. (default: `True`)
 
 #### Returns
@@ -203,8 +203,8 @@ Matrix product of a sparse matrix with a dense matrix.
 
 * **index** *(LongTensor)* - The index tensor of sparse matrix.
 * **value** *(Tensor)* - The value tensor of sparse matrix.
-* **m** *(int)* - The first dimension of corresponding dense matrix.
-* **n** *(int)* - The second dimension of corresponding dense matrix.
+* **m** *(int)* - The first dimension of sparse matrix.
+* **n** *(int)* - The second dimension of sparse matrix.
 * **matrix** *(Tensor)* - The dense matrix.
 
 #### Returns
@@ -247,9 +247,9 @@ Both input sparse matrices need to be **coalesced** (use the `coalesced` attribu
 * **valueA** *(Tensor)* - The value tensor of first sparse matrix.
 * **indexB** *(LongTensor)* - The index tensor of second sparse matrix.
 * **valueB** *(Tensor)* - The value tensor of second sparse matrix.
-* **m** *(int)* - The first dimension of first corresponding dense matrix.
-* **k** *(int)* - The second dimension of first corresponding dense matrix and first dimension of second corresponding dense matrix.
-* **n** *(int)* - The second dimension of second corresponding dense matrix.
+* **m** *(int)* - The first dimension of first sparse matrix.
+* **k** *(int)* - The second dimension of first sparse matrix and first dimension of second sparse matrix.
+* **n** *(int)* - The second dimension of second sparse matrix.
 * **coalesced** *(bool, optional)*: If set to `True`, will coalesce both input sparse matrices. (default: `False`)
 
 #### Returns

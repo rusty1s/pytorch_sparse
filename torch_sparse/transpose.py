@@ -42,8 +42,8 @@ def transpose(index, value, m, n, coalesced=True):
     Args:
         index (:class:`LongTensor`): The index tensor of sparse matrix.
         value (:class:`Tensor`): The value tensor of sparse matrix.
-        m (int): The first dimension of corresponding dense matrix.
-        n (int): The second dimension of corresponding dense matrix.
+        m (int): The first dimension of sparse matrix.
+        n (int): The second dimension of sparse matrix.
         coalesced (bool, optional): If set to :obj:`False`, will not coalesce
             the output. (default: :obj:`True`)
     :rtype: (:class:`LongTensor`, :class:`Tensor`)

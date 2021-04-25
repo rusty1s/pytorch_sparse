@@ -11,8 +11,8 @@ def coalesce(index, value, m, n, op="add"):
     Args:
         index (:class:`LongTensor`): The index tensor of sparse matrix.
         value (:class:`Tensor`): The value tensor of sparse matrix.
-        m (int): The first dimension of corresponding dense matrix.
-        n (int): The second dimension of corresponding dense matrix.
+        m (int): The first dimension of sparse matrix.
+        n (int): The second dimension of sparse matrix.
         op (string, optional): The scatter operation to use. (default:
             :obj:`"add"`)
 
