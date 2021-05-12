@@ -28,7 +28,7 @@ WITH_MTMETIS = True if os.getenv('WITH_MTMETIS', '0') == '1' else False
 def get_extensions():
     extensions = []
 
-    extensions_dir = osp.join(osp.dirname(osp.abspath(__file__)), 'csrc')
+    extensions_dir = osp.join('csrc')
     main_files = glob.glob(osp.join(extensions_dir, '*.cpp'))
 
     for main, suffix in product(main_files, suffices):
