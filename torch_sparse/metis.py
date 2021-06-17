@@ -46,9 +46,12 @@ def partition(
         node_weight = node_weight.view(-1).detach().cpu()
         if node_weight.is_floating_point():
             node_weight = weight2metis(node_weight)
-
-    cluster = torch.ops.torch_sparse.partition(rowptr, col, value, node_weight,
-                                               num_parts, recursive)
+        cluster = torch.ops.torch_sparse.partition2(rowptr, col, value,
+                                                    node_weight, num_parts,
+                                                    recursive)
+    else:
+        cluster = torch.ops.torch_sparse.partition(rowptr, col, value,
+                                                   num_parts, recursive)
     cluster = cluster.to(src.device())
 
     cluster, perm = cluster.sort()
