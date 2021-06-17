@@ -28,9 +28,19 @@ jobs:
         run: |
           pip install torch==${{ matrix.torch-version}}+cpu -f https://download.pytorch.org/whl/torch_stable.html
 
-      - name: Install internal dependencies
+      - name: Install torch-scatter
         run: |
           pip install torch-scatter -f https://pytorch-geometric.com/whl/torch-${{ matrix.torch-version }}+cpu.html
+
+      - name: Install METIS
+        if: ${{ runner.os != 'Windows' }}
+        run: |
+          bash .github/workflows/metis.sh
+
+      - name: Install METIS on Windows
+        if: ${{ runner.os == 'Windows' }}
+        run: |
+          bash .github/workflows/metis-${{ runner.os }}.sh
 
       - name: Install main package
         run: |
