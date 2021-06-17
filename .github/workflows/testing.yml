@@ -30,11 +30,13 @@ jobs:
 
       - name: Install internal dependencies
         run: |
-          pip install torch-scatter -f https://pytorch-geometric.com/whl/torch-${{ matrix.torch-version }}+${{ matrix.cuda-version }}.html
+          pip install torch-scatter -f https://pytorch-geometric.com/whl/torch-${{ matrix.torch-version }}+cpu.html
 
       - name: Install main package
         run: |
           pip install -e .[test]
+        env:
+          WITH_METIS: 1
 
       - name: Run test-suite
         run: |
