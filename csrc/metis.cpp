@@ -21,7 +21,7 @@ torch::Tensor partition(torch::Tensor rowptr, torch::Tensor col,
     AT_ERROR("Not compiled with CUDA support");
 #endif
   } else {
-    return partition_cpu(rowptr, col, optional_value, nullptr, num_parts,
+    return partition_cpu(rowptr, col, optional_value, torch::nullopt, num_parts,
                          recursive);
   }
 }
