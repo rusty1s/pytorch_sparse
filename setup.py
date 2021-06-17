@@ -48,7 +48,8 @@ def get_extensions():
         extra_link_args = ['-s']
 
         info = parallel_info()
-        if 'backend: OpenMP' in info and 'OpenMP not found' not in info:
+        if ('backend: OpenMP' in info and 'OpenMP not found' not in info
+                and sys.platform != 'darwin'):
             extra_compile_args['cxx'] += ['-DAT_PARALLEL_OPENMP']
             if sys.platform == 'win32':
                 extra_compile_args['cxx'] += ['/openmp']
@@ -101,7 +102,7 @@ tests_require = ['pytest', 'pytest-cov']
 
 setup(
     name='torch_sparse',
-    version='0.6.9',
+    version='0.6.10',
     author='Matthias Fey',
     author_email='matthias.fey@tu-dortmund.de',
     url='https://github.com/rusty1s/pytorch_sparse',
