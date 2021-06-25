@@ -1,0 +1,39 @@
+package:
+  name: pytorch-sparse
+  version: 1.2.1
+
+source:
+  path: ../..
+
+requirements:
+  build:
+    - {{ compiler('c') }}  # [win]
+
+  host:
+    - scipy
+    - pytorch-scatter
+    - python {{ environ.get('PYTHON_VERSION') }}
+    - {{ environ.get('CONDA_PYTORCH_CONSTRAINT') }}
+    - {{ environ.get('CONDA_CUDATOOLKIT_CONSTRAINT') }}
+
+  run:
+    - scipy
+    - pytorch-scatter
+    - python {{ environ.get('PYTHON_VERSION') }}
+    - {{ environ.get('CONDA_PYTORCH_CONSTRAINT') }}
+    - {{ environ.get('CONDA_CUDATOOLKIT_CONSTRAINT') }}
+
+build:
+  string: py{{ environ.get('PYTHON_VERSION').replace('.', '') }}_torch_{{ environ['TORCH_VERSION'] }}_{{ environ['CUDA_VERSION'] }}
+  script: python setup.py install
+  script_env:
+    - FORCE_CUDA
+
+test:
+  imports:
+    - torch_sparse
+
+about:
+  home: https://github.com/rusty1s/pytorch_sparse
+  license: MIT
+  summary: PyTorch Extension Library of Optimized Autograd Sparse Matrix Operations
