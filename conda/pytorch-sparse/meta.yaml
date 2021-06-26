@@ -28,6 +28,7 @@ build:
   script: WITH_METIS=1 python setup.py install
   script_env:
     - FORCE_CUDA
+  preserve_egg_dir: True
 
 test:
   imports:
