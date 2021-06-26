@@ -16,18 +16,17 @@ requirements:
     - {{ environ.get('CONDA_CUDATOOLKIT_CONSTRAINT') }}
 
   run:
-    # - scipy
-    # - pytorch-scatter
+    - scipy
+    - pytorch-scatter
     - python {{ environ.get('PYTHON_VERSION') }}
     - {{ environ.get('CONDA_PYTORCH_CONSTRAINT') }}
     - {{ environ.get('CONDA_CUDATOOLKIT_CONSTRAINT') }}
 
 build:
   string: py{{ environ.get('PYTHON_VERSION').replace('.', '') }}_torch_{{ environ['TORCH_VERSION'] }}_{{ environ['CUDA_VERSION'] }}
-  script: pip install .
   script_env:
     - FORCE_CUDA
-    # - WITH_METIS=0
+    - WITH_METIS=1
   preserve_egg_dir: True
 
 test:
