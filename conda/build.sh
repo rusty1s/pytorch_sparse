@@ -1,3 +1,4 @@
 #!/bin/bash
 
-pip install .
+# pip install .
+python setup.py install
