@@ -26,9 +26,10 @@ requirements:
 
 build:
   string: py{{ environ.get('PYTHON_VERSION').replace('.', '') }}_torch_{{ environ['TORCH_VERSION'] }}_{{ environ['CUDA_VERSION'] }}
-  script: WITH_METIS=1 pip install .
+  script: pip install .
   script_env:
     - FORCE_CUDA
+    - WITH_METIS=1
   preserve_egg_dir: True
 
 test:
