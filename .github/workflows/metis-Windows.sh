@@ -13,7 +13,7 @@ sed -i.bak -e '61,69d' GKlib/gk_arch.h
 
 cd build || exit
 
-cmake .. -A x64  # Ensure we are building with x64
+cmake .. # -A x64  # Ensure we are building with x64
 cmake --build . --config "Release" --target ALL_BUILD
 cp libmetis/Release/metis.lib /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2019/Enterprise/VC/Tools/MSVC/14.29.30037/lib/x64
 cp ../include/metis.h /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2019/Enterprise/VC/Tools/MSVC/14.29.30037/include
