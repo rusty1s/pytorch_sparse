@@ -30,9 +30,18 @@ Note that only `value` comes with autograd support, as `index` is discrete and t
 
 ## Installation
 
+### Anaconda
+
+**Update:** You can now install `pytorch-sparse` via [Anaconda](https://anaconda.org/rusty1s/pytorch-sparse) for all major OS/PyTorch/CUDA combinations 🤗
+Given that you have [`pytorch >= 1.8.0` installed](https://pytorch.org/get-started/locally/), simply run
+
+```
+conda install pytorch-sparse -c rusty1s
+```
+
 ### Binaries
 
-We provide pip wheels for all major OS/PyTorch/CUDA combinations, see [here](https://pytorch-geometric.com/whl).
+We alternatively provide pip wheels for all major OS/PyTorch/CUDA combinations, see [here](https://pytorch-geometric.com/whl).
 
 #### PyTorch 1.9.0
 
