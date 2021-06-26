@@ -11,15 +11,13 @@ requirements:
 
   host:
     - pip
-    - scipy
-    - pytorch-scatter
     - python {{ environ.get('PYTHON_VERSION') }}
     - {{ environ.get('CONDA_PYTORCH_CONSTRAINT') }}
     - {{ environ.get('CONDA_CUDATOOLKIT_CONSTRAINT') }}
 
   run:
-    - scipy
-    - pytorch-scatter
+    # - scipy
+    # - pytorch-scatter
     - python {{ environ.get('PYTHON_VERSION') }}
     - {{ environ.get('CONDA_PYTORCH_CONSTRAINT') }}
     - {{ environ.get('CONDA_CUDATOOLKIT_CONSTRAINT') }}

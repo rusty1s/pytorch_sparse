@@ -24,6 +24,7 @@ BUILD_DOCS = os.getenv('BUILD_DOCS', '0') == '1'
 WITH_METIS = True if os.getenv('WITH_METIS', '0') == '1' else False
 WITH_MTMETIS = True if os.getenv('WITH_MTMETIS', '0') == '1' else False
 WITH_METIS = False
+WITH_MTMETIS = False
 
 
 def get_extensions():
@@ -92,7 +93,7 @@ def get_extensions():
             define_macros=define_macros,
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args,
-            libraries=libraries,
+            # libraries=libraries,
         )
         extensions += [extension]
 
