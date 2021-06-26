@@ -62,6 +62,8 @@ jobs:
         if: ${{ runner.os == 'Windows' }}
         run: |
           bash .github/workflows/metis-${{ runner.os }}.sh
+        shell:
+          bash -l {0}
 
       - name: Build Conda package for CPU
         if: ${{ matrix.cuda-version == 'cpu' }}
