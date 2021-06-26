@@ -32,8 +32,9 @@ def get_extensions():
 
     extensions_dir = osp.join('csrc')
     main_files = glob.glob(osp.join(extensions_dir, '*.cpp'))
+    print(main_files)
     main_files = ['csrc/version.cpp', 'csrc/metis.cpp']
-    main_files = ['csrc/version.cpp']
+    main_files = ['csrc/convert.cpp']
 
     for main, suffix in product(main_files, suffices):
         define_macros = []
