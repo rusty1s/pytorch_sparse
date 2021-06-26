@@ -29,7 +29,7 @@ build:
   script_env:
     - FORCE_CUDA
     - WITH_METIS=0
-  preserve_egg_dir: True
+  # preserve_egg_dir: True
 
 test:
   imports:
