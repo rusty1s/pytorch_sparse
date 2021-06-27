@@ -37,7 +37,7 @@ void update_budget(
 		int64_t row_end_idx = row_ptr_raw[added_node_idx + 1];
 		if (row_start_idx != row_end_idx) {
 			// Compute the norm of degree and update the budget for the neighbors of added_node_idx
-			float norm_deg = 1 / (float)(row_end_idx - row_start_idx);
+			float norm_deg = 1. / (float)(row_end_idx - row_start_idx);
 			for (int64_t j = row_start_idx; j < row_end_idx; j++) {
 				if (sampled_nodes.find(col_raw[j]) == sampled_nodes.end()) {
 					budget[col_raw[j]] += norm_deg;
