@@ -54,6 +54,18 @@ def time_func(matrix, op, duration=5.0, warmup=1.0):
 
 
 def op1(matrix):
+    # https://github.com/pytorch/pytorch/blob/3a777b67926c5f02bc287b25e572c521d6d11fb0/torch/_tensor.py#L928-L940
+    row_indices = matrix.indices()[0]
+    ro = [0]
+    i = 0
+    for irow in range(matrix.shape[0]):
+        while i < row_indices.shape[0] and row_indices[i] == irow:
+            i += 1
+        ro.append(i)
+    torch.tensor(ro, dtype=torch.long)
+
+
+def op2(matrix):
     # https://github.com/pearu/gcs/blob/b54ba0cba9c853b797274ef26b6c42386f2cafa3/gcs/storage.py#L24-L45
     row_indices = matrix.indices()[0]
     nnz = row_indices.shape[0]
@@ -72,18 +84,6 @@ def op1(matrix):
         compressed[n] = nnz
 
     torch.tensor(compressed, dtype=torch.long)
-
-
-def op2(matrix):
-    # https://github.com/pytorch/pytorch/blob/3a777b67926c5f02bc287b25e572c521d6d11fb0/torch/_tensor.py#L928-L940
-    row_indices = matrix.indices()[0]
-    ro = [0]
-    i = 0
-    for irow in range(matrix.shape[0]):
-        while i < row_indices.shape[0] and row_indices[i] == irow:
-            i += 1
-        ro.append(i)
-    torch.tensor(ro, dtype=torch.long)
 
 
 def op3(matrix):
@@ -106,10 +106,10 @@ for group, name in matrices:
     matrix = get_torch_sparse_coo_tensor(args.root, group, name)
 
     duration = time_func(matrix, op1, duration=5.0, warmup=1.0)
-    print('current implementation', duration)
+    print('current:', duration)
     duration = time_func(matrix, op2, duration=5.0, warmup=1.0)
-    print('compressed indices implementation', duration)
+    print('compressed indices:', duration)
     duration = time_func(matrix, op3, duration=5.0, warmup=1.0)
-    print('vectorized implementation:', duration)
+    print('vectorized:', duration)
     duration = time_func(matrix, op4, duration=5.0, warmup=1.0)
-    print('torch-sparse implementation:', duration)
+    print('torch-sparse:', duration)
