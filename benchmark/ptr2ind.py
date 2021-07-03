@@ -102,6 +102,18 @@ def op4(matrix):
     torch.ops.torch_sparse.ind2ptr(row_indices, matrix.shape[0])
 
 
+def op5(matrix):
+    row_indices = matrix.indices()[0]
+    arange = torch.arange(matrix.size(0) + 1)
+    torch.searchsorted(row_indices, arange)
+
+
+def op6(matrix):
+    row_indices = matrix.indices()[0]
+    arange = torch.arange(matrix.size(0) + 1)
+    torch.bucketize(arange, row_indices)
+
+
 for group, name in matrices:
     matrix = get_torch_sparse_coo_tensor(args.root, group, name)
 
@@ -113,3 +125,7 @@ for group, name in matrices:
     print('vectorized:', duration)
     duration = time_func(matrix, op4, duration=5.0, warmup=1.0)
     print('torch-sparse:', duration)
+    duration = time_func(matrix, op5, duration=5.0, warmup=1.0)
+    print('searchsorted:', duration)
+    duration = time_func(matrix, op6, duration=5.0, warmup=1.0)
+    print('bucketize:', duration)
