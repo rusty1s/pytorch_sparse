@@ -4,6 +4,8 @@
 
 #define MAX_NEIGHBORS 50
 
+using namespace std;
+
 edge_t split(const rel_t &rel_type) {
   vector<string> result(3);
   int start = 0, end;
@@ -17,8 +19,7 @@ edge_t split(const rel_t &rel_type) {
 
 void update_budget_(
     unordered_map<node_t, unordered_map<int64_t, float>> *budget_dict,
-    const node_t &node_type, //
-    const vector<int64_t> &samples,
+    const node_t &node_type, const vector<int64_t> &samples,
     const unordered_map<node_t, unordered_map<int64_t, int64_t>>
         &to_local_node_dict,
     const unordered_map<rel_t, edge_t> &to_edge_type,
@@ -132,10 +133,7 @@ hgt_sample_cpu(const c10::Dict<rel_t, torch::Tensor> &colptr_dict,
       to_local_node[v] = i;
     }
   }
-  b = steady_clock::now();
-  std::cout << "3=" << duration_cast<microseconds>(b - a).count() << std::endl;
 
-  a = steady_clock::now();
   // Update the budget based on the initial input set (line 3-5):
   for (const auto &kv : nodes_dict) {
     const auto &node_type = kv.first;
