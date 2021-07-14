@@ -2,7 +2,7 @@
 
 import torch
 # from torch import Tensor
-# from torch_sparse import SparseTensor
+import torch_sparse  # noqa
 
 
 def test_hgt_sample():

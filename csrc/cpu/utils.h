@@ -56,7 +56,7 @@ torch::Tensor choice(int64_t population, int64_t num_samples,
     auto *out_data = out.data_ptr<int64_t>();
     int64_t i = 0;
     for (const auto &value : values) {
-      out2_data[i] = value;
+      out_data[i] = value;
       i++;
     }
     return out;
