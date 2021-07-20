@@ -6,7 +6,6 @@ import argparse
 import os.path as osp
 
 import torch
-import torch_sparse  # noqa
 from scipy.io import loadmat
 
 parser = argparse.ArgumentParser()
@@ -45,87 +44,39 @@ def time_func(matrix, op, duration=5.0, warmup=1.0):
     t = time.time()
     while (time.time() - t) < warmup:
         op(matrix)
+    torch.cuda.synchronize()
     count = 0
     t = time.time()
     while (time.time() - t) < duration:
         op(matrix)
         count += 1
+        torch.cuda.synchronize()
     return (time.time() - t) / count
 
 
-def op1(matrix):
-    # https://github.com/pytorch/pytorch/blob/3a777b67926c5f02bc287b25e572c521d6d11fb0/torch/_tensor.py#L928-L940
+def bucketize(matrix):
     row_indices = matrix.indices()[0]
-    ro = [0]
-    i = 0
-    for irow in range(matrix.shape[0]):
-        while i < row_indices.shape[0] and row_indices[i] == irow:
-            i += 1
-        ro.append(i)
-    torch.tensor(ro, dtype=torch.long)
+    arange = torch.arange(matrix.size(0) + 1, device=row_indices.device)
+    return torch.bucketize(arange, row_indices)
 
 
-def op2(matrix):
-    # https://github.com/pearu/gcs/blob/b54ba0cba9c853b797274ef26b6c42386f2cafa3/gcs/storage.py#L24-L45
+def convert_coo_to_csr(matrix):
     row_indices = matrix.indices()[0]
-    nnz = row_indices.shape[0]
-    compressed = [0] * (matrix.shape[0] + 1)
-
-    k = 1
-    last_index = 0
-    for i in range(nnz):
-        index = row_indices[i]
-        for n in range(last_index, index):
-            compressed[k] = i
-            k += 1
-        last_index = index
-
-    for n in range(k, matrix.shape[0] + 1):
-        compressed[n] = nnz
-
-    torch.tensor(compressed, dtype=torch.long)
+    return torch._convert_coo_to_csr(row_indices, matrix.size(0) + 1)
 
 
-def op3(matrix):
-    row_indices = matrix.indices()[0]
+for device in ['cpu', 'cuda']:
+    print('DEVICE:', device)
+    for group, name in matrices:
+        matrix = get_torch_sparse_coo_tensor(args.root, group, name)
+        matrix = matrix.to(device)
 
-    bincount = torch.bincount(row_indices)
+        out1 = bucketize(matrix)
+        out2 = convert_coo_to_csr(matrix)
+        assert out1.tolist() == out2.tolist()
 
-    out = torch.empty((matrix.shape[0] + 1), dtype=torch.long)
-    out[0] = 0
-    torch.cumsum(bincount, dim=0, out=out[1:])
-    out[bincount.numel() + 1:] = row_indices.shape[0]
-
-
-def op4(matrix):
-    row_indices = matrix.indices()[0]
-    torch.ops.torch_sparse.ind2ptr(row_indices, matrix.shape[0])
-
-
-def op5(matrix):
-    row_indices = matrix.indices()[0]
-    arange = torch.arange(matrix.size(0) + 1)
-    torch.searchsorted(row_indices, arange)
-
-
-def op6(matrix):
-    row_indices = matrix.indices()[0]
-    arange = torch.arange(matrix.size(0) + 1)
-    torch.bucketize(arange, row_indices)
-
-
-for group, name in matrices:
-    matrix = get_torch_sparse_coo_tensor(args.root, group, name)
-
-    duration = time_func(matrix, op1, duration=5.0, warmup=1.0)
-    print('current:', duration)
-    duration = time_func(matrix, op2, duration=5.0, warmup=1.0)
-    print('compressed indices:', duration)
-    duration = time_func(matrix, op3, duration=5.0, warmup=1.0)
-    print('vectorized:', duration)
-    duration = time_func(matrix, op4, duration=5.0, warmup=1.0)
-    print('torch-sparse:', duration)
-    duration = time_func(matrix, op5, duration=5.0, warmup=1.0)
-    print('searchsorted:', duration)
-    duration = time_func(matrix, op6, duration=5.0, warmup=1.0)
-    print('bucketize:', duration)
+        t = time_func(matrix, bucketize, duration=5.0, warmup=1.0)
+        print('old impl:', t)
+        t = time_func(matrix, convert_coo_to_csr, duration=5.0, warmup=1.0)
+        print('new impl:', t)
+        print()
