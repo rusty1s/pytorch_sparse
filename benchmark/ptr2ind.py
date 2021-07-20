@@ -62,7 +62,7 @@ def bucketize(matrix):
 
 def convert_coo_to_csr(matrix):
     row_indices = matrix.indices()[0]
-    return torch._convert_coo_to_csr(row_indices, matrix.size(0) + 1)
+    return torch._convert_coo_to_csr(row_indices, matrix.size(0))
 
 
 for device in ['cpu', 'cuda']:
