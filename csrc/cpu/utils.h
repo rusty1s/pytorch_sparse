@@ -17,17 +17,17 @@
   }()
 
 template <typename scalar_t>
-torch::Tensor from_vector(const std::vector<scalar_t> &vec,
-                          bool inplace = false) {
+inline torch::Tensor from_vector(const std::vector<scalar_t> &vec,
+                                 bool inplace = false) {
   const auto size = (int64_t)vec.size();
   const auto out = torch::from_blob((scalar_t *)vec.data(), {size},
                                     c10::CppTypeToScalarType<scalar_t>::value);
   return inplace ? out : out.clone();
 }
 
-torch::Tensor choice(int64_t population, int64_t num_samples,
-                     bool replace = false,
-                     torch::optional<torch::Tensor> weight = torch::nullopt) {
+inline torch::Tensor
+choice(int64_t population, int64_t num_samples, bool replace = false,
+       torch::optional<torch::Tensor> weight = torch::nullopt) {
 
   if (!replace && num_samples >= population)
     return torch::arange(population, at::kLong);
