@@ -79,11 +79,11 @@ where `${CUDA}` should be replaced by either `cpu`, `cu101`, `cu102`, or `cu111`
 
 ### From source
 
-Ensure that at least PyTorch 1.4.0 is installed and verify that `cuda/bin` and `cuda/include` are in your `$PATH` and `$CPATH` respectively, *e.g.*:
+Ensure that at least PyTorch 1.7.0 is installed and verify that `cuda/bin` and `cuda/include` are in your `$PATH` and `$CPATH` respectively, *e.g.*:
 
 ```
 $ python -c "import torch; print(torch.__version__)"
->>> 1.4.0
+>>> 1.7.0
 
 $ echo $PATH
 >>> /usr/local/cuda/bin:...
