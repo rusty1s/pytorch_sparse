@@ -162,7 +162,7 @@ public:
     if (torch::autograd::any_variable_requires_grad({mat})) {
       row = row.index_select(0, csr2csc);
       rowcount = rowcount.toType(mat.scalar_type()).index_select(0, row);
-      rowcount.clamp_(1);
+      rowcount.masked_fill_(rowcount < 1, 1);
 
       if (has_value > 0)
         rowcount = value.index_select(0, csr2csc).div(rowcount);

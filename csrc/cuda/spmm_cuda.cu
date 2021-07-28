@@ -132,7 +132,8 @@ spmm_cuda(torch::Tensor rowptr, torch::Tensor col,
   auto BLOCKS = dim3((32 * B * M + THREADS - 1) / THREADS, (K + 31) / 32);
 
   auto stream = at::cuda::getCurrentCUDAStream();
-  AT_DISPATCH_ALL_TYPES(mat.scalar_type(), "spmm_kernel", [&] {
+
+  AT_DISPATCH_ALL_TYPES_AND(at::ScalarType::Half, mat.scalar_type(), "_", [&] {
     auto mat_data = mat.data_ptr<scalar_t>();
     auto out_data = out.data_ptr<scalar_t>();
 
@@ -219,7 +220,8 @@ torch::Tensor spmm_value_bw_cuda(torch::Tensor row, torch::Tensor rowptr,
   auto col_data = col.data_ptr<int64_t>();
 
   auto stream = at::cuda::getCurrentCUDAStream();
-  AT_DISPATCH_ALL_TYPES(mat.scalar_type(), "spmm_val_bw_kernel", [&] {
+
+  AT_DISPATCH_ALL_TYPES_AND(at::ScalarType::Half, mat.scalar_type(), "_", [&] {
     auto mat_data = mat.data_ptr<scalar_t>();
     auto grad_data = grad.data_ptr<scalar_t>();
     auto out_data = out.data_ptr<scalar_t>();
