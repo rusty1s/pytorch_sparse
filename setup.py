@@ -102,7 +102,7 @@ tests_require = ['pytest', 'pytest-runner', 'pytest-cov']
 
 setup(
     name='torch_sparse',
-    version='0.6.10',
+    version='0.6.11',
     author='Matthias Fey',
     author_email='matthias.fey@tu-dortmund.de',
     url='https://github.com/rusty1s/pytorch_sparse',

@@ -78,9 +78,16 @@ def spspmm_sum(src: SparseTensor, other: SparseTensor) -> SparseTensor:
     assert src.sparse_size(1) == other.sparse_size(0)
     rowptrA, colA, valueA = src.csr()
     rowptrB, colB, valueB = other.csr()
+    value = valueA
+    if valueA is not None and valueA.dtype == torch.half:
+        valueA = valueA.to(torch.float)
+    if valueB is not None and valueB.dtype == torch.half:
+        valueB = valueB.to(torch.float)
     M, K = src.sparse_size(0), other.sparse_size(1)
     rowptrC, colC, valueC = torch.ops.torch_sparse.spspmm_sum(
         rowptrA, colA, valueA, rowptrB, colB, valueB, K)
+    if valueC is not None and value is not None:
+        valueC = valueC.to(value.dtype)
     return SparseTensor(row=None, rowptr=rowptrC, col=colC, value=valueC,
                         sparse_sizes=(M, K), is_sorted=True)
 

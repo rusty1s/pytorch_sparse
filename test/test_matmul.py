@@ -47,9 +47,6 @@ def test_spmm(dtype, device, reduce):
 
 @pytest.mark.parametrize('dtype,device', product(grad_dtypes, devices))
 def test_spspmm(dtype, device):
-    if dtype == torch.half:
-        return  # TODO
-
     src = torch.tensor([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=dtype,
                        device=device)
 
