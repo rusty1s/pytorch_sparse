@@ -34,7 +34,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Free up disk space
-        if: ${{ runner.os == 'Linux' && matrix.cuda-version == 'cu111' }}
+        if: ${{ runner.os == 'Linux' }}
         run: |
           sudo rm -rf /usr/share/dotnet
 
