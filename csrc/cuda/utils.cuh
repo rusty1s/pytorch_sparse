@@ -6,13 +6,10 @@
   AT_ASSERTM(x.device().is_cuda(), #x " must be CUDA tensor")
 #define CHECK_INPUT(x) AT_ASSERTM(x, "Input mismatch")
 
-#ifndef _WIN32
-__device__ __inline__ at::Half __shfl_sync(const unsigned mask,
-                                           const at::Half var,
-                                           const unsigned int srcLane) {
+__device__ __inline__ at::Half
+__shfl_sync(const unsigned mask, const at::Half var, const int srcLane) {
   return __shfl_sync(mask, (__half)var, srcLane);
 }
-#endif
 
 __device__ __inline__ at::Half __shfl_down_sync(const unsigned mask,
                                                 const at::Half var,
