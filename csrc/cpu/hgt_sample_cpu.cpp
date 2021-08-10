@@ -102,7 +102,7 @@ hgt_sample_cpu(const c10::Dict<rel_t, torch::Tensor> &colptr_dict,
                const int64_t num_hops) {
 
   // Create a mapping to convert single string relations to edge type triplets:
-  std::unordered_map<rel_t, edge_t> to_edge_type;
+  unordered_map<rel_t, edge_t> to_edge_type;
   for (const auto &kv : colptr_dict) {
     const auto &rel_type = kv.key();
     to_edge_type[rel_type] = split(rel_type);

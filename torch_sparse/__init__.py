@@ -9,7 +9,8 @@ suffix = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 for library in [
         '_version', '_convert', '_diag', '_spmm', '_spspmm', '_metis', '_rw',
-        '_saint', '_sample', '_ego_sample', '_hgt_sample', '_relabel'
+        '_saint', '_sample', '_ego_sample', '_hgt_sample', '_neighbor_sample',
+        '_relabel'
 ]:
     torch.ops.load_library(importlib.machinery.PathFinder().find_spec(
         f'{library}_{suffix}', [osp.dirname(__file__)]).origin)
