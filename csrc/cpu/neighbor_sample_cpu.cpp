@@ -11,6 +11,8 @@ tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
 sample(const torch::Tensor &colptr, const torch::Tensor &row,
        const torch::Tensor &input_node, const vector<int64_t> num_neighbors) {
 
+  srand(time(NULL) + 1000 * getpid()); // Initialize random seed.
+
   // Initialize some data structures for the sampling process:
   vector<int64_t> samples;
   unordered_map<int64_t, int64_t> to_local_node;
@@ -120,6 +122,8 @@ hetero_sample(const vector<node_t> &node_types,
               const c10::Dict<node_t, torch::Tensor> &input_node_dict,
               const c10::Dict<rel_t, vector<int64_t>> &num_neighbors_dict,
               const int64_t num_hops) {
+
+  srand(time(NULL) + 1000 * getpid()); // Initialize random seed.
 
   // Create a mapping to convert single string relations to edge type triplets:
   unordered_map<rel_t, edge_t> to_edge_type;

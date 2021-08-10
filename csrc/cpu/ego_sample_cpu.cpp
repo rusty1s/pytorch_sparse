@@ -15,6 +15,8 @@ ego_k_hop_sample_adj_cpu(torch::Tensor rowptr, torch::Tensor col,
                          torch::Tensor idx, int64_t depth,
                          int64_t num_neighbors, bool replace) {
 
+  srand(time(NULL) + 1000 * getpid()); // Initialize random seed.
+
   std::vector<torch::Tensor> out_rowptrs(idx.numel() + 1);
   std::vector<torch::Tensor> out_cols(idx.numel());
   std::vector<torch::Tensor> out_n_ids(idx.numel());

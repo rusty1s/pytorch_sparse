@@ -11,6 +11,8 @@ sample_adj_cpu(torch::Tensor rowptr, torch::Tensor col, torch::Tensor idx,
   CHECK_CPU(idx);
   CHECK_INPUT(idx.dim() == 1);
 
+  srand(time(NULL) + 1000 * getpid()); // Initialize random seed.
+
   auto rowptr_data = rowptr.data_ptr<int64_t>();
   auto col_data = col.data_ptr<int64_t>();
   auto idx_data = idx.data_ptr<int64_t>();
