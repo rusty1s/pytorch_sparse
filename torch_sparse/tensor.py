@@ -435,6 +435,7 @@ class SparseTensor(object):
 
 def share_memory_(self: SparseTensor) -> SparseTensor:
     self.storage.share_memory_()
+    return self
 
 
 def is_shared(self: SparseTensor) -> bool:
