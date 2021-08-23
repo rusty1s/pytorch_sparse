@@ -54,6 +54,9 @@ torch::Tensor non_diag_mask_cuda(torch::Tensor row, torch::Tensor col,
   auto mask = torch::zeros(E + num_diag, row.options().dtype(torch::kBool));
   auto mask_data = mask.data_ptr<bool>();
 
+  if (E == 0)
+    return mask;
+
   auto stream = at::cuda::getCurrentCUDAStream();
   non_diag_mask_kernel<<<(E + THREADS - 1) / THREADS, THREADS, 0, stream>>>(
       row_data, col_data, mask_data, N, k, num_diag, E);
