@@ -63,15 +63,17 @@ sample_adj_cpu(torch::Tensor rowptr, torch::Tensor col, torch::Tensor idx,
       row_start = rowptr_data[n], row_end = rowptr_data[n + 1];
       row_count = row_end - row_start;
 
-      for (int64_t j = 0; j < num_neighbors; j++) {
-        e = row_start + rand() % row_count;
-        c = col_data[e];
+      if (row_count > 0) {
+        for (int64_t j = 0; j < num_neighbors; j++) {
+          e = row_start + rand() % row_count;
+          c = col_data[e];
 
-        if (n_id_map.count(c) == 0) {
-          n_id_map[c] = n_ids.size();
-          n_ids.push_back(c);
+          if (n_id_map.count(c) == 0) {
+            n_id_map[c] = n_ids.size();
+            n_ids.push_back(c);
+          }
+          cols[i].push_back(std::make_tuple(n_id_map[c], e));
         }
-        cols[i].push_back(std::make_tuple(n_id_map[c], e));
       }
       out_rowptr_data[i + 1] = out_rowptr_data[i] + cols[i].size();
     }
