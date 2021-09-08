@@ -3,7 +3,7 @@ import os.path as osp
 
 import torch
 
-__version__ = '0.6.11'
+__version__ = '0.6.12'
 
 suffix = 'cuda' if torch.cuda.is_available() else 'cpu'
 

@@ -1,6 +1,6 @@
 package:
   name: pytorch-sparse
-  version: 0.6.11
+  version: 0.6.12
 
 source:
   path: ../..
@@ -26,8 +26,8 @@ build:
   string: py{{ environ.get('PYTHON_VERSION').replace('.', '') }}_torch_{{ environ['TORCH_VERSION'] }}_{{ environ['CUDA_VERSION'] }}
   script_env:
     - FORCE_CUDA
+    - TORCH_CUDA_ARCH_LIST
     - WITH_METIS=1
-    - TORCH_CUDA_ARCH_LIST="5.2 6.0 6.1 7.0 7.5 8.0 8.6+PTX"
   preserve_egg_dir: True
 
 test:

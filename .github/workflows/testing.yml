@@ -9,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-16.04, windows-latest]
+        os: [ubuntu-latest, windows-latest]
         python-version: [3.6]
         torch-version: [1.8.0, 1.9.0]
 
@@ -26,7 +26,7 @@ jobs:
 
       - name: Install torch-scatter
         run: |
-          pip install torch-scatter -f https://pytorch-geometric.com/whl/torch-${{ matrix.torch-version }}+cpu.html
+          pip install torch-scatter -f https://data.pyg.org/whl/torch-${{ matrix.torch-version }}+cpu.html
 
       - name: Install METIS
         if: ${{ runner.os != 'Windows' }}
