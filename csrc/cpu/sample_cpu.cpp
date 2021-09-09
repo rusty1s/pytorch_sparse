@@ -1,8 +1,10 @@
 #include "sample_cpu.h"
 
-#include <process.h>
-
 #include "utils.h"
+
+#ifdef _WIN32
+#include <process.h>
+#endif
 
 // Returns `rowptr`, `col`, `n_id`, `e_id`
 std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>

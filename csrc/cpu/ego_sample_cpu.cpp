@@ -1,9 +1,12 @@
 #include "ego_sample_cpu.h"
 
 #include <ATen/Parallel.h>
-#include <process.h>
 
 #include "utils.h"
+
+#ifdef _WIN32
+#include <process.h>
+#endif
 
 inline torch::Tensor vec2tensor(std::vector<int64_t> vec) {
   return torch::from_blob(vec.data(), {(int64_t)vec.size()}, at::kLong).clone();

@@ -1,8 +1,10 @@
 #include "neighbor_sample_cpu.h"
 
-#include <process.h>
-
 #include "utils.h"
+
+#ifdef _WIN32
+#include <process.h>
+#endif
 
 using namespace std;
 
