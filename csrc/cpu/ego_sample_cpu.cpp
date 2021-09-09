@@ -1,6 +1,7 @@
 #include "ego_sample_cpu.h"
 
 #include <ATen/Parallel.h>
+#include <process.h>
 
 #include "utils.h"
 

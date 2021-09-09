@@ -1,5 +1,7 @@
 #include "neighbor_sample_cpu.h"
 
+#include <process.h>
+
 #include "utils.h"
 
 using namespace std;

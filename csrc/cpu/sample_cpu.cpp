@@ -1,5 +1,7 @@
 #include "sample_cpu.h"
 
+#include <process.h>
+
 #include "utils.h"
 
 // Returns `rowptr`, `col`, `n_id`, `e_id`

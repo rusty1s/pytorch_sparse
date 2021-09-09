@@ -1,5 +1,7 @@
 #include "hgt_sample_cpu.h"
 
+#include <process.h>
+
 #include "utils.h"
 
 #define MAX_NEIGHBORS 50
