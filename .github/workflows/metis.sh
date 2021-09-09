@@ -12,4 +12,7 @@ make config
 make
 sudo make install
 
+sudo cp /usr/local/include/metis.h /usr/include/
+sudo cp /usr/local/lib/libmetis.a /usr/lib/
+
 rm -f "${METIS}"
