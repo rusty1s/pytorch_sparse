@@ -197,6 +197,28 @@ class SparseTensor(object):
         self.storage.clear_cache_()
         return self
 
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+
+        if self.sizes() != other.sizes():
+            return False
+
+        rowptrA, colA, valueA = self.csr()
+        rowptrB, colB, valueB = other.csr()
+
+        if valueA is None and valueB is not None:
+            return False
+        if valueA is not None and valueB is None:
+            return False
+        if not torch.equal(rowptrA, rowptrB):
+            return False
+        if not torch.equal(colA, colB):
+            return False
+        if valueA is None and valueB is None:
+            return True
+        return torch.equal(valueA, valueB)
+
     # Utility functions #######################################################
 
     def fill_value_(self, fill_value: float, dtype: Optional[int] = None):

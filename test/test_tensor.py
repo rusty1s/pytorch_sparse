@@ -37,3 +37,19 @@ def test_to_symmetric(device):
         [6, 0, 5],
         [3, 5, 0],
     ]
+
+
+def test_equal():
+    row = torch.tensor([0, 0, 0, 1, 1])
+    col = torch.tensor([0, 1, 2, 0, 2])
+    value = torch.arange(1, 6)
+    matA = SparseTensor(row=row, col=col, value=value)
+    matB = SparseTensor(row=row, col=col, value=value)
+    col = torch.tensor([0, 1, 2, 0, 1])
+    matC = SparseTensor(row=row, col=col, value=value)
+
+    assert id(matA) != id(matB)
+    assert matA == matB
+
+    assert id(matA) != id(matC)
+    assert matA != matC
