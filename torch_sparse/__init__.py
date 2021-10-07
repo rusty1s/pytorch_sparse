@@ -5,22 +5,25 @@ import torch
 
 __version__ = '0.6.12'
 
-suffix = 'cuda' if torch.cuda.is_available() else 'cpu'
-
 for library in [
         '_version', '_convert', '_diag', '_spmm', '_spspmm', '_metis', '_rw',
         '_saint', '_sample', '_ego_sample', '_hgt_sample', '_neighbor_sample',
         '_relabel'
 ]:
-    torch.ops.load_library(importlib.machinery.PathFinder().find_spec(
-        f'{library}_{suffix}', [osp.dirname(__file__)]).origin)
+    cuda_spec = importlib.machinery.PathFinder().find_spec(
+        f'{library}_cuda', [osp.dirname(__file__)])
+    cpu_spec = importlib.machinery.PathFinder().find_spec(
+        f'{library}_cpu', [osp.dirname(__file__)])
+    spec = cuda_spec or cpu_spec
+    if spec is not None:
+        torch.ops.load_library(spec.origin)
+    else:  # pragma: no cover
+        raise ImportError(f"Could not find module '{library}_cpu' in "
+                          f"{osp.dirname(__file__)}")
 
-if torch.cuda.is_available():  # pragma: no cover
-    cuda_version = torch.ops.torch_sparse.cuda_version()
-
-    if cuda_version == -1:
-        major = minor = 0
-    elif cuda_version < 10000:
+cuda_version = torch.ops.torch_sparse.cuda_version()
+if torch.cuda.is_available() and cuda_version != -1:  # pragma: no cover
+    if cuda_version < 10000:
         major, minor = int(str(cuda_version)[0]), int(str(cuda_version)[2])
     else:
         major, minor = int(str(cuda_version)[0:2]), int(str(cuda_version)[3])
