@@ -48,7 +48,7 @@ class SparseStorage(object):
         assert col.dim() == 1
         col = col.contiguous()
 
-        if sparse_sizes is None:
+        if sparse_sizes is None or sparse_sizes[0] is None or sparse_sizes[1] is None:
             if rowptr is not None:
                 M = rowptr.numel() - 1
             elif row is not None and row.numel() > 0:
