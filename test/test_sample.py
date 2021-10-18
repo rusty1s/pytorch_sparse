@@ -1,5 +1,14 @@
 import torch
-from torch_sparse import SparseTensor, sample_adj
+from torch_sparse import SparseTensor, sample, sample_adj
+
+
+def test_sample():
+    row = torch.tensor([0, 0, 2, 2])
+    col = torch.tensor([1, 2, 0, 1])
+    adj = SparseTensor(row=row, col=col, sparse_sizes=(3, 3))
+
+    out = sample(adj, num_neighbors=1)
+    assert out.min() >= 0 and out.max() <= 2
 
 
 def test_sample_adj():

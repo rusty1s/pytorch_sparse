@@ -13,6 +13,8 @@ def sample(src: SparseTensor, num_neighbors: int,
     if subset is not None:
         rowcount = rowcount[subset]
         rowptr = rowptr[subset]
+    else:
+        rowptr = rowptr[:-1]
 
     rand = torch.rand((rowcount.size(0), num_neighbors), device=col.device)
     rand.mul_(rowcount.to(rand.dtype).view(-1, 1))
