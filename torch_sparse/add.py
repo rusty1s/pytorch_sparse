@@ -41,7 +41,10 @@ def add(src, other):  # noqa: F811
 
         row = torch.cat([rowA, rowB], dim=0)
         col = torch.cat([colA, colB], dim=0)
-        value = torch.cat([valueA, valueB], dim=0)
+
+        value: Optional[Tensor] = None
+        if valueA is not None and valueB is not None:
+            value = torch.cat([valueA, valueB], dim=0)
 
         M = max(src.size(0), other.size(0))
         N = max(src.size(1), other.size(1))

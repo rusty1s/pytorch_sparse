@@ -2,7 +2,7 @@ from itertools import product
 
 import pytest
 import torch
-from torch_sparse import SparseTensor
+from torch_sparse import SparseTensor, add
 
 from .utils import dtypes, devices, tensor
 
@@ -25,3 +25,9 @@ def test_add(dtype, device):
     assert rowC.tolist() == [0, 0, 0, 1, 1, 2, 2, 2]
     assert colC.tolist() == [0, 1, 2, 1, 2, 0, 1, 2]
     assert valueC.tolist() == [1, 2, 5, 4, 1, 1, 5, 4]
+
+    @torch.jit.script
+    def jit_add(A: SparseTensor, B: SparseTensor) -> SparseTensor:
+        return add(A, B)
+
+    jit_add(A, B)
