@@ -16,7 +16,8 @@ class SparseTensor(object):
                  rowptr: Optional[torch.Tensor] = None,
                  col: Optional[torch.Tensor] = None,
                  value: Optional[torch.Tensor] = None,
-                 sparse_sizes: Optional[Tuple[int, int]] = None,
+                 sparse_sizes: Optional[Tuple[Optional[int],
+                                              Optional[int]]] = None,
                  is_sorted: bool = False):
         self.storage = SparseStorage(row=row, rowptr=rowptr, col=col,
                                      value=value, sparse_sizes=sparse_sizes,
@@ -39,7 +40,8 @@ class SparseTensor(object):
     @classmethod
     def from_edge_index(self, edge_index: torch.Tensor,
                         edge_attr: Optional[torch.Tensor] = None,
-                        sparse_sizes: Optional[Tuple[int, int]] = None,
+                        sparse_sizes: Optional[Tuple[Optional[int],
+                                                     Optional[int]]] = None,
                         is_sorted: bool = False):
         return SparseTensor(row=edge_index[0], rowptr=None, col=edge_index[1],
                             value=edge_attr, sparse_sizes=sparse_sizes,
