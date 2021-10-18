@@ -56,20 +56,24 @@ class SparseStorage(object):
             elif row is not None and row.numel() > 0:
                 M = int(row.max()) + 1
         else:
-            M = sparse_sizes[0]
+            _M = sparse_sizes[0]
+            assert _M is not None
+            M = _M
             if rowptr is not None:
-                assert rowptr.numel() - 1 == sparse_sizes[0]
+                assert rowptr.numel() - 1 == M
             elif row is not None and row.numel() > 0:
-                assert int(row.max()) < sparse_sizes[0]
+                assert int(row.max()) < M
 
         N: int = 0
         if sparse_sizes is None or sparse_sizes[1] is None:
             if col.numel() > 0:
                 N = int(col.max()) + 1
         else:
-            N = sparse_sizes[1]
+            _N = sparse_sizes[1]
+            assert _N is not None
+            N = _N
             if col.numel() > 0:
-                assert int(col.max()) < sparse_sizes[1]
+                assert int(col.max()) < N
 
         sparse_sizes = (M, N)
 
