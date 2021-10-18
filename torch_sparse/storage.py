@@ -292,7 +292,7 @@ class SparseStorage(object):
 
         idx = self.sparse_size(1) * self.row() + self.col()
 
-        row = idx // num_cols
+        row = torch.div(idx, num_cols, rounding_mode='floor')
         col = idx % num_cols
         assert row.dtype == torch.long and col.dtype == torch.long
 

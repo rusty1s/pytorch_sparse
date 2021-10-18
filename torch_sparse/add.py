@@ -1,34 +1,66 @@
 from typing import Optional
 
 import torch
+from torch import Tensor
 from torch_scatter import gather_csr
 from torch_sparse.tensor import SparseTensor
 
 
-def add(src: SparseTensor, other: torch.Tensor) -> SparseTensor:
-    rowptr, col, value = src.csr()
-    if other.size(0) == src.size(0) and other.size(1) == 1:  # Row-wise...
-        other = gather_csr(other.squeeze(1), rowptr)
-        pass
-    elif other.size(0) == 1 and other.size(1) == src.size(1):  # Col-wise...
-        other = other.squeeze(0)[col]
+@torch.jit._overload  # noqa: F811
+def add(src, other):  # noqa: F811
+    # type: (SparseTensor, Tensor) -> SparseTensor
+    pass
+
+
+@torch.jit._overload  # noqa: F811
+def add(src, other):  # noqa: F811
+    # type: (SparseTensor, SparseTensor) -> SparseTensor
+    pass
+
+
+def add(src, other):  # noqa: F811
+    if isinstance(other, Tensor):
+        rowptr, col, value = src.csr()
+        if other.size(0) == src.size(0) and other.size(1) == 1:  # Row-wise.
+            other = gather_csr(other.squeeze(1), rowptr)
+        elif other.size(0) == 1 and other.size(1) == src.size(1):  # Col-wise.
+            other = other.squeeze(0)[col]
+        else:
+            raise ValueError(
+                f'Size mismatch: Expected size ({src.size(0)}, 1, ...) or '
+                f'(1, {src.size(1)}, ...), but got size {other.size()}.')
+        if value is not None:
+            value = other.to(value.dtype).add_(value)
+        else:
+            value = other.add_(1)
+        return src.set_value(value, layout='coo')
+
+    elif isinstance(other, SparseTensor):
+        rowA, colA, valueA = src.coo()
+        rowB, colB, valueB = other.coo()
+
+        row = torch.cat([rowA, rowB], dim=0)
+        col = torch.cat([colA, colB], dim=0)
+        value = torch.cat([valueA, valueB], dim=0)
+
+        M = max(src.size(0), other.size(0))
+        N = max(src.size(1), other.size(1))
+        sparse_sizes = (M, N)
+
+        out = SparseTensor(row=row, col=col, value=value,
+                           sparse_sizes=sparse_sizes)
+        out = out.coalesce(reduce='sum')
+        return out
+
     else:
-        raise ValueError(
-            f'Size mismatch: Expected size ({src.size(0)}, 1, ...) or '
-            f'(1, {src.size(1)}, ...), but got size {other.size()}.')
-    if value is not None:
-        value = other.to(value.dtype).add_(value)
-    else:
-        value = other.add_(1)
-    return src.set_value(value, layout='coo')
+        raise NotImplementedError
 
 
 def add_(src: SparseTensor, other: torch.Tensor) -> SparseTensor:
     rowptr, col, value = src.csr()
-    if other.size(0) == src.size(0) and other.size(1) == 1:  # Row-wise...
+    if other.size(0) == src.size(0) and other.size(1) == 1:  # Row-wise.
         other = gather_csr(other.squeeze(1), rowptr)
-        pass
-    elif other.size(0) == 1 and other.size(1) == src.size(1):  # Col-wise...
+    elif other.size(0) == 1 and other.size(1) == src.size(1):  # Col-wise.
         other = other.squeeze(0)[col]
     else:
         raise ValueError(
