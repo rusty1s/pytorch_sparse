@@ -65,6 +65,7 @@ from .transpose import transpose  # noqa
 from .eye import eye  # noqa
 from .spmm import spmm  # noqa
 from .spspmm import spspmm  # noqa
+from .spadd import spadd  # noqa
 
 __all__ = [
     'SparseStorage',
@@ -111,5 +112,6 @@ __all__ = [
     'eye',
     'spmm',
     'spspmm',
+    'spadd',
     '__version__',
 ]
