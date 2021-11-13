@@ -45,6 +45,8 @@ def get_extensions():
             define_macros += [('MTMETIS_64BIT_PARTITIONS', None)]
             libraries += ['mtmetis', 'wildriver']
         extra_compile_args = {'cxx': ['-O2']}
+        if not os.name == 'nt':  # Not on Windows:
+            extra_compile_args['cxx'] += ['-Wno-sign-compare']
         extra_link_args = ['-s']
 
         info = parallel_info()
