@@ -17,8 +17,10 @@ def test_getitem(dtype, device):
 
     idx1 = torch.randint(0, m, (k,), dtype=torch.long, device=device)
     idx2 = torch.randint(0, n, (k,), dtype=torch.long, device=device)
-    bool1 = torch.zeros(m, dtype=torch.bool, device=device).scatter_(0, idx1, 1)
-    bool2 = torch.zeros(n, dtype=torch.bool, device=device).scatter_(0, idx2, 1)
+    bool1 = torch.zeros(m, dtype=torch.bool, device=device)
+    bool2 = torch.zeros(n, dtype=torch.bool, device=device)
+    bool1.scatter_(0, idx1, 1)
+    bool2.scatter_(0, idx2, 1)
     # idx1 and idx2 may have duplicates
     k1_bool = bool1.nonzero().size(0)
     k2_bool = bool2.nonzero().size(0)
