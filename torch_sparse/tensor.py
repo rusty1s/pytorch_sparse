@@ -225,12 +225,12 @@ class SparseTensor(object):
     # Utility functions #######################################################
 
     def fill_value_(self, fill_value: float, dtype: Optional[int] = None):
-        value = torch.full((self.nnz(),), fill_value, dtype=dtype,
+        value = torch.full((self.nnz(), ), fill_value, dtype=dtype,
                            device=self.device())
         return self.set_value_(value, layout='coo')
 
     def fill_value(self, fill_value: float, dtype: Optional[int] = None):
-        value = torch.full((self.nnz(),), fill_value, dtype=dtype,
+        value = torch.full((self.nnz(), ), fill_value, dtype=dtype,
                            device=self.device())
         return self.set_value(value, layout='coo')
 
@@ -305,7 +305,7 @@ class SparseTensor(object):
         N = max(self.size(0), self.size(1))
 
         row, col, value = self.coo()
-        idx = col.new_full((2 * col.numel() + 1,), -1)
+        idx = col.new_full((2 * col.numel() + 1, ), -1)
         idx[1:row.numel() + 1] = row
         idx[row.numel() + 1:] = col
         idx[1:] *= N
@@ -319,7 +319,7 @@ class SparseTensor(object):
 
         if value is not None:
             ptr = mask.nonzero().flatten()
-            ptr = torch.cat([ptr, ptr.new_full((1,), perm.size(0))])
+            ptr = torch.cat([ptr, ptr.new_full((1, ), perm.size(0))])
             value = torch.cat([value, value])[perm]
             value = segment_csr(value, ptr, reduce=reduce)
 
@@ -491,18 +491,18 @@ def cuda(self, device: Optional[Union[int, str]] = None,
 def __getitem__(self: SparseTensor, index: Any) -> SparseTensor:
     index = list(index) if isinstance(index, tuple) else [index]
     # More than one `Ellipsis` is not allowed...
-    if len([i for i in index if (not isinstance(i, (torch.Tensor, np.ndarray))
-                                 and i == ...)]) > 1:
+    if len([i for i in index if i == ...]) > 1:
         raise SyntaxError
 
     dim = 0
     out = self
     while len(index) > 0:
         item = index.pop(0)
-        if isinstance(item, (list, tuple, np.ndarray)):
-            dt = torch.bool if (type(item[0]) in (np.bool_, bool, torch.bool)
-                                ) else torch.long
-            item = torch.tensor(item, device=self.device(), dtype=dt)
+        if isinstance(item, (list, tuple)):
+            item = torch.tensor(item, device=self.device())
+        if isinstance(item, np.ndarray):
+            item = torch.from_numpy(item).to(self.device())
+
         if isinstance(item, int):
             out = out.select(dim, item)
             dim += 1
