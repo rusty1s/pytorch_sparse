@@ -1,8 +1,8 @@
 from textwrap import indent
 from typing import Optional, List, Tuple, Dict, Union, Any
 
-import numpy as np
 import torch
+import numpy as np
 import scipy.sparse
 from torch_scatter import segment_csr
 
