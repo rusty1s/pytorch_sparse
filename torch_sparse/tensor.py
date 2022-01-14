@@ -2,6 +2,7 @@ from textwrap import indent
 from typing import Optional, List, Tuple, Dict, Union, Any
 
 import torch
+import numpy as np
 import scipy.sparse
 from torch_scatter import segment_csr
 
@@ -468,7 +469,6 @@ def is_shared(self: SparseTensor) -> bool:
 
 def to(self, *args: Optional[List[Any]],
        **kwargs: Optional[Dict[str, Any]]) -> SparseTensor:
-
     device, dtype, non_blocking = torch._C._nn._parse_to(*args, **kwargs)[:3]
 
     if dtype is not None:
@@ -491,7 +491,10 @@ def cuda(self, device: Optional[Union[int, str]] = None,
 def __getitem__(self: SparseTensor, index: Any) -> SparseTensor:
     index = list(index) if isinstance(index, tuple) else [index]
     # More than one `Ellipsis` is not allowed...
-    if len([i for i in index if not torch.is_tensor(i) and i == ...]) > 1:
+    if len([
+            i for i in index
+            if not isinstance(i, (torch.Tensor, np.ndarray)) and i == ...
+    ]) > 1:
         raise SyntaxError
 
     dim = 0
@@ -499,7 +502,10 @@ def __getitem__(self: SparseTensor, index: Any) -> SparseTensor:
     while len(index) > 0:
         item = index.pop(0)
         if isinstance(item, (list, tuple)):
-            item = torch.tensor(item, dtype=torch.long, device=self.device())
+            item = torch.tensor(item, device=self.device())
+        if isinstance(item, np.ndarray):
+            item = torch.from_numpy(item).to(self.device())
+
         if isinstance(item, int):
             out = out.select(dim, item)
             dim += 1
