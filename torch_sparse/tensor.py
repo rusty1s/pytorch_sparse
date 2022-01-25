@@ -19,18 +19,32 @@ class SparseTensor(object):
                  value: Optional[torch.Tensor] = None,
                  sparse_sizes: Optional[Tuple[Optional[int],
                                               Optional[int]]] = None,
-                 is_sorted: bool = False):
-        self.storage = SparseStorage(row=row, rowptr=rowptr, col=col,
-                                     value=value, sparse_sizes=sparse_sizes,
-                                     rowcount=None, colptr=None, colcount=None,
-                                     csr2csc=None, csc2csr=None,
-                                     is_sorted=is_sorted)
+                 is_sorted: bool = False,
+                 trust_data: bool = False):
+        self.storage = SparseStorage(
+            row=row,
+            rowptr=rowptr,
+            col=col,
+            value=value,
+            sparse_sizes=sparse_sizes,
+            rowcount=None,
+            colptr=None,
+            colcount=None,
+            csr2csc=None,
+            csc2csr=None,
+            is_sorted=is_sorted,
+            trust_data=trust_data)
 
     @classmethod
     def from_storage(self, storage: SparseStorage):
-        out = SparseTensor(row=storage._row, rowptr=storage._rowptr,
-                           col=storage._col, value=storage._value,
-                           sparse_sizes=storage._sparse_sizes, is_sorted=True)
+        out = SparseTensor(
+            row=storage._row,
+            rowptr=storage._rowptr,
+            col=storage._col,
+            value=storage._value,
+            sparse_sizes=storage._sparse_sizes,
+            is_sorted=True,
+            trust_data=True)
         out.storage._rowcount = storage._rowcount
         out.storage._colptr = storage._colptr
         out.storage._colcount = storage._colcount
@@ -43,10 +57,11 @@ class SparseTensor(object):
                         edge_attr: Optional[torch.Tensor] = None,
                         sparse_sizes: Optional[Tuple[Optional[int],
                                                      Optional[int]]] = None,
-                        is_sorted: bool = False):
+                        is_sorted: bool = False,
+                        trust_data: bool = False):
         return SparseTensor(row=edge_index[0], rowptr=None, col=edge_index[1],
                             value=edge_attr, sparse_sizes=sparse_sizes,
-                            is_sorted=is_sorted)
+                            is_sorted=is_sorted, trust_data=trust_data)
 
     @classmethod
     def from_dense(self, mat: torch.Tensor, has_value: bool = True):
@@ -65,7 +80,7 @@ class SparseTensor(object):
 
         return SparseTensor(row=row, rowptr=None, col=col, value=value,
                             sparse_sizes=(mat.size(0), mat.size(1)),
-                            is_sorted=True)
+                            is_sorted=True, trust_data=True)
 
     @classmethod
     def from_torch_sparse_coo_tensor(self, mat: torch.Tensor,
@@ -80,7 +95,7 @@ class SparseTensor(object):
 
         return SparseTensor(row=row, rowptr=None, col=col, value=value,
                             sparse_sizes=(mat.size(0), mat.size(1)),
-                            is_sorted=True)
+                            is_sorted=True, trust_data=True)
 
     @classmethod
     def eye(self, M: int, N: Optional[int] = None, has_value: bool = True,
@@ -118,8 +133,14 @@ class SparseTensor(object):
                 colcount[M:] = 0
             csr2csc = csc2csr = row
 
-        out = SparseTensor(row=row, rowptr=rowptr, col=col, value=value,
-                           sparse_sizes=(M, N), is_sorted=True)
+        out = SparseTensor(
+            row=row,
+            rowptr=rowptr,
+            col=col,
+            value=value,
+            sparse_sizes=(M, N),
+            is_sorted=True,
+            trust_data=True)
         out.storage._rowcount = rowcount
         out.storage._colptr = colptr
         out.storage._colcount = colcount
@@ -133,16 +154,24 @@ class SparseTensor(object):
     def clone(self):
         return self.from_storage(self.storage.clone())
 
-    def type_as(self, tensor: torch.Tensor):
+    def type(self, dtype: torch.dtype, non_blocking: bool = False):
         value = self.storage.value()
-        if value is None or tensor.dtype == value.dtype:
+        if value is None or dtype == value.dtype:
             return self
-        return self.from_storage(self.storage.type_as(tensor))
+        return self.from_storage(self.storage.type(
+            dtype=dtype, non_blocking=non_blocking))
+
+    def type_as(self, tensor: torch.Tensor, non_blocking: bool = False):
+        return self.type(dtype=tensor.dtype, non_blocking=non_blocking)
+
+    def to_device(self, device: torch.device, non_blocking: bool = False):
+        if device == self.device():
+            return self
+        return self.from_storage(self.storage.to_device(
+            device=device, non_blocking=non_blocking))
 
     def device_as(self, tensor: torch.Tensor, non_blocking: bool = False):
-        if tensor.device == self.device():
-            return self
-        return self.from_storage(self.storage.device_as(tensor, non_blocking))
+        return self.to_device(device=tensor.device, non_blocking=non_blocking)
 
     # Formats #################################################################
 
@@ -326,8 +355,14 @@ class SparseTensor(object):
         new_row = torch.cat([row, col], dim=0, out=perm)[idx]
         new_col = torch.cat([col, row], dim=0, out=perm)[idx]
 
-        out = SparseTensor(row=new_row, rowptr=None, col=new_col, value=value,
-                           sparse_sizes=(N, N), is_sorted=True)
+        out = SparseTensor(
+            row=new_row,
+            rowptr=None,
+            col=new_col,
+            value=value,
+            sparse_sizes=(N, N),
+            is_sorted=True,
+            trust_data=True)
         return out
 
     def detach_(self):
@@ -369,7 +404,7 @@ class SparseTensor(object):
         return self.storage.col().device
 
     def cpu(self):
-        return self.device_as(torch.tensor(0), non_blocking=False)
+        return self.to_device(device=torch.device('cpu'), non_blocking=False)
 
     def cuda(self):
         return self.from_storage(self.storage.cuda())
@@ -386,44 +421,34 @@ class SparseTensor(object):
         return torch.is_floating_point(value) if value is not None else True
 
     def bfloat16(self):
-        return self.type_as(
-            torch.tensor(0, dtype=torch.bfloat16, device=self.device()))
+        return self.type(dtype=torch.bfloat16, non_blocking=False)
 
     def bool(self):
-        return self.type_as(
-            torch.tensor(0, dtype=torch.bool, device=self.device()))
+        return self.type(dtype=torch.bool, non_blocking=False)
 
     def byte(self):
-        return self.type_as(
-            torch.tensor(0, dtype=torch.uint8, device=self.device()))
+        return self.type(dtype=torch.uint8, non_blocking=False)
 
     def char(self):
-        return self.type_as(
-            torch.tensor(0, dtype=torch.int8, device=self.device()))
+        return self.type(dtype=torch.int8, non_blocking=False)
 
     def half(self):
-        return self.type_as(
-            torch.tensor(0, dtype=torch.half, device=self.device()))
+        return self.type(dtype=torch.half, non_blocking=False)
 
     def float(self):
-        return self.type_as(
-            torch.tensor(0, dtype=torch.float, device=self.device()))
+        return self.type(dtype=torch.float, non_blocking=False)
 
     def double(self):
-        return self.type_as(
-            torch.tensor(0, dtype=torch.double, device=self.device()))
+        return self.type(dtype=torch.double, non_blocking=False)
 
     def short(self):
-        return self.type_as(
-            torch.tensor(0, dtype=torch.short, device=self.device()))
+        return self.type(dtype=torch.short, non_blocking=False)
 
     def int(self):
-        return self.type_as(
-            torch.tensor(0, dtype=torch.int, device=self.device()))
+        return self.type(dtype=torch.int, non_blocking=False)
 
     def long(self):
-        return self.type_as(
-            torch.tensor(0, dtype=torch.long, device=self.device()))
+        return self.type(dtype=torch.long, non_blocking=False)
 
     # Conversions #############################################################
 
@@ -472,9 +497,9 @@ def to(self, *args: Optional[List[Any]],
     device, dtype, non_blocking = torch._C._nn._parse_to(*args, **kwargs)[:3]
 
     if dtype is not None:
-        self = self.type_as(torch.tensor(0., dtype=dtype))
+        self = self.type(dtype=dtype, non_blocking=non_blocking)
     if device is not None:
-        self = self.device_as(torch.tensor(0., device=device), non_blocking)
+        self = self.to_device(device=device, non_blocking=non_blocking)
 
     return self
 
