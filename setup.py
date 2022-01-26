@@ -24,6 +24,8 @@ BUILD_DOCS = os.getenv('BUILD_DOCS', '0') == '1'
 WITH_METIS = True if os.getenv('WITH_METIS', '0') == '1' else False
 WITH_MTMETIS = True if os.getenv('WITH_MTMETIS', '0') == '1' else False
 
+WITH_SYMBOLS = True if os.getenv('WITH_SYMBOLS', '0') == '1' else False
+
 
 def get_extensions():
     extensions = []
@@ -47,7 +49,7 @@ def get_extensions():
         extra_compile_args = {'cxx': ['-O2']}
         if not os.name == 'nt':  # Not on Windows:
             extra_compile_args['cxx'] += ['-Wno-sign-compare']
-        extra_link_args = ['-s']
+        extra_link_args = [] if WITH_SYMBOLS else ['-s']
 
         info = parallel_info()
         if ('backend: OpenMP' in info and 'OpenMP not found' not in info

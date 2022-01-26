@@ -41,7 +41,8 @@ class SparseStorage(object):
                  colcount: Optional[torch.Tensor] = None,
                  csr2csc: Optional[torch.Tensor] = None,
                  csc2csr: Optional[torch.Tensor] = None,
-                 is_sorted: bool = False):
+                 is_sorted: bool = False,
+                 trust_data: bool = False):
 
         assert row is not None or rowptr is not None
         assert col is not None
@@ -62,7 +63,7 @@ class SparseStorage(object):
             if rowptr is not None:
                 assert rowptr.numel() - 1 == M
             elif row is not None and row.numel() > 0:
-                assert int(row.max()) < M
+                assert trust_data or int(row.max()) < M
 
         N: int = 0
         if sparse_sizes is None or sparse_sizes[1] is None:
@@ -73,7 +74,7 @@ class SparseStorage(object):
             assert _N is not None
             N = _N
             if col.numel() > 0:
-                assert int(col.max()) < N
+                assert trust_data or int(col.max()) < N
 
         sparse_sizes = (M, N)
 
@@ -163,7 +164,7 @@ class SparseStorage(object):
         return SparseStorage(row=row, rowptr=None, col=col, value=None,
                              sparse_sizes=(0, 0), rowcount=None, colptr=None,
                              colcount=None, csr2csc=None, csc2csr=None,
-                             is_sorted=True)
+                             is_sorted=True, trust_data=True)
 
     def has_row(self) -> bool:
         return self._row is not None
@@ -227,11 +228,19 @@ class SparseStorage(object):
             assert value.device == self._col.device
             assert value.size(0) == self._col.numel()
 
-        return SparseStorage(row=self._row, rowptr=self._rowptr, col=self._col,
-                             value=value, sparse_sizes=self._sparse_sizes,
-                             rowcount=self._rowcount, colptr=self._colptr,
-                             colcount=self._colcount, csr2csc=self._csr2csc,
-                             csc2csr=self._csc2csr, is_sorted=True)
+        return SparseStorage(
+            row=self._row,
+            rowptr=self._rowptr,
+            col=self._col,
+            value=value,
+            sparse_sizes=self._sparse_sizes,
+            rowcount=self._rowcount,
+            colptr=self._colptr,
+            colcount=self._colcount,
+            csr2csc=self._csr2csc,
+            csc2csr=self._csc2csr,
+            is_sorted=True,
+            trust_data=True)
 
     def sparse_sizes(self) -> Tuple[int, int]:
         return self._sparse_sizes
@@ -269,11 +278,19 @@ class SparseStorage(object):
             if colcount is not None:
                 colcount = colcount[:-diff_1]
 
-        return SparseStorage(row=self._row, rowptr=rowptr, col=self._col,
-                             value=self._value, sparse_sizes=sparse_sizes,
-                             rowcount=rowcount, colptr=colptr,
-                             colcount=colcount, csr2csc=self._csr2csc,
-                             csc2csr=self._csc2csr, is_sorted=True)
+        return SparseStorage(
+            row=self._row,
+            rowptr=rowptr,
+            col=self._col,
+            value=self._value,
+            sparse_sizes=sparse_sizes,
+            rowcount=rowcount,
+            colptr=colptr,
+            colcount=colcount,
+            csr2csc=self._csr2csc,
+            csc2csr=self._csc2csr,
+            is_sorted=True,
+            trust_data=True)
 
     def sparse_reshape(self, num_rows: int, num_cols: int):
         assert num_rows > 0 or num_rows == -1
@@ -299,7 +316,7 @@ class SparseStorage(object):
         return SparseStorage(row=row, rowptr=None, col=col, value=self._value,
                              sparse_sizes=(num_rows, num_cols), rowcount=None,
                              colptr=None, colcount=None, csr2csc=None,
-                             csc2csr=None, is_sorted=True)
+                             csc2csr=None, is_sorted=True, trust_data=True)
 
     def has_rowcount(self) -> bool:
         return self._rowcount is not None
@@ -399,7 +416,7 @@ class SparseStorage(object):
         return SparseStorage(row=row, rowptr=None, col=col, value=value,
                              sparse_sizes=self._sparse_sizes, rowcount=None,
                              colptr=None, colcount=None, csr2csc=None,
-                             csc2csr=None, is_sorted=True)
+                             csc2csr=None, is_sorted=True, trust_data=True)
 
     def fill_cache_(self):
         self.row()
@@ -437,12 +454,19 @@ class SparseStorage(object):
         return len(self.cached_keys())
 
     def copy(self):
-        return SparseStorage(row=self._row, rowptr=self._rowptr, col=self._col,
-                             value=self._value,
-                             sparse_sizes=self._sparse_sizes,
-                             rowcount=self._rowcount, colptr=self._colptr,
-                             colcount=self._colcount, csr2csc=self._csr2csc,
-                             csc2csr=self._csc2csr, is_sorted=True)
+        return SparseStorage(
+            row=self._row,
+            rowptr=self._rowptr,
+            col=self._col,
+            value=self._value,
+            sparse_sizes=self._sparse_sizes,
+            rowcount=self._rowcount,
+            colptr=self._colptr,
+            colcount=self._colcount,
+            csr2csc=self._csr2csc,
+            csc2csr=self._csc2csr,
+            is_sorted=True,
+            trust_data=True)
 
     def clone(self):
         row = self._row
@@ -475,53 +499,63 @@ class SparseStorage(object):
                              sparse_sizes=self._sparse_sizes,
                              rowcount=rowcount, colptr=colptr,
                              colcount=colcount, csr2csc=csr2csc,
-                             csc2csr=csc2csr, is_sorted=True)
+                             csc2csr=csc2csr, is_sorted=True, trust_data=True)
 
-    def type_as(self, tensor: torch.Tensor):
+    def type(self, dtype: torch.dtype, non_blocking: bool = False):
         value = self._value
         if value is not None:
-            if tensor.dtype == value.dtype:
+            if dtype == value.dtype:
                 return self
             else:
-                return self.set_value(value.type_as(tensor), layout='coo')
+                return self.set_value(
+                    value.to(
+                        dtype=dtype,
+                        non_blocking=non_blocking),
+                    layout='coo')
         else:
             return self
 
-    def device_as(self, tensor: torch.Tensor, non_blocking: bool = False):
-        if tensor.device == self._col.device:
+    def type_as(self, tensor: torch.Tensor, non_blocking: bool = False):
+        return self.type(dtype=tensor.dtype, non_blocking=non_blocking)
+
+    def to_device(self, device: torch.device, non_blocking: bool = False):
+        if device == self._col.device:
             return self
 
         row = self._row
         if row is not None:
-            row = row.to(tensor.device, non_blocking=non_blocking)
+            row = row.to(device, non_blocking=non_blocking)
         rowptr = self._rowptr
         if rowptr is not None:
-            rowptr = rowptr.to(tensor.device, non_blocking=non_blocking)
-        col = self._col.to(tensor.device, non_blocking=non_blocking)
+            rowptr = rowptr.to(device, non_blocking=non_blocking)
+        col = self._col.to(device, non_blocking=non_blocking)
         value = self._value
         if value is not None:
-            value = value.to(tensor.device, non_blocking=non_blocking)
+            value = value.to(device, non_blocking=non_blocking)
         rowcount = self._rowcount
         if rowcount is not None:
-            rowcount = rowcount.to(tensor.device, non_blocking=non_blocking)
+            rowcount = rowcount.to(device, non_blocking=non_blocking)
         colptr = self._colptr
         if colptr is not None:
-            colptr = colptr.to(tensor.device, non_blocking=non_blocking)
+            colptr = colptr.to(device, non_blocking=non_blocking)
         colcount = self._colcount
         if colcount is not None:
-            colcount = colcount.to(tensor.device, non_blocking=non_blocking)
+            colcount = colcount.to(device, non_blocking=non_blocking)
         csr2csc = self._csr2csc
         if csr2csc is not None:
-            csr2csc = csr2csc.to(tensor.device, non_blocking=non_blocking)
+            csr2csc = csr2csc.to(device, non_blocking=non_blocking)
         csc2csr = self._csc2csr
         if csc2csr is not None:
-            csc2csr = csc2csr.to(tensor.device, non_blocking=non_blocking)
+            csc2csr = csc2csr.to(device, non_blocking=non_blocking)
 
         return SparseStorage(row=row, rowptr=rowptr, col=col, value=value,
                              sparse_sizes=self._sparse_sizes,
                              rowcount=rowcount, colptr=colptr,
                              colcount=colcount, csr2csc=csr2csc,
-                             csc2csr=csc2csr, is_sorted=True)
+                             csc2csr=csc2csr, is_sorted=True, trust_data=True)
+
+    def device_as(self, tensor: torch.Tensor, non_blocking: bool = False):
+        return self.to_device(device=tensor.device, non_blocking=non_blocking)
 
     def cuda(self):
         new_col = self._col.cuda()
@@ -557,7 +591,7 @@ class SparseStorage(object):
                              sparse_sizes=self._sparse_sizes,
                              rowcount=rowcount, colptr=colptr,
                              colcount=colcount, csr2csc=csr2csc,
-                             csc2csr=csc2csr, is_sorted=True)
+                             csc2csr=csc2csr, is_sorted=True, trust_data=True)
 
     def pin_memory(self):
         row = self._row
@@ -590,7 +624,7 @@ class SparseStorage(object):
                              sparse_sizes=self._sparse_sizes,
                              rowcount=rowcount, colptr=colptr,
                              colcount=colcount, csr2csc=csr2csc,
-                             csc2csr=csc2csr, is_sorted=True)
+                             csc2csr=csc2csr, is_sorted=True, trust_data=True)
 
     def is_pinned(self) -> bool:
         is_pinned = True
