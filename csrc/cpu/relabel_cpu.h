@@ -1,6 +1,6 @@
 #pragma once
 
-#include <torch/torch.h>
+#include "../extensions.h"
 
 std::tuple<torch::Tensor, torch::Tensor> relabel_cpu(torch::Tensor col,
                                                      torch::Tensor idx);

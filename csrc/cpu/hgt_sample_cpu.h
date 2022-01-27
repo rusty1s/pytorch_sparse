@@ -1,7 +1,6 @@
 #pragma once
 
-#include <torch/torch.h>
-#include <unistd.h>
+#include "../extensions.h"
 
 typedef std::string node_t;
 typedef std::string rel_t;

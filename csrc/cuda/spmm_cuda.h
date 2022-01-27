@@ -1,6 +1,6 @@
 #pragma once
 
-#include <torch/torch.h>
+#include "../extensions.h"
 
 std::tuple<torch::Tensor, torch::optional<torch::Tensor>>
 spmm_cuda(torch::Tensor rowptr, torch::Tensor col,
