@@ -1,6 +1,7 @@
 #pragma once
 
-#include <torch/extension.h>
+#include <torch/torch.h>
+#include <unistd.h>
 
 std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
 sample_adj_cpu(torch::Tensor rowptr, torch::Tensor col, torch::Tensor idx,

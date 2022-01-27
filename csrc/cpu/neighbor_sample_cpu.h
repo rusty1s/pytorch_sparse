@@ -1,6 +1,7 @@
 #pragma once
 
-#include <torch/extension.h>
+#include <torch/torch.h>
+#include <unistd.h>
 
 typedef std::string node_t;
 typedef std::tuple<std::string, std::string, std::string> edge_t;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <torch/extension.h>
+#include <torch/torch.h>
 
 torch::Tensor partition_cpu(torch::Tensor rowptr, torch::Tensor col,
                             torch::optional<torch::Tensor> optional_value,
