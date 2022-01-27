@@ -1,4 +1,6 @@
+#ifdef WITH_PYTHON
 #include <Python.h>
+#endif
 #include <torch/script.h>
 
 #include "cpu/spmm_cpu.h"
