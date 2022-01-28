@@ -6,10 +6,12 @@
 #include "cpu/saint_cpu.h"
 
 #ifdef _WIN32
+#ifdef WITH_PYTHON
 #ifdef WITH_CUDA
 PyMODINIT_FUNC PyInit__saint_cuda(void) { return NULL; }
 #else
 PyMODINIT_FUNC PyInit__saint_cpu(void) { return NULL; }
+#endif
 #endif
 #endif
 

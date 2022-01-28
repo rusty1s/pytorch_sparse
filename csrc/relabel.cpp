@@ -6,10 +6,12 @@
 #include "cpu/relabel_cpu.h"
 
 #ifdef _WIN32
+#ifdef WITH_PYTHON
 #ifdef WITH_CUDA
 PyMODINIT_FUNC PyInit__relabel_cuda(void) { return NULL; }
 #else
 PyMODINIT_FUNC PyInit__relabel_cpu(void) { return NULL; }
+#endif
 #endif
 #endif
 
