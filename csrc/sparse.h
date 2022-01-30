@@ -1,6 +1,6 @@
 #pragma once
 
-#include <torch/extension.h>
+#include <torch/library.h>
 
 int64_t cuda_version();
 

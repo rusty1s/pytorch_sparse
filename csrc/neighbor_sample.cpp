@@ -1,13 +1,17 @@
+#ifdef WITH_PYTHON
 #include <Python.h>
+#endif
 #include <torch/script.h>
 
 #include "cpu/neighbor_sample_cpu.h"
 
 #ifdef _WIN32
+#ifdef WITH_PYTHON
 #ifdef WITH_CUDA
 PyMODINIT_FUNC PyInit__neighbor_sample_cuda(void) { return NULL; }
 #else
 PyMODINIT_FUNC PyInit__neighbor_sample_cpu(void) { return NULL; }
+#endif
 #endif
 #endif
 

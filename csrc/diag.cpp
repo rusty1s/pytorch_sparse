@@ -1,4 +1,6 @@
+#ifdef WITH_PYTHON
 #include <Python.h>
+#endif
 #include <torch/script.h>
 
 #include "cpu/diag_cpu.h"
@@ -8,10 +10,12 @@
 #endif
 
 #ifdef _WIN32
+#ifdef WITH_PYTHON
 #ifdef WITH_CUDA
 PyMODINIT_FUNC PyInit__diag_cuda(void) { return NULL; }
 #else
 PyMODINIT_FUNC PyInit__diag_cpu(void) { return NULL; }
+#endif
 #endif
 #endif
 
