@@ -15,7 +15,7 @@ PyMODINIT_FUNC PyInit__metis_cpu(void) { return NULL; }
 #endif
 #endif
 
-torch::Tensor partition(torch::Tensor rowptr, torch::Tensor col,
+SPARSE_API torch::Tensor partition(torch::Tensor rowptr, torch::Tensor col,
                         torch::optional<torch::Tensor> optional_value,
                         int64_t num_parts, bool recursive) {
   if (rowptr.device().is_cuda()) {
@@ -30,7 +30,7 @@ torch::Tensor partition(torch::Tensor rowptr, torch::Tensor col,
   }
 }
 
-torch::Tensor partition2(torch::Tensor rowptr, torch::Tensor col,
+SPARSE_API torch::Tensor partition2(torch::Tensor rowptr, torch::Tensor col,
                          torch::optional<torch::Tensor> optional_value,
                          torch::optional<torch::Tensor> optional_node_weight,
                          int64_t num_parts, bool recursive) {
@@ -46,7 +46,7 @@ torch::Tensor partition2(torch::Tensor rowptr, torch::Tensor col,
   }
 }
 
-torch::Tensor mt_partition(torch::Tensor rowptr, torch::Tensor col,
+SPARSE_API torch::Tensor mt_partition(torch::Tensor rowptr, torch::Tensor col,
                            torch::optional<torch::Tensor> optional_value,
                            torch::optional<torch::Tensor> optional_node_weight,
                            int64_t num_parts, bool recursive,

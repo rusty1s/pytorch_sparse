@@ -15,7 +15,7 @@ PyMODINIT_FUNC PyInit__sample_cpu(void) { return NULL; }
 #endif
 #endif
 
-std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
+SPARSE_API std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
 sample_adj(torch::Tensor rowptr, torch::Tensor col, torch::Tensor idx,
            int64_t num_neighbors, bool replace) {
   if (rowptr.device().is_cuda()) {

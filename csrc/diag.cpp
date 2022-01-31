@@ -19,7 +19,7 @@ PyMODINIT_FUNC PyInit__diag_cpu(void) { return NULL; }
 #endif
 #endif
 
-torch::Tensor non_diag_mask(torch::Tensor row, torch::Tensor col, int64_t M,
+SPARSE_API torch::Tensor non_diag_mask(torch::Tensor row, torch::Tensor col, int64_t M,
                             int64_t N, int64_t k) {
   if (row.device().is_cuda()) {
 #ifdef WITH_CUDA

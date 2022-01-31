@@ -17,7 +17,7 @@ PyMODINIT_FUNC PyInit__version_cpu(void) { return NULL; }
 #endif
 #endif
 
-int64_t cuda_version() {
+SPARSE_API int64_t cuda_version() {
 #ifdef WITH_CUDA
   return CUDA_VERSION;
 #else
