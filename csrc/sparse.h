@@ -29,8 +29,10 @@ SPARSE_API torch::Tensor partition2(torch::Tensor rowptr, torch::Tensor col,
 
 SPARSE_API torch::Tensor mt_partition(torch::Tensor rowptr, torch::Tensor col,
                            torch::optional<torch::Tensor> optional_value,
-                           int64_t num_parts, bool recursive);
-
+                           torch::optional<torch::Tensor> optional_node_weight,
+                           int64_t num_parts, bool recursive,
+                           int64_t num_workers);
+ 
 SPARSE_API std::tuple<torch::Tensor, torch::Tensor> relabel(torch::Tensor col,
                                                  torch::Tensor idx);
 
@@ -38,7 +40,7 @@ SPARSE_API std::tuple<torch::Tensor, torch::Tensor, torch::optional<torch::Tenso
            torch::Tensor>
 relabel_one_hop(torch::Tensor rowptr, torch::Tensor col,
                 torch::optional<torch::Tensor> optional_value,
-                torch::Tensor idx);
+                torch::Tensor idx, bool bipartite);
 
 SPARSE_API torch::Tensor random_walk(torch::Tensor rowptr, torch::Tensor col,
                           torch::Tensor start, int64_t walk_length);
@@ -48,8 +50,8 @@ subgraph(torch::Tensor idx, torch::Tensor rowptr, torch::Tensor row,
          torch::Tensor col);
 
 SPARSE_API std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
-sample_adj(torch::Tensor rowptr, torch::Tensor col, torch::Tensor rowcount,
-           torch::Tensor idx, int64_t num_neighbors, bool replace);
+sample_adj(torch::Tensor rowptr, torch::Tensor col, torch::Tensor idx,
+           int64_t num_neighbors, bool replace);
 
 SPARSE_API torch::Tensor spmm_sum(torch::optional<torch::Tensor> opt_row,
                        torch::Tensor rowptr, torch::Tensor col,
@@ -78,4 +80,4 @@ SPARSE_API std::tuple<torch::Tensor, torch::Tensor, torch::optional<torch::Tenso
 spspmm_sum(torch::Tensor rowptrA, torch::Tensor colA,
            torch::optional<torch::Tensor> optional_valueA,
            torch::Tensor rowptrB, torch::Tensor colB,
-           torch::optional<torch::Tensor> optional_valueB, int64_t K);
+           torch::optional<torch::Tensor> optional_valueB, int64_t K); 
