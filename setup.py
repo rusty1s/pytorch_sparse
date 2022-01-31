@@ -38,7 +38,7 @@ def get_extensions():
 
         if sys.platform == 'win32':
             define_macros += [('torchsparse_EXPORTS', None)]
-        
+
         libraries = []
         if WITH_METIS:
             define_macros += [('WITH_METIS', None)]
