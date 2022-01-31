@@ -2,6 +2,7 @@
 #include <Python.h>
 #endif
 #include <torch/script.h>
+#include "sparse.h"
 
 #ifdef WITH_CUDA
 #include <cuda.h>
