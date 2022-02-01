@@ -19,7 +19,7 @@ PyMODINIT_FUNC PyInit__spspmm_cpu(void) { return NULL; }
 #endif
 #endif
 
-std::tuple<torch::Tensor, torch::Tensor, torch::optional<torch::Tensor>>
+SPARSE_API std::tuple<torch::Tensor, torch::Tensor, torch::optional<torch::Tensor>>
 spspmm_sum(torch::Tensor rowptrA, torch::Tensor colA,
            torch::optional<torch::Tensor> optional_valueA,
            torch::Tensor rowptrB, torch::Tensor colB,

@@ -35,6 +35,10 @@ def get_extensions():
 
     for main, suffix in product(main_files, suffices):
         define_macros = [('WITH_PYTHON', None)]
+
+        if sys.platform == 'win32':
+            define_macros += [('torchsparse_EXPORTS', None)]
+
         libraries = []
         if WITH_METIS:
             define_macros += [('WITH_METIS', None)]

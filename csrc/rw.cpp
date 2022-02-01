@@ -19,7 +19,7 @@ PyMODINIT_FUNC PyInit__rw_cpu(void) { return NULL; }
 #endif
 #endif
 
-torch::Tensor random_walk(torch::Tensor rowptr, torch::Tensor col,
+SPARSE_API torch::Tensor random_walk(torch::Tensor rowptr, torch::Tensor col,
                           torch::Tensor start, int64_t walk_length) {
   if (rowptr.device().is_cuda()) {
 #ifdef WITH_CUDA

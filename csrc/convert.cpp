@@ -19,7 +19,7 @@ PyMODINIT_FUNC PyInit__convert_cpu(void) { return NULL; }
 #endif
 #endif
 
-torch::Tensor ind2ptr(torch::Tensor ind, int64_t M) {
+SPARSE_API torch::Tensor ind2ptr(torch::Tensor ind, int64_t M) {
   if (ind.device().is_cuda()) {
 #ifdef WITH_CUDA
     return ind2ptr_cuda(ind, M);
@@ -31,7 +31,7 @@ torch::Tensor ind2ptr(torch::Tensor ind, int64_t M) {
   }
 }
 
-torch::Tensor ptr2ind(torch::Tensor ptr, int64_t E) {
+SPARSE_API torch::Tensor ptr2ind(torch::Tensor ptr, int64_t E) {
   if (ptr.device().is_cuda()) {
 #ifdef WITH_CUDA
     return ptr2ind_cuda(ptr, E);
