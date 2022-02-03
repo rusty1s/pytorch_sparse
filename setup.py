@@ -67,8 +67,8 @@ def get_extensions():
         else:
             print('Compiling without OpenMP...')
 
-        if (sys.platform == 'darwin' and 
-        platform.machine() == 'arm64'):  # Compile for mac arm64
+        # Compile for mac arm64
+        if (sys.platform == 'darwin' and platform.machine() == 'arm64'):
             extra_compile_args['cxx'] += ['-arch', 'arm64']
             extra_link_args += ['-arch', 'arm64']
 
