@@ -4,6 +4,7 @@ import glob
 import os.path as osp
 from itertools import product
 from setuptools import setup, find_packages
+import platform
 
 import torch
 from torch.__config__ import parallel_info
@@ -65,6 +66,10 @@ def get_extensions():
                 extra_compile_args['cxx'] += ['-fopenmp']
         else:
             print('Compiling without OpenMP...')
+        
+        if (sys.platform == 'darwin' and platform.machine() == 'arm64'): # Compile for mac arm64
+            extra_compile_args['cxx'] += ['-arch', 'arm64']
+            extra_link_args += ['-arch', 'arm64']
 
         if suffix == 'cuda':
             define_macros += [('WITH_CUDA', None)]
