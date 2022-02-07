@@ -301,7 +301,7 @@ hetero_sample_random(const vector<node_t> &node_types,
               const c10::Dict<node_t, torch::Tensor> &input_node_dict,
               const c10::Dict<rel_t, vector<int64_t>> &num_neighbors_dict,
               const int64_t num_hops) {
-  return hetero_sample(node_types,
+  return hetero_sample_temporal(node_types,
               edge_types,
               colptr_dict,
               row_dict,
@@ -355,15 +355,13 @@ hetero_sample_temporal(const vector<node_t> &node_types,
     const auto &node_type = kv.key();
     const auto &input_node = kv.value();
     const auto *input_node_data = input_node.data_ptr<int64_t>();
-    torch::Tensor node_time;
-    torch::Tensor.data_ptr<int64_t> node_time_data;
+    torch::Tensor.data_ptr<int64_t> *node_time_data;
     vector<int64_t>* root_time;
     // root_time[i] stores the timestamp of the computation tree root
     // of the node samples[i]
     const auto &root_time = root_time_dict.data_ptr<int64_t>();
     if (is_temporal) {
-      node_time = node_time_dict.at(node_type)
-      node_time_data = node_time.data_ptr<int64_t>();
+      node_time_data = node_time_dict.at(node_type).data_ptr<int64_t>();
     }
 
     auto &samples = samples_dict.at(node_type);
@@ -410,7 +408,7 @@ hetero_sample_temporal(const vector<node_t> &node_types,
 
       for (int64_t i = begin; i < end; i++) {
         const auto &w = dst_samples[i];
-        const auto dst_time = dst_root_time
+        const auto &dst_time = dst_root_time[i];
         const auto &col_start = colptr_data[w];
         const auto &col_end = colptr_data[w + 1];
         const auto col_count = col_end - col_start;
@@ -424,8 +422,12 @@ hetero_sample_temporal(const vector<node_t> &node_types,
             const int64_t &v = row_data[offset];
             bool time_constraint = true // whether src -> dst obeys the time constraint
             if (is_temporal) {
-              s
+              const auto *src_time = node_time_dict.at(src_node_type).data_ptr<int64_t>();
+              if dst_time < src_time[v]
+                time_constraint = false;
             }
+            if !time_constraint
+              continue;
             const auto res = to_local_src_node.insert({v, src_samples.size()});
             if (res.second)
               src_samples.push_back(v);
@@ -441,6 +443,14 @@ hetero_sample_temporal(const vector<node_t> &node_types,
           while (num_neighbors < num_samples) {
             const int64_t offset = col_start + rand() % col_count;
             const int64_t &v = row_data[offset];
+            bool time_constraint = true // whether src -> dst obeys the time constraint
+            if (is_temporal) {
+              const auto *src_time = node_time_dict.at(src_node_type).data_ptr<int64_t>();
+              if dst_time < src_time[v]
+                time_constraint = false;
+            }
+            if !time_constraint
+              continue;
             if ((input_node_time_dict == std:nullopt) || input_node_time_dict.at()) {
               const auto res = to_local_src_node.insert({v, src_samples.size()});
               if (res.second)
@@ -463,6 +473,14 @@ hetero_sample_temporal(const vector<node_t> &node_types,
             }
             const int64_t offset = col_start + rnd;
             const int64_t &v = row_data[offset];
+            bool time_constraint = true // whether src -> dst obeys the time constraint
+            if (is_temporal) {
+              const auto *src_time = node_time_dict.at(src_node_type).data_ptr<int64_t>();
+              if dst_time < src_time[v]
+                time_constraint = false;
+            }
+            if !time_constraint
+              continue;
             const auto res = to_local_src_node.insert({v, src_samples.size()});
             if (res.second)
               src_samples.push_back(v);
@@ -551,19 +569,19 @@ hetero_neighbor_sample_cpu(
     const int64_t num_hops, const bool replace, const bool directed) {
 
   if (replace && directed) {
-    return hetero_sample<true, true>(node_types, edge_types, colptr_dict,
+    return hetero_sample_random<true, true>(node_types, edge_types, colptr_dict,
                                      row_dict, input_node_dict,
                                      num_neighbors_dict, num_hops);
   } else if (replace && !directed) {
-    return hetero_sample<true, false>(node_types, edge_types, colptr_dict,
+    return hetero_sample_random<true, false>(node_types, edge_types, colptr_dict,
                                       row_dict, input_node_dict,
                                       num_neighbors_dict, num_hops);
   } else if (!replace && directed) {
-    return hetero_sample<false, true>(node_types, edge_types, colptr_dict,
+    return hetero_sample_random<false, true>(node_types, edge_types, colptr_dict,
                                       row_dict, input_node_dict,
                                       num_neighbors_dict, num_hops);
   } else {
-    return hetero_sample<false, false>(node_types, edge_types, colptr_dict,
+    return hetero_sample_random<false, false>(node_types, edge_types, colptr_dict,
                                        row_dict, input_node_dict,
                                        num_neighbors_dict, num_hops);
   }
