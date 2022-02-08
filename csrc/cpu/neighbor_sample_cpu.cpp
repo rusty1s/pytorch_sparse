@@ -262,7 +262,7 @@ hetero_sample(const vector<node_t> &node_types,
       auto &to_local_src_node = to_local_node_dict.at(src_node_type);
 
       const auto *colptr_data = ((torch::Tensor&)kv.value()).data_ptr<int64_t>();
-      const auto *row_data = ((torch::Tensor)row_dict.at(rel_type)).data_ptr<int64_t>()
+      const auto *row_data = ((torch::Tensor)row_dict.at(rel_type)).data_ptr<int64_t>();
 
       auto &rows = rows_dict.at(rel_type);
       auto &cols = cols_dict.at(rel_type);
