@@ -37,8 +37,8 @@ if torch.cuda.is_available() and cuda_version != -1:  # pragma: no cover
             f'{major}.{minor}. Please reinstall the torch_sparse that '
             f'matches your PyTorch install.')
 
-from .storage import SparseStorage  # noqa
-from .tensor import SparseTensor  # noqa
+from .storage import SparseStorage, DynamicSparseStorage  # noqa
+from .tensor import SparseTensor, DynamicSparseTensor  # noqa
 from .transpose import t  # noqa
 from .narrow import narrow, __narrow_diag__  # noqa
 from .select import select  # noqa
@@ -70,6 +70,8 @@ from .spadd import spadd  # noqa
 __all__ = [
     'SparseStorage',
     'SparseTensor',
+    'DynamicSparseStorage',
+    'DynamicSparseTensor',
     't',
     'narrow',
     '__narrow_diag__',

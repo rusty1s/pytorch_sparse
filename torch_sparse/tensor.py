@@ -6,7 +6,7 @@ import numpy as np
 import scipy.sparse
 from torch_scatter import segment_csr
 
-from torch_sparse.storage import SparseStorage, get_layout
+from torch_sparse.storage import DynamicSparseStorage, SparseStorage, get_layout
 
 
 @torch.jit.script
@@ -653,3 +653,12 @@ def to_scipy(self: SparseTensor, layout: Optional[str] = None,
 
 SparseTensor.from_scipy = from_scipy
 SparseTensor.to_scipy = to_scipy
+
+
+class DynamicSparseTensor(object):
+    def __init__(self,
+                 rowptr: torch.Tensor = None,
+                 col: torch.Tensor = None,
+                 value: torch.Tensor = None,
+                 chunk_num: int = 1):
+        self.storage = DynamicSparseStorage(rowptr, col, value, chunk_num)

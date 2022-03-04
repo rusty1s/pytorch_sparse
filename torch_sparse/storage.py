@@ -4,6 +4,7 @@ from typing import Optional, List, Tuple
 import torch
 from torch_scatter import segment_csr, scatter_add
 from torch_sparse.utils import Final
+from torch_sparse.dynamic import DynamicStore
 
 layouts: Final[List[str]] = ['coo', 'csr', 'csc']
 
@@ -716,3 +717,12 @@ def is_shared(self) -> bool:
 
 SparseStorage.share_memory_ = share_memory_
 SparseStorage.is_shared = is_shared
+
+
+class DynamicSparseStorage(object):
+    def __init__(self,
+                 rowptr: torch.Tensor = None,
+                 col: torch.Tensor = None,
+                 value: torch.Tensor = None,
+                 chunk_num: int = 1):
+        self.store = DynamicStore()

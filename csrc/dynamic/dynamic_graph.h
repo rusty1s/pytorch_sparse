@@ -1,0 +1,4 @@
+class DynamicLog {
+public:
+  DynamicLog() {}
+};

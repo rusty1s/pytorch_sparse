@@ -1,0 +1,4 @@
+class LogStore {
+public:
+  LogStore() {}
+};
