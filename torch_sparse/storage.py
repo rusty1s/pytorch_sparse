@@ -1,10 +1,10 @@
 import warnings
-from typing import Optional, List, Tuple
+from typing import Any, Optional, List, Tuple
 
 import torch
 from torch_scatter import segment_csr, scatter_add
 from torch_sparse.utils import Final
-from torch_sparse.dynamic import DynamicStore
+from torch_sparse.dynamic import DynamicStore, DynamicIntStore
 
 layouts: Final[List[str]] = ['coo', 'csr', 'csc']
 
@@ -723,6 +723,29 @@ class DynamicSparseStorage(object):
     def __init__(self,
                  rowptr: torch.Tensor = None,
                  col: torch.Tensor = None,
-                 value: torch.Tensor = None,
+                 val: Optional[torch.Tensor] = None,
                  chunk_num: int = 1):
-        self.store = DynamicStore()
+        if val is None:
+            StoreType = DynamicStore
+        elif val.dtype == torch.int:
+            StoreType = DynamicIntStore
+        chunk_beg = 0
+        chunk_end = 0
+        N = rowptr.size(0) - 1
+        chunk_size = (N + chunk_num - 1) // chunk_num
+        self.store = StoreType(chunk_num, chunk_size, rowptr.size(0) - 1)
+        for _ in range(chunk_num):
+            chunk_end = min(N, chunk_beg + chunk_size)
+            block_rowptr = rowptr[chunk_beg: chunk_end]
+            block_col = col[rowptr[chunk_beg]: rowptr[chunk_end]]
+            block_val = val[rowptr[chunk_beg]: rowptr[chunk_end]] if val else None
+            self.store.append_block(block_rowptr, block_col, block_val)
+
+    def apply_log(self, src: int, dst: int, val: Any = None, insert: bool = True):
+        self.store.apply_log(src, dst, val, insert)
+
+    def sample_realtime(self):
+        pass
+    
+    def sample_stale(self):
+        pass

@@ -35,78 +35,78 @@ def get_extensions():
     main_files = glob.glob(osp.join(extensions_dir, '*.cpp'))
     libraries = []
 
-    # for main, suffix in product(main_files, suffices):
-    #     define_macros = [('WITH_PYTHON', None)]
+    for main, suffix in product(main_files, suffices):
+        define_macros = [('WITH_PYTHON', None)]
 
-    #     if sys.platform == 'win32':
-    #         define_macros += [('torchsparse_EXPORTS', None)]
+        if sys.platform == 'win32':
+            define_macros += [('torchsparse_EXPORTS', None)]
 
-    #     libraries = []
-    #     if WITH_METIS:
-    #         define_macros += [('WITH_METIS', None)]
-    #         libraries += ['metis']
-    #     if WITH_MTMETIS:
-    #         define_macros += [('WITH_MTMETIS', None)]
-    #         define_macros += [('MTMETIS_64BIT_VERTICES', None)]
-    #         define_macros += [('MTMETIS_64BIT_EDGES', None)]
-    #         define_macros += [('MTMETIS_64BIT_WEIGHTS', None)]
-    #         define_macros += [('MTMETIS_64BIT_PARTITIONS', None)]
-    #         libraries += ['mtmetis', 'wildriver']
-    #     extra_compile_args = {'cxx': ['-O2']}
-    #     if not os.name == 'nt':  # Not on Windows:
-    #         extra_compile_args['cxx'] += ['-Wno-sign-compare']
-    #     extra_link_args = [] if WITH_SYMBOLS else ['-s']
+        libraries = []
+        if WITH_METIS:
+            define_macros += [('WITH_METIS', None)]
+            libraries += ['metis']
+        if WITH_MTMETIS:
+            define_macros += [('WITH_MTMETIS', None)]
+            define_macros += [('MTMETIS_64BIT_VERTICES', None)]
+            define_macros += [('MTMETIS_64BIT_EDGES', None)]
+            define_macros += [('MTMETIS_64BIT_WEIGHTS', None)]
+            define_macros += [('MTMETIS_64BIT_PARTITIONS', None)]
+            libraries += ['mtmetis', 'wildriver']
+        extra_compile_args = {'cxx': ['-O2']}
+        if not os.name == 'nt':  # Not on Windows:
+            extra_compile_args['cxx'] += ['-Wno-sign-compare']
+        extra_link_args = [] if WITH_SYMBOLS else ['-s']
 
-    #     info = parallel_info()
-    #     if ('backend: OpenMP' in info and 'OpenMP not found' not in info
-    #             and sys.platform != 'darwin'):
-    #         extra_compile_args['cxx'] += ['-DAT_PARALLEL_OPENMP']
-    #         if sys.platform == 'win32':
-    #             extra_compile_args['cxx'] += ['/openmp']
-    #         else:
-    #             extra_compile_args['cxx'] += ['-fopenmp']
-    #     else:
-    #         print('Compiling without OpenMP...')
+        info = parallel_info()
+        if ('backend: OpenMP' in info and 'OpenMP not found' not in info
+                and sys.platform != 'darwin'):
+            extra_compile_args['cxx'] += ['-DAT_PARALLEL_OPENMP']
+            if sys.platform == 'win32':
+                extra_compile_args['cxx'] += ['/openmp']
+            else:
+                extra_compile_args['cxx'] += ['-fopenmp']
+        else:
+            print('Compiling without OpenMP...')
 
-    #     # Compile for mac arm64
-    #     if (sys.platform == 'darwin' and platform.machine() == 'arm64'):
-    #         extra_compile_args['cxx'] += ['-arch', 'arm64']
-    #         extra_link_args += ['-arch', 'arm64']
+        # Compile for mac arm64
+        if (sys.platform == 'darwin' and platform.machine() == 'arm64'):
+            extra_compile_args['cxx'] += ['-arch', 'arm64']
+            extra_link_args += ['-arch', 'arm64']
 
-    #     if suffix == 'cuda':
-    #         define_macros += [('WITH_CUDA', None)]
-    #         nvcc_flags = os.getenv('NVCC_FLAGS', '')
-    #         nvcc_flags = [] if nvcc_flags == '' else nvcc_flags.split(' ')
-    #         nvcc_flags += ['--expt-relaxed-constexpr', '-O2']
-    #         extra_compile_args['nvcc'] = nvcc_flags
+        if suffix == 'cuda':
+            define_macros += [('WITH_CUDA', None)]
+            nvcc_flags = os.getenv('NVCC_FLAGS', '')
+            nvcc_flags = [] if nvcc_flags == '' else nvcc_flags.split(' ')
+            nvcc_flags += ['--expt-relaxed-constexpr', '-O2']
+            extra_compile_args['nvcc'] = nvcc_flags
 
-    #         if sys.platform == 'win32':
-    #             extra_link_args += ['cusparse.lib']
-    #         else:
-    #             extra_link_args += ['-lcusparse', '-l', 'cusparse']
+            if sys.platform == 'win32':
+                extra_link_args += ['cusparse.lib']
+            else:
+                extra_link_args += ['-lcusparse', '-l', 'cusparse']
 
-    #     name = main.split(os.sep)[-1][:-4]
-    #     sources = [main]
+        name = main.split(os.sep)[-1][:-4]
+        sources = [main]
 
-    #     path = osp.join(extensions_dir, 'cpu', f'{name}_cpu.cpp')
-    #     if osp.exists(path):
-    #         sources += [path]
+        path = osp.join(extensions_dir, 'cpu', f'{name}_cpu.cpp')
+        if osp.exists(path):
+            sources += [path]
 
-    #     path = osp.join(extensions_dir, 'cuda', f'{name}_cuda.cu')
-    #     if suffix == 'cuda' and osp.exists(path):
-    #         sources += [path]
+        path = osp.join(extensions_dir, 'cuda', f'{name}_cuda.cu')
+        if suffix == 'cuda' and osp.exists(path):
+            sources += [path]
 
-    #     Extension = CppExtension if suffix == 'cpu' else CUDAExtension
-    #     extension = Extension(
-    #         f'torch_sparse._{name}_{suffix}',
-    #         sources,
-    #         include_dirs=[extensions_dir],
-    #         define_macros=define_macros,
-    #         extra_compile_args=extra_compile_args,
-    #         extra_link_args=extra_link_args,
-    #         libraries=libraries,
-    #     )
-    #     extensions += [extension]
+        Extension = CppExtension if suffix == 'cpu' else CUDAExtension
+        extension = Extension(
+            f'torch_sparse._{name}_{suffix}',
+            sources,
+            include_dirs=[extensions_dir],
+            define_macros=define_macros,
+            extra_compile_args=extra_compile_args,
+            extra_link_args=extra_link_args,
+            libraries=libraries,
+        )
+        extensions += [extension]
 
     dynamic_srcs = glob.glob(osp.join(extensions_dir, 'dynamic', '*.cpp'))
     dynamic_includes = osp.join(extensions_dir, 'dynamic')

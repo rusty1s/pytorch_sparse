@@ -2,6 +2,7 @@ from typing import Optional, Tuple
 
 import torch
 from torch_sparse.tensor import SparseTensor
+from torch_sparse.tensor import DynamicSparseTensor
 
 
 def sample(src: SparseTensor, num_neighbors: int,
@@ -42,5 +43,15 @@ def sample_adj(src: SparseTensor, subset: torch.Tensor, num_neighbors: int,
     return out, n_id
 
 
+def sample_adj_dynamic(src: DynamicSparseTensor, subset: torch.Tensor, num_neighbors: int,
+               replace: bool = False, realtime: bool = True) -> Tuple[SparseTensor, torch.Tensor]:
+    if realtime:
+        return src.storage.sample_realtime(subset, num_neighbors, replace)
+    else:
+        return src.storage.sample_stale(subset, num_neighbors, replace)
+
+
 SparseTensor.sample = sample
 SparseTensor.sample_adj = sample_adj
+
+DynamicSparseTensor.sample_adj = sample_adj_dynamic

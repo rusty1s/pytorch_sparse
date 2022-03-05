@@ -659,6 +659,9 @@ class DynamicSparseTensor(object):
     def __init__(self,
                  rowptr: torch.Tensor = None,
                  col: torch.Tensor = None,
-                 value: torch.Tensor = None,
+                 val: torch.Tensor = None,
                  chunk_num: int = 1):
-        self.storage = DynamicSparseStorage(rowptr, col, value, chunk_num)
+        self.storage = DynamicSparseStorage(rowptr, col, val, chunk_num)
+
+    def apply_log(self, src: int, dst: int, val: Any = None, insert: bool = True):
+        self.storage.apply_log(src, dst, val, insert)
