@@ -736,9 +736,9 @@ class DynamicSparseStorage(object):
         self.store = StoreType(chunk_num, chunk_size, rowptr.size(0) - 1)
         for _ in range(chunk_num):
             chunk_end = min(N, chunk_beg + chunk_size)
-            block_rowptr = rowptr[chunk_beg: chunk_end]
-            block_col = col[rowptr[chunk_beg]: rowptr[chunk_end]]
-            block_val = val[rowptr[chunk_beg]: rowptr[chunk_end]] if val else None
+            block_rowptr = rowptr[chunk_beg: chunk_end + 1] - rowptr[chunk_beg]
+            block_col = col[rowptr[chunk_beg]: rowptr[chunk_end]].clone()
+            block_val = val[rowptr[chunk_beg]: rowptr[chunk_end]].clone() if val else None
             self.store.append_block(block_rowptr, block_col, block_val)
 
     def apply_log(self, src: int, dst: int, val: Any = None, insert: bool = True):
@@ -746,6 +746,6 @@ class DynamicSparseStorage(object):
 
     def sample_realtime(self):
         pass
-    
+
     def sample_stale(self):
         pass

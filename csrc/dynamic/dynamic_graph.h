@@ -15,54 +15,65 @@ public:
         reinterpret_cast<int64_t *>(rowptr.data_ptr<int64_t>());
     int64_t *col_data = reinterpret_cast<int64_t *>(col.data_ptr<int64_t>());
     std::size_t cnt = rowptr_data[node + 1] - rowptr_data[node];
-    cols_.assign(col_data, col_data + cnt);
+    cols.assign(col_data, col_data + cnt);
     if (val) {
       V *val_data = reinterpret_cast<V *>(val->data_ptr<V>());
-      vals_->assign(val_data, val_data + cnt);
+      vals->assign(val_data, val_data + cnt);
     }
   }
 
   void erase_val(int64_t col) {
-    for (std::size_t i = 0; i < cols_.size(); i++) {
-      if (cols_[i] == col) {
-        cols_[i] = cols_.back();
-        cols_.pop_back();
-        (*vals_)[i] = vals_->back();
-        vals_->pop_back();
+    for (std::size_t i = 0; i < cols.size(); i++) {
+      if (cols[i] == col) {
+        cols[i] = cols.back();
+        cols.pop_back();
+        (*vals)[i] = vals->back();
+        vals->pop_back();
         return;
       }
     }
   }
 
   void erase(int64_t col) {
-    for (std::size_t i = 0; i < cols_.size(); i++) {
-      if (cols_[i] == col) {
-        cols_[i] = cols_.back();
-        cols_.pop_back();
+    for (std::size_t i = 0; i < cols.size(); i++) {
+      if (cols[i] == col) {
+        cols[i] = cols.back();
+        cols.pop_back();
         return;
       }
     }
   }
 
   void insert_val(int64_t col, V val) {
-    cols_.push_back(col);
-    vals_->push_back(*val);
+    cols.push_back(col);
+    vals->push_back(val);
   }
 
-  void insert(int64_t col) { cols_.push_back(col); }
+  void insert(int64_t col) { cols.push_back(col); }
 
-private:
-  std::vector<int64_t> cols_;
-  std::optional<std::vector<V>> vals_;
+  std::vector<int64_t> cols;
+  std::optional<std::vector<V>> vals;
 };
 
 template <typename V> class DynamicGraph {
 public:
-  DynamicGraph() {}
+  bool has_node(int64_t node) { return rows_.count(node); }
+
+  int64_t *colptr(int64_t node) {
+    return rows_[node].cols.data();
+  }
+
+  size_t degree(int64_t node) {
+    return rows_[node].cols.size();
+  }
+
+  V *valptr(int64_t node) {
+    return rows_[node].vals->data();
+  }
 
   void update(DynamicLog<V> log, torch::Tensor rowptr, torch::Tensor col,
               std::optional<torch::Tensor> val) {
-    if (!rows.count(log.src)) {
+    if (!rows_.count(log.src)) {
       rows_[log.src] = DynamicRow(log.src, rowptr, col, val);
     }
     if (log.insert) {

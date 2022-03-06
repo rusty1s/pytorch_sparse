@@ -1,9 +1,9 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <vector>
-#include <mutex>
 
 template <typename V> class DynamicLog {
 public:
