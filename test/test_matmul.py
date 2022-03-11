@@ -2,12 +2,11 @@ from itertools import product
 
 import pytest
 import torch
-
+import torch_scatter
 from torch_sparse.matmul import matmul
 from torch_sparse.tensor import SparseTensor
-import torch_scatter
 
-from .utils import reductions, devices, grad_dtypes
+from .utils import devices, grad_dtypes, reductions
 
 
 @pytest.mark.parametrize('dtype,device,reduce',
