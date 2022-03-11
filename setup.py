@@ -1,15 +1,18 @@
-import os
-import sys
 import glob
+import os
 import os.path as osp
-from itertools import product
-from setuptools import setup, find_packages
 import platform
+import sys
+from itertools import product
 
 import torch
+from setuptools import find_packages, setup
 from torch.__config__ import parallel_info
-from torch.utils.cpp_extension import BuildExtension
-from torch.utils.cpp_extension import CppExtension, CUDAExtension, CUDA_HOME
+from torch.utils.cpp_extension import (CUDA_HOME, BuildExtension, CppExtension,
+                                       CUDAExtension)
+
+__version__ = '0.6.13'
+URL = 'https://github.com/rusty1s/pytorch_sparse'
 
 WITH_CUDA = torch.cuda.is_available() and CUDA_HOME is not None
 suffices = ['cpu', 'cuda'] if WITH_CUDA else ['cpu']
@@ -51,6 +54,7 @@ def get_extensions():
             define_macros += [('MTMETIS_64BIT_WEIGHTS', None)]
             define_macros += [('MTMETIS_64BIT_PARTITIONS', None)]
             libraries += ['mtmetis', 'wildriver']
+
         extra_compile_args = {'cxx': ['-O2']}
         if not os.name == 'nt':  # Not on Windows:
             extra_compile_args['cxx'] += ['-Wno-sign-compare']
@@ -110,29 +114,40 @@ def get_extensions():
     return extensions
 
 
-install_requires = ['scipy']
-setup_requires = []
-tests_require = ['pytest', 'pytest-runner', 'pytest-cov']
+install_requires = [
+    'scipy',
+]
+
+test_requires = [
+    'pytest',
+    'pytest-cov',
+]
 
 setup(
     name='torch_sparse',
-    version='0.6.12',
-    author='Matthias Fey',
-    author_email='matthias.fey@tu-dortmund.de',
-    url='https://github.com/rusty1s/pytorch_sparse',
+    version=__version__,
     description=('PyTorch Extension Library of Optimized Autograd Sparse '
                  'Matrix Operations'),
-    keywords=['pytorch', 'sparse', 'sparse-matrices', 'autograd'],
-    license='MIT',
-    python_requires='>=3.6',
+    author='Matthias Fey',
+    author_email='matthias.fey@tu-dortmund.de',
+    url=URL,
+    download_url=f'{URL}/archive/{__version__}.tar.gz',
+    keywords=[
+        'pytorch',
+        'sparse',
+        'sparse-matrices',
+        'autograd',
+    ],
+    python_requires='>=3.7',
     install_requires=install_requires,
-    setup_requires=setup_requires,
-    tests_require=tests_require,
-    extras_require={'test': tests_require},
+    extras_require={
+        'test': test_requires,
+    },
     ext_modules=get_extensions() if not BUILD_DOCS else [],
     cmdclass={
         'build_ext':
         BuildExtension.with_options(no_python_abi_suffix=True, use_ninja=False)
     },
     packages=find_packages(),
+    include_package_data=True,
 )
