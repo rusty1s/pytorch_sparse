@@ -35,11 +35,13 @@ sample(const torch::Tensor &colptr, const torch::Tensor &row,
   auto *input_node_data = input_node.data_ptr<int64_t>();
 
   // Insert nodes to sample and populate local node map
+  auto input_i = 0;
   for (int64_t i = 0; i < input_node.numel(); i++) {
     const auto &v = input_node_data[i];
     if (to_local_node.find(v) == to_local_node.end()){
       samples.push_back(v);
-      to_local_node.insert({v, i});
+      to_local_node.insert({v, input_i});
+      input_i++;
     }
   }
 
@@ -163,6 +165,7 @@ hetero_sample(const vector<node_t> &node_types,
   }
 
   // Add the input nodes to the output nodes:
+  auto input_i = 0;
   for (const auto &kv : input_node_dict) {
     const auto &node_type = kv.key();
     const torch::Tensor &input_node = kv.value();
@@ -174,7 +177,8 @@ hetero_sample(const vector<node_t> &node_types,
       const auto &v = input_node_data[i];
       if (to_local_node.find(v) == to_local_node.end()){
         samples.push_back(v);
-        to_local_node.insert({v, i});
+        to_local_node.insert({v, input_i});
+        input_i++;
       }
     }
   }
