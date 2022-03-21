@@ -294,21 +294,22 @@ print(valueC)
 tensor([8.0, 6.0, 8.0])
 ```
 
-## C++ API
-
-`torch-sparse` also offers a C++ API that contains C++ equivalent of python models.
-
-```
-mkdir build
-cd build
-# Add -DWITH_CUDA=on support for the CUDA if needed
-cmake ..
-make
-make install
-```
-
 ## Running tests
 
 ```
 pytest
+```
+
+## C++ API
+
+`torch-sparse` also offers a C++ API that contains C++ equivalent of python models.
+For this, we need to add `TorchLib` to the `-DCMAKE_PREFIX_PATH` (*e.g.*, it may exists in `{CONDA}/lib/python{X.X}/site-packages/torch` if installed via `conda`):
+
+```
+mkdir build
+cd build
+# Add -DWITH_CUDA=on support for CUDA support
+cmake -DCMAKE_PREFIX_PATH="..." ..
+make
+make install
 ```
