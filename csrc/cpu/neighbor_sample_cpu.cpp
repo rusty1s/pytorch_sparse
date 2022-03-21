@@ -299,6 +299,7 @@ neighbor_sample_cpu(const torch::Tensor &colptr, const torch::Tensor &row,
                     const torch::Tensor &input_node,
                     const vector<int64_t> num_neighbors, const bool replace,
                     const bool directed) {
+
   if (replace && directed) {
     return sample<true, true>(colptr, row, input_node, num_neighbors);
   } else if (replace && !directed) {
