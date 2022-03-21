@@ -1,8 +1,8 @@
 #ifdef WITH_PYTHON
 #include <Python.h>
 #endif
-#include <torch/script.h>
 #include "sparse.h"
+#include <torch/script.h>
 
 #ifdef WITH_CUDA
 #include <cuda.h>
@@ -18,13 +18,15 @@ PyMODINIT_FUNC PyInit__version_cpu(void) { return NULL; }
 #endif
 #endif
 
-SPARSE_API int64_t cuda_version() {
+namespace sparse {
+SPARSE_API int64_t cuda_version() noexcept {
 #ifdef WITH_CUDA
   return CUDA_VERSION;
 #else
   return -1;
 #endif
 }
+} // namespace sparse
 
-static auto registry =
-    torch::RegisterOperators().op("torch_sparse::cuda_version", &cuda_version);
+static auto registry = torch::RegisterOperators().op(
+    "torch_sparse::cuda_version", &sparse::cuda_version);
