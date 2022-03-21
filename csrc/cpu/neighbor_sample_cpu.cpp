@@ -28,7 +28,7 @@ sample(const torch::Tensor &colptr, const torch::Tensor &row,
   for (int64_t i = 0; i < input_node.numel(); i++) {
     const auto &v = input_node_data[i];
     samples.push_back(v);
-    to_local_node.insert({v, input_i});
+    to_local_node.insert({v, i});
   }
 
   vector<int64_t> rows, cols, edges;
@@ -161,7 +161,7 @@ hetero_sample(const vector<node_t> &node_types,
     for (int64_t i = 0; i < input_node.numel(); i++) {
       const auto &v = input_node_data[i];
       samples.push_back(v);
-      to_local_node.insert({v, input_i});
+      to_local_node.insert({v, i});
       }
     }
   }
