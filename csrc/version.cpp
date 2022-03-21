@@ -18,7 +18,7 @@ PyMODINIT_FUNC PyInit__version_cpu(void) { return NULL; }
 #endif
 #endif
 
-namespace sparse {
+namespace customsparse {
 SPARSE_API int64_t cuda_version() noexcept {
 #ifdef WITH_CUDA
   return CUDA_VERSION;
@@ -26,7 +26,7 @@ SPARSE_API int64_t cuda_version() noexcept {
   return -1;
 #endif
 }
-} // namespace sparse
+} // namespace customsparse
 
 static auto registry = torch::RegisterOperators().op(
-    "torch_sparse::cuda_version", &sparse::cuda_version);
+    "torch_sparse::cuda_version", &customsparse::cuda_version);

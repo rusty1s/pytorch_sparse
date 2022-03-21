@@ -22,13 +22,13 @@
 #endif
 #endif
 
-namespace sparse {
+namespace customsparse {
 SPARSE_API int64_t cuda_version() noexcept;
 
 namespace detail {
 SPARSE_INLINE_VARIABLE int64_t _cuda_version = cuda_version();
 } // namespace detail
-} // namespace sparse
+} // namespace customsparse
 
 SPARSE_API torch::Tensor ind2ptr(torch::Tensor ind, int64_t M);
 SPARSE_API torch::Tensor ptr2ind(torch::Tensor ptr, int64_t E);
