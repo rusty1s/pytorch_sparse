@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.12)
 project(torchsparse)
 set(CMAKE_CXX_STANDARD 14)
 set(TORCHSPARSE_VERSION 0.6.13)
 
 option(WITH_CUDA "Enable CUDA support" OFF)
-option(WITH_PYTHON "Link to Python when building" ON)
+option(WITH_PYTHON "Link to Python when building" OFF)
 
 if(WITH_CUDA)
   enable_language(CUDA)
@@ -17,27 +17,33 @@ if (WITH_PYTHON)
   add_definitions(-DWITH_PYTHON)
   find_package(Python3 COMPONENTS Development)
 endif()
+
 find_package(Torch REQUIRED)
-
-file(GLOB HEADERS csrc/sparse.h)
-file(GLOB OPERATOR_SOURCES csrc/cpu/*.h csrc/cpu/*.cpp csrc/*.cpp)
-if(WITH_CUDA)
-  file(GLOB OPERATOR_SOURCES ${OPERATOR_SOURCES} csrc/cuda/*.h csrc/cuda/*.cu)
-endif()
-
-add_library(${PROJECT_NAME} SHARED ${OPERATOR_SOURCES})
-target_link_libraries(${PROJECT_NAME} PRIVATE ${TORCH_LIBRARIES})
-if (WITH_PYTHON)
-  target_link_libraries(${PROJECT_NAME} PRIVATE Python3::Python)
-endif()
-set_target_properties(${PROJECT_NAME} PROPERTIES EXPORT_NAME TorchSparse)
-
-target_include_directories(${PROJECT_NAME} INTERFACE
-  $<BUILD_INTERFACE:${HEADERS}>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
+
+list(APPEND ALLOW_LISTED csrc csrc/cpu)
+if(WITH_CUDA)
+  file(APPEND ALLOW_LISTED csrc/cuda)
+endif()
+
+FOREACH(DIR ${ALLOW_LISTED})
+  file(GLOB ALL_SOURCES ${ALL_SOURCES}, ${DIR}/*.*)
+ENDFOREACH()
+
+add_library(${PROJECT_NAME} SHARED ${ALL_SOURCES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${TORCH_LIBRARIES})
+
+if (WITH_PYTHON)
+  target_link_libraries(${PROJECT_NAME} PRIVATE Python3::Python)
+endif()
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+  EXPORT_NAME TorchSparse
+  INSTALL_RPATH ${TORCH_INSTALL_PREFIX}/lib)
+
+include_directories(csrc)
 
 set(TORCHSPARSE_CMAKECONFIG_INSTALL_DIR "share/cmake/TorchSparse" CACHE STRING "install path for TorchSparseConfig.cmake")
 
@@ -46,7 +52,7 @@ configure_package_config_file(cmake/TorchSparseConfig.cmake.in
   INSTALL_DESTINATION ${TORCHSPARSE_CMAKECONFIG_INSTALL_DIR})
 
 write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/TorchSparseConfigVersion.cmake
-	VERSION ${TORCHSPARSE_VERSION}
+  VERSION ${TORCHSPARSE_VERSION}
   COMPATIBILITY AnyNewerVersion)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/TorchSparseConfig.cmake
@@ -55,35 +61,15 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/TorchSparseConfig.cmake
 
 install(TARGETS ${PROJECT_NAME}
   EXPORT TorchSparseTargets
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  )
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 install(EXPORT TorchSparseTargets
   NAMESPACE TorchSparse::
   DESTINATION ${TORCHSPARSE_CMAKECONFIG_INSTALL_DIR})
 
-install(FILES ${HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
-install(FILES
-  csrc/cpu/convert_cpu.h
-  csrc/cpu/diag_cpu.h
-  csrc/cpu/metis_cpu.h
-  csrc/cpu/rw_cpu.h
-  csrc/cpu/saint_cpu.h
-  csrc/cpu/sample_cpu.h
-  csrc/cpu/spmm_cpu.h
-  csrc/cpu/spspmm_cpu.h
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/cpu)
-if(WITH_CUDA)
-  install(FILES
-    csrc/cuda/convert_cuda.h
-    csrc/cuda/diag_cuda.h
-    csrc/cuda/rw_cuda.h
-    csrc/cuda/spmm_cuda.h
-    csrc/cuda/spspmm_cuda.h
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/cuda)
-endif()
 
-if(WITH_CUDA)
-  set_property(TARGET torch_cuda PROPERTY INTERFACE_COMPILE_OPTIONS "")
-  set_property(TARGET torch_cpu PROPERTY INTERFACE_COMPILE_OPTIONS "")
-endif()
+FOREACH(INPUT_DIR ${ALLOW_LISTED})
+    string(REPLACE "csrc" "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}" OUTPUT_DIR ${INPUT_DIR})
+    file(GLOB INPUT_FILES ${INPUT_DIR}/*.*)
+    install(FILES ${INPUT_FILES} DESTINATION ${OUTPUT_DIR})
+ENDFOREACH()

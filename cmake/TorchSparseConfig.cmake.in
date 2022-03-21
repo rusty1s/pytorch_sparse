@@ -7,7 +7,9 @@
 @PACKAGE_INIT@
 
 set(PN TorchSparse)
+
 set(${PN}_INCLUDE_DIR "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_INCLUDEDIR@")
+
 set(${PN}_LIBRARY "")
 set(${PN}_DEFINITIONS USING_${PN})
 
@@ -25,10 +27,13 @@ include("${CMAKE_CURRENT_LIST_DIR}/${PN}Targets.cmake")
 if(NOT TARGET torch_library)
 find_package(Torch REQUIRED)
 endif()
-if(NOT TARGET Python3::Python)
-find_package(Python3 COMPONENTS Development)
+if (@WITH_PYTHON@)
+  if(NOT TARGET Python3::Python)
+    find_package(Python3 COMPONENTS Development)
+  endif()
 endif()
-target_link_libraries(TorchSparse::TorchSparse INTERFACE ${TORCH_LIBRARIES} Python3::Python)
+
+set_target_properties(TorchSparse::TorchSparse PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${${PN}_INCLUDE_DIR}" INTERFACE_LINK_LIBRARIES "torch;Python3::Python" )
 
 if(@WITH_CUDA@)
   target_compile_definitions(TorchSparse::TorchSparse INTERFACE WITH_CUDA)
