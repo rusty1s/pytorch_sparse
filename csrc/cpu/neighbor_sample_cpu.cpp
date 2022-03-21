@@ -1,7 +1,6 @@
 #include "neighbor_sample_cpu.h"
 
 #include "utils.h"
-#include <iostream>
 
 #ifdef _WIN32
 #include <process.h>
@@ -10,14 +9,6 @@
 using namespace std;
 
 namespace {
-
-// template<typename K, typename V>
-// void print_map(unordered_map<K, V> const &m)
-// {
-//     for (auto const &pair: m) {
-//         printf("{" << pair.first << ": " << pair.second << "}\n");
-//     }
-// }
 
 template <bool replace, bool directed>
 tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
@@ -34,15 +25,10 @@ sample(const torch::Tensor &colptr, const torch::Tensor &row,
   auto *row_data = row.data_ptr<int64_t>();
   auto *input_node_data = input_node.data_ptr<int64_t>();
 
-  // Insert nodes to sample and populate local node map
-  auto input_i = 0;
   for (int64_t i = 0; i < input_node.numel(); i++) {
     const auto &v = input_node_data[i];
-    if (to_local_node.find(v) == to_local_node.end()){
-      samples.push_back(v);
-      to_local_node.insert({v, input_i});
-      input_i++;
-    }
+    samples.push_back(v);
+    to_local_node.insert({v, input_i});
   }
 
   vector<int64_t> rows, cols, edges;
@@ -165,7 +151,6 @@ hetero_sample(const vector<node_t> &node_types,
   }
 
   // Add the input nodes to the output nodes:
-  auto input_i = 0;
   for (const auto &kv : input_node_dict) {
     const auto &node_type = kv.key();
     const torch::Tensor &input_node = kv.value();
@@ -175,10 +160,8 @@ hetero_sample(const vector<node_t> &node_types,
     auto &to_local_node = to_local_node_dict.at(node_type);
     for (int64_t i = 0; i < input_node.numel(); i++) {
       const auto &v = input_node_data[i];
-      if (to_local_node.find(v) == to_local_node.end()){
-        samples.push_back(v);
-        to_local_node.insert({v, input_i});
-        input_i++;
+      samples.push_back(v);
+      to_local_node.insert({v, input_i});
       }
     }
   }
