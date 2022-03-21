@@ -162,7 +162,6 @@ hetero_sample(const vector<node_t> &node_types,
       const auto &v = input_node_data[i];
       samples.push_back(v);
       to_local_node.insert({v, i});
-      }
     }
   }
 
