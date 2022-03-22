@@ -2,33 +2,15 @@
 
 #include <torch/extension.h>
 
-#ifdef _WIN32
-#if defined(torchsparse_EXPORTS)
-#define SPARSE_API __declspec(dllexport)
-#else
-#define SPARSE_API __declspec(dllimport)
-#endif
-#else
-#define SPARSE_API
-#endif
+#include "macros.h"
 
-#if (defined __cpp_inline_variables) || __cplusplus >= 201703L
-#define SPARSE_INLINE_VARIABLE inline
-#else
-#ifdef _MSC_VER
-#define SPARSE_INLINE_VARIABLE __declspec(selectany)
-#else
-#define SPARSE_INLINE_VARIABLE __attribute__((weak))
-#endif
-#endif
-
-namespace customsparse {
+namespace sparse {
 SPARSE_API int64_t cuda_version() noexcept;
 
 namespace detail {
 SPARSE_INLINE_VARIABLE int64_t _cuda_version = cuda_version();
 } // namespace detail
-} // namespace customsparse
+} // namespace sparse
 
 SPARSE_API torch::Tensor ind2ptr(torch::Tensor ind, int64_t M);
 SPARSE_API torch::Tensor ptr2ind(torch::Tensor ptr, int64_t E);
