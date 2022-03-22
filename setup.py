@@ -38,6 +38,11 @@ def get_extensions():
     main_files = glob.glob(osp.join(extensions_dir, '*.cpp'))
 
     for main, suffix in product(main_files, suffices):
+        print(main)
+        if 'version' not in main and 'convert' not in main:
+            print("SKIP")
+            continue
+
         define_macros = [('WITH_PYTHON', None)]
 
         if sys.platform == 'win32':
