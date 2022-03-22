@@ -64,7 +64,6 @@ install(EXPORT TorchSparseTargets
 
 install(FILES ${HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 install(FILES
-  csrc/macros.h
   csrc/cpu/convert_cpu.h
   csrc/cpu/diag_cpu.h
   csrc/cpu/metis_cpu.h
