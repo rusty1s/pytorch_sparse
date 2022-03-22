@@ -1,6 +1,5 @@
-
-#include <torch/torch.h>
-#include "sparse.h"
+#include "macros.h"
+#include <torch/extension.h>
 
 // for getpid()
 #ifdef _WIN32

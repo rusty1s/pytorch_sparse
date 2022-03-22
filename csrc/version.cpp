@@ -1,12 +1,13 @@
 #ifdef WITH_PYTHON
 #include <Python.h>
 #endif
-#include "sparse.h"
 #include <torch/script.h>
 
 #ifdef WITH_CUDA
 #include <cuda.h>
 #endif
+
+#include "macros.h"
 
 #ifdef _WIN32
 #ifdef WITH_PYTHON
