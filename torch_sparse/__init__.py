@@ -22,7 +22,7 @@ for library in [
                           f"{osp.dirname(__file__)}")
 
 cuda_version = torch.ops.torch_sparse.cuda_version()
-if torch.cuda.is_available() and cuda_version != -1:  # pragma: no cover
+if torch.version.cuda is not None and cuda_version != -1:  # pragma: no cover
     if cuda_version < 10000:
         major, minor = int(str(cuda_version)[0]), int(str(cuda_version)[2])
     else:
