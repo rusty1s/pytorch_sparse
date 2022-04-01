@@ -35,15 +35,15 @@ from_vector(const std::unordered_map<key_t, std::vector<scalar_t>> &vec_dict,
   return out_dict;
 }
 
-inline int64_t uniform_randint(int64_t high) {
-  return uniform_randint(0, high);
-}
-
 inline int64_t uniform_randint(int64_t low, int64_t high) {
   CHECK_LT(low, high);
   auto ret = torch::randint(low, high, {1});
   auto ptr = ret.data_ptr<int64_t>();
   return *ptr;
+}
+
+inline int64_t uniform_randint(int64_t high) {
+  return uniform_randint(0, high);
 }
 
 inline torch::Tensor
