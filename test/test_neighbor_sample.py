@@ -25,3 +25,18 @@ def test_neighbor_sample():
     assert out[0].tolist() == [1, 0]
     assert out[1].tolist() == [1]
     assert out[2].tolist() == [0]
+
+
+def test_neighbor_sample_seed():
+    colptr = torch.tensor([0, 3, 6, 9])
+    row = torch.tensor([0, 1, 2, 0, 1, 2, 0, 1, 2])
+    input_nodes = torch.tensor([0, 1])
+
+    torch.manual_seed(42)
+    out1 = neighbor_sample(colptr, row, input_nodes, [1, 1], True, False)
+
+    torch.manual_seed(42)
+    out2 = neighbor_sample(colptr, row, input_nodes, [1, 1], True, False)
+
+    for data1, data2 in zip(out1, out2):
+        assert data1.tolist() == data2.tolist()
