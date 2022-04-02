@@ -19,8 +19,6 @@ ego_k_hop_sample_adj_cpu(torch::Tensor rowptr, torch::Tensor col,
                          torch::Tensor idx, int64_t depth,
                          int64_t num_neighbors, bool replace) {
 
-  srand(time(NULL) + 1000 * getpid()); // Initialize random seed.
-
   std::vector<torch::Tensor> out_rowptrs(idx.numel() + 1);
   std::vector<torch::Tensor> out_cols(idx.numel());
   std::vector<torch::Tensor> out_n_ids(idx.numel());
@@ -56,14 +54,14 @@ ego_k_hop_sample_adj_cpu(torch::Tensor rowptr, torch::Tensor col,
             }
           } else if (replace) {
             for (int64_t j = 0; j < num_neighbors; j++) {
-              w = col_data[row_start + (rand() % row_count)];
+              w = col_data[row_start + uniform_randint(row_count)];
               n_id_set.insert(w);
               n_ids.push_back(w);
             }
           } else {
             std::unordered_set<int64_t> perm;
             for (int64_t j = row_count - num_neighbors; j < row_count; j++) {
-              if (!perm.insert(rand() % j).second) {
+              if (!perm.insert(uniform_randint(j)).second) {
                 perm.insert(j);
               }
             }

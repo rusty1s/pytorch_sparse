@@ -105,8 +105,6 @@ hgt_sample_cpu(const c10::Dict<rel_t, torch::Tensor> &colptr_dict,
                const c10::Dict<node_t, vector<int64_t>> &num_samples_dict,
                const int64_t num_hops) {
 
-  srand(time(NULL) + 1000 * getpid()); // Initialize random seed.
-
   // Create a mapping to convert single string relations to edge type triplets:
   unordered_map<rel_t, edge_t> to_edge_type;
   for (const auto &kv : colptr_dict) {

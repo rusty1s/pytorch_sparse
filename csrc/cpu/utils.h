@@ -35,6 +35,18 @@ from_vector(const std::unordered_map<key_t, std::vector<scalar_t>> &vec_dict,
   return out_dict;
 }
 
+inline int64_t uniform_randint(int64_t low, int64_t high) {
+  CHECK_LT(low, high);
+  auto options = torch::TensorOptions().dtype(torch::kInt64);
+  auto ret = torch::randint(low, high, {1}, options);
+  auto ptr = ret.data_ptr<int64_t>();
+  return *ptr;
+}
+
+inline int64_t uniform_randint(int64_t high) {
+  return uniform_randint(0, high);
+}
+
 inline torch::Tensor
 choice(int64_t population, int64_t num_samples, bool replace = false,
        torch::optional<torch::Tensor> weight = torch::nullopt) {
@@ -52,7 +64,7 @@ choice(int64_t population, int64_t num_samples, bool replace = false,
     const auto out = torch::empty(num_samples, at::kLong);
     auto *out_data = out.data_ptr<int64_t>();
     for (int64_t i = 0; i < num_samples; i++) {
-      out_data[i] = rand() % population;
+      out_data[i] = uniform_randint(population);
     }
     return out;
 
@@ -64,7 +76,7 @@ choice(int64_t population, int64_t num_samples, bool replace = false,
     auto *out_data = out.data_ptr<int64_t>();
     std::unordered_set<int64_t> samples;
     for (int64_t i = population - num_samples; i < population; i++) {
-      int64_t sample = rand() % i;
+      int64_t sample = uniform_randint(i);
       if (!samples.insert(sample).second) {
         sample = i;
         samples.insert(sample);
@@ -86,7 +98,7 @@ uniform_choice(const int64_t population, const int64_t num_samples,
 
   if (replace) {
     for (int64_t i = 0; i < num_samples; i++) {
-      const int64_t &v = idx_data[rand() % population];
+      const int64_t &v = idx_data[uniform_randint(population)];
       if (to_local_node->insert({v, samples->size()}).second)
         samples->push_back(v);
     }
@@ -99,7 +111,7 @@ uniform_choice(const int64_t population, const int64_t num_samples,
   } else {
     std::unordered_set<int64_t> indices;
     for (int64_t i = population - num_samples; i < population; i++) {
-      int64_t j = rand() % i;
+      int64_t j = uniform_randint(i);
       if (!indices.insert(j).second) {
         j = i;
         indices.insert(j);
