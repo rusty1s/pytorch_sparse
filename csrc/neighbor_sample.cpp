@@ -1,18 +1,22 @@
+#ifdef WITH_PYTHON
 #include <Python.h>
+#endif
 #include <torch/script.h>
 
 #include "cpu/neighbor_sample_cpu.h"
 
 #ifdef _WIN32
+#ifdef WITH_PYTHON
 #ifdef WITH_CUDA
 PyMODINIT_FUNC PyInit__neighbor_sample_cuda(void) { return NULL; }
 #else
 PyMODINIT_FUNC PyInit__neighbor_sample_cpu(void) { return NULL; }
 #endif
 #endif
+#endif
 
 // Returns 'output_node', 'row', 'col', 'output_edge'
-std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
+SPARSE_API std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
 neighbor_sample(const torch::Tensor &colptr, const torch::Tensor &row,
                 const torch::Tensor &input_node,
                 const std::vector<int64_t> num_neighbors, const bool replace,
@@ -21,7 +25,7 @@ neighbor_sample(const torch::Tensor &colptr, const torch::Tensor &row,
                              directed);
 }
 
-std::tuple<c10::Dict<node_t, torch::Tensor>, c10::Dict<rel_t, torch::Tensor>,
+SPARSE_API std::tuple<c10::Dict<node_t, torch::Tensor>, c10::Dict<rel_t, torch::Tensor>,
            c10::Dict<rel_t, torch::Tensor>, c10::Dict<rel_t, torch::Tensor>>
 hetero_neighbor_sample(
     const std::vector<node_t> &node_types,

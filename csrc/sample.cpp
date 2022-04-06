@@ -1,17 +1,21 @@
+#ifdef WITH_PYTHON
 #include <Python.h>
+#endif
 #include <torch/script.h>
 
 #include "cpu/sample_cpu.h"
 
 #ifdef _WIN32
+#ifdef WITH_PYTHON
 #ifdef WITH_CUDA
 PyMODINIT_FUNC PyInit__sample_cuda(void) { return NULL; }
 #else
 PyMODINIT_FUNC PyInit__sample_cpu(void) { return NULL; }
 #endif
 #endif
+#endif
 
-std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
+SPARSE_API std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
 sample_adj(torch::Tensor rowptr, torch::Tensor col, torch::Tensor idx,
            int64_t num_neighbors, bool replace) {
   if (rowptr.device().is_cuda()) {

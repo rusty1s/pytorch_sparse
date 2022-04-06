@@ -4,6 +4,7 @@ import glob
 import os.path as osp
 from itertools import product
 from setuptools import setup, find_packages
+import platform
 
 import torch
 from torch.__config__ import parallel_info
@@ -34,7 +35,11 @@ def get_extensions():
     main_files = glob.glob(osp.join(extensions_dir, '*.cpp'))
 
     for main, suffix in product(main_files, suffices):
-        define_macros = []
+        define_macros = [('WITH_PYTHON', None)]
+
+        if sys.platform == 'win32':
+            define_macros += [('torchsparse_EXPORTS', None)]
+
         libraries = []
         if WITH_METIS:
             define_macros += [('WITH_METIS', None)]
@@ -61,6 +66,11 @@ def get_extensions():
                 extra_compile_args['cxx'] += ['-fopenmp']
         else:
             print('Compiling without OpenMP...')
+
+        # Compile for mac arm64
+        if (sys.platform == 'darwin' and platform.machine() == 'arm64'):
+            extra_compile_args['cxx'] += ['-arch', 'arm64']
+            extra_link_args += ['-arch', 'arm64']
 
         if suffix == 'cuda':
             define_macros += [('WITH_CUDA', None)]

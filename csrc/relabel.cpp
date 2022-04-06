@@ -1,17 +1,21 @@
+#ifdef WITH_PYTHON
 #include <Python.h>
+#endif
 #include <torch/script.h>
 
 #include "cpu/relabel_cpu.h"
 
 #ifdef _WIN32
+#ifdef WITH_PYTHON
 #ifdef WITH_CUDA
 PyMODINIT_FUNC PyInit__relabel_cuda(void) { return NULL; }
 #else
 PyMODINIT_FUNC PyInit__relabel_cpu(void) { return NULL; }
 #endif
 #endif
+#endif
 
-std::tuple<torch::Tensor, torch::Tensor> relabel(torch::Tensor col,
+SPARSE_API std::tuple<torch::Tensor, torch::Tensor> relabel(torch::Tensor col,
                                                  torch::Tensor idx) {
   if (col.device().is_cuda()) {
 #ifdef WITH_CUDA
@@ -24,7 +28,7 @@ std::tuple<torch::Tensor, torch::Tensor> relabel(torch::Tensor col,
   }
 }
 
-std::tuple<torch::Tensor, torch::Tensor, torch::optional<torch::Tensor>,
+SPARSE_API std::tuple<torch::Tensor, torch::Tensor, torch::optional<torch::Tensor>,
            torch::Tensor>
 relabel_one_hop(torch::Tensor rowptr, torch::Tensor col,
                 torch::optional<torch::Tensor> optional_value,
