@@ -114,6 +114,16 @@ sample(const torch::Tensor &colptr, const torch::Tensor &row,
                     from_vector<int64_t>(cols), from_vector<int64_t>(edges));
 }
 
+bool satisfy_time_constraint(const c10::Dict<node_t, torch::Tensor> &node_time_dict,
+                             const std::string &src_node_type,
+                             const int64_t &dst_time,
+                             const int64_t &sampled_node) {
+  bool time_constraint = true; // whether src -> dst obeys the time constraint
+  const auto *src_time = node_time_dict.at(src_node_type).data_ptr<int64_t>();
+  if (dst_time < src_time[sampled_node])
+    time_constraint = false;
+}
+
 
 template <bool replace, bool directed>
 tuple<c10::Dict<node_t, torch::Tensor>, c10::Dict<rel_t, torch::Tensor>,
@@ -226,11 +236,10 @@ hetero_sample_temporal(const vector<node_t> &node_types,
           // select all neighbors
           for (int64_t offset = col_start; offset < col_end; offset++) {
             const int64_t &v = row_data[offset];
-            bool time_constraint = true; // whether src -> dst obeys the time constraint
+            bool time_constraint = true;
             if (is_temporal) {
-              const auto *src_time = node_time_dict.at(src_node_type).data_ptr<int64_t>();
-              if (dst_time < src_time[v])
-                time_constraint = false;
+              time_constraint = satisfy_time_constraint(
+                  node_time_dict, src_node_type, dst_time, v);
             }
             if (!time_constraint)
               continue;
@@ -252,11 +261,10 @@ hetero_sample_temporal(const vector<node_t> &node_types,
           while (num_neighbors < num_samples) {
             const int64_t offset = col_start + uniform_randint(col_count);
             const int64_t &v = row_data[offset];
-            bool time_constraint = true; // whether src -> dst obeys the time constraint
+            bool time_constraint = true;
             if (is_temporal) {
-              const auto *src_time = node_time_dict.at(src_node_type).data_ptr<int64_t>();
-              if (dst_time < src_time[v])
-                time_constraint = false;
+              time_constraint = satisfy_time_constraint(
+                  node_time_dict, src_node_type, dst_time, v);
             }
             if (!time_constraint)
               continue;
@@ -284,11 +292,10 @@ hetero_sample_temporal(const vector<node_t> &node_types,
             }
             const int64_t offset = col_start + rnd;
             const int64_t &v = row_data[offset];
-            bool time_constraint = true; // whether src -> dst obeys the time constraint
+            bool time_constraint = true;
             if (is_temporal) {
-              const auto *src_time = node_time_dict.at(src_node_type).data_ptr<int64_t>();
-              if (dst_time < src_time[v])
-                time_constraint = false;
+              time_constraint = satisfy_time_constraint(
+                  node_time_dict, src_node_type, dst_time, v);
             }
             if (!time_constraint)
               continue;
