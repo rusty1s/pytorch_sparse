@@ -1,4 +1,6 @@
+#ifdef WITH_PYTHON
 #include <Python.h>
+#endif
 #include <torch/script.h>
 
 #include "cpu/spmm_cpu.h"
@@ -8,10 +10,12 @@
 #endif
 
 #ifdef _WIN32
+#ifdef WITH_PYTHON
 #ifdef WITH_CUDA
 PyMODINIT_FUNC PyInit__spmm_cuda(void) { return NULL; }
 #else
 PyMODINIT_FUNC PyInit__spmm_cpu(void) { return NULL; }
+#endif
 #endif
 #endif
 
@@ -298,7 +302,7 @@ public:
   }
 };
 
-torch::Tensor spmm_sum(torch::optional<torch::Tensor> opt_row,
+SPARSE_API torch::Tensor spmm_sum(torch::optional<torch::Tensor> opt_row,
                        torch::Tensor rowptr, torch::Tensor col,
                        torch::optional<torch::Tensor> opt_value,
                        torch::optional<torch::Tensor> opt_colptr,
@@ -309,7 +313,7 @@ torch::Tensor spmm_sum(torch::optional<torch::Tensor> opt_row,
                         mat, opt_value.has_value())[0];
 }
 
-torch::Tensor spmm_mean(torch::optional<torch::Tensor> opt_row,
+SPARSE_API torch::Tensor spmm_mean(torch::optional<torch::Tensor> opt_row,
                         torch::Tensor rowptr, torch::Tensor col,
                         torch::optional<torch::Tensor> opt_value,
                         torch::optional<torch::Tensor> opt_rowcount,
@@ -321,7 +325,7 @@ torch::Tensor spmm_mean(torch::optional<torch::Tensor> opt_row,
                          opt_csr2csc, mat, opt_value.has_value())[0];
 }
 
-std::tuple<torch::Tensor, torch::Tensor>
+SPARSE_API std::tuple<torch::Tensor, torch::Tensor>
 spmm_min(torch::Tensor rowptr, torch::Tensor col,
          torch::optional<torch::Tensor> opt_value, torch::Tensor mat) {
   auto value = opt_value.has_value() ? opt_value.value() : col;
@@ -329,7 +333,7 @@ spmm_min(torch::Tensor rowptr, torch::Tensor col,
   return std::make_tuple(result[0], result[1]);
 }
 
-std::tuple<torch::Tensor, torch::Tensor>
+SPARSE_API std::tuple<torch::Tensor, torch::Tensor>
 spmm_max(torch::Tensor rowptr, torch::Tensor col,
          torch::optional<torch::Tensor> opt_value, torch::Tensor mat) {
   auto value = opt_value.has_value() ? opt_value.value() : col;

@@ -1,13 +1,15 @@
-import pytest
 from itertools import product
 
+import pytest
 import torch
 from torch_sparse.tensor import SparseTensor
 
 from .utils import devices
 
 try:
-    torch.ops.torch_sparse.partition
+    rowptr = torch.tensor([0, 1])
+    col = torch.tensor([0])
+    torch.ops.torch_sparse.partition(rowptr, col, None, 1, True)
     with_metis = True
 except RuntimeError:
     with_metis = False

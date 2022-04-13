@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.0)
 project(torchsparse)
 set(CMAKE_CXX_STANDARD 14)
-set(TORCHSPARSE_VERSION 0.6.12)
+set(TORCHSPARSE_VERSION 0.6.13)
 
 option(WITH_CUDA "Enable CUDA support" OFF)
+option(WITH_PYTHON "Link to Python when building" ON)
 
 if(WITH_CUDA)
   enable_language(CUDA)
@@ -12,17 +13,23 @@ if(WITH_CUDA)
   set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr")
 endif()
 
-find_package(Python3 COMPONENTS Development)
+if (WITH_PYTHON)
+  add_definitions(-DWITH_PYTHON)
+  find_package(Python3 COMPONENTS Development)
+endif()
 find_package(Torch REQUIRED)
 
 file(GLOB HEADERS csrc/sparse.h)
-file(GLOB OPERATOR_SOURCES csrc/cpu/*.h csrc/cpu/*.cpp csrc/*.cpp)
+file(GLOB OPERATOR_SOURCES csrc/*.* csrc/cpu/*.*)
 if(WITH_CUDA)
   file(GLOB OPERATOR_SOURCES ${OPERATOR_SOURCES} csrc/cuda/*.h csrc/cuda/*.cu)
 endif()
 
 add_library(${PROJECT_NAME} SHARED ${OPERATOR_SOURCES})
-target_link_libraries(${PROJECT_NAME} PRIVATE ${TORCH_LIBRARIES} Python3::Python)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${TORCH_LIBRARIES})
+if (WITH_PYTHON)
+  target_link_libraries(${PROJECT_NAME} PRIVATE Python3::Python)
+endif()
 set_target_properties(${PROJECT_NAME} PROPERTIES EXPORT_NAME TorchSparse)
 
 target_include_directories(${PROJECT_NAME} INTERFACE

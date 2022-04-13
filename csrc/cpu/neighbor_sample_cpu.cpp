@@ -15,8 +15,6 @@ tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
 sample(const torch::Tensor &colptr, const torch::Tensor &row,
        const torch::Tensor &input_node, const vector<int64_t> num_neighbors) {
 
-  srand(time(NULL) + 1000 * getpid()); // Initialize random seed.
-
   // Initialize some data structures for the sampling process:
   vector<int64_t> samples;
   unordered_map<int64_t, int64_t> to_local_node;
@@ -59,7 +57,7 @@ sample(const torch::Tensor &colptr, const torch::Tensor &row,
         }
       } else if (replace) {
         for (int64_t j = 0; j < num_samples; j++) {
-          const int64_t offset = col_start + rand() % col_count;
+          const int64_t offset = col_start + uniform_randint(col_count);
           const int64_t &v = row_data[offset];
           const auto res = to_local_node.insert({v, samples.size()});
           if (res.second)
@@ -73,7 +71,7 @@ sample(const torch::Tensor &colptr, const torch::Tensor &row,
       } else {
         unordered_set<int64_t> rnd_indices;
         for (int64_t j = col_count - num_samples; j < col_count; j++) {
-          int64_t rnd = rand() % j;
+          int64_t rnd = uniform_randint(j);
           if (!rnd_indices.insert(rnd).second) {
             rnd = j;
             rnd_indices.insert(j);
@@ -129,7 +127,6 @@ hetero_sample_temporal(const vector<node_t> &node_types,
                        const int64_t num_hops,
                        const c10::Dict<node_t, torch::Tensor> &node_time_dict) {
   bool is_temporal = (!node_time_dict.empty());
-  srand(time(NULL) + 1000 * getpid()); // Initialize random seed.
 
   // Create a mapping to convert single string relations to edge type triplets:
   unordered_map<rel_t, edge_t> to_edge_type;
@@ -159,7 +156,7 @@ hetero_sample_temporal(const vector<node_t> &node_types,
   // Add the input nodes to the output nodes:
   for (const auto &kv : input_node_dict) {
     const auto &node_type = kv.key();
-    const auto &input_node = kv.value();
+    const torch::Tensor &input_node = kv.value();
     const auto *input_node_data = input_node.data_ptr<int64_t>();
     // dummy value. will be reset to root time if is_temporal==true
     const auto *node_time_data = input_node.data_ptr<int64_t>();
@@ -197,8 +194,10 @@ hetero_sample_temporal(const vector<node_t> &node_types,
       auto &src_samples = samples_dict.at(src_node_type);
       auto &to_local_src_node = to_local_node_dict.at(src_node_type);
 
-      const auto *colptr_data = colptr_dict.at(rel_type).data_ptr<int64_t>();
-      const auto *row_data = row_dict.at(rel_type).data_ptr<int64_t>();
+      const auto *colptr_data =
+          ((torch::Tensor)colptr_dict.at(rel_type)).data_ptr<int64_t>();
+      const auto *row_data =
+          ((torch::Tensor)row_dict.at(rel_type)).data_ptr<int64_t>();
 
       auto &rows = rows_dict.at(rel_type);
       auto &cols = cols_dict.at(rel_type);
@@ -251,7 +250,7 @@ hetero_sample_temporal(const vector<node_t> &node_types,
           // sample with replacement
           int64_t num_neighbors = 0;
           while (num_neighbors < num_samples) {
-            const int64_t offset = col_start + rand() % col_count;
+            const int64_t offset = col_start + uniform_randint(col_count);
             const int64_t &v = row_data[offset];
             bool time_constraint = true; // whether src -> dst obeys the time constraint
             if (is_temporal) {
@@ -278,7 +277,7 @@ hetero_sample_temporal(const vector<node_t> &node_types,
           // sample without replacement
           unordered_set<int64_t> rnd_indices;
           for (int64_t j = col_count - num_samples; j < col_count; j++) {
-            int64_t rnd = rand() % j;
+            int64_t rnd = uniform_randint(j);
             if (!rnd_indices.insert(rnd).second) {
               rnd = j;
               rnd_indices.insert(j);
@@ -324,8 +323,9 @@ hetero_sample_temporal(const vector<node_t> &node_types,
       const auto &dst_samples = samples_dict.at(dst_node_type);
       auto &to_local_src_node = to_local_node_dict.at(src_node_type);
 
-      const auto *colptr_data = kv.value().data_ptr<int64_t>();
-      const auto *row_data = row_dict.at(rel_type).data_ptr<int64_t>();
+      const auto *colptr_data = ((torch::Tensor)kv.value()).data_ptr<int64_t>();
+      const auto *row_data =
+          ((torch::Tensor)row_dict.at(rel_type)).data_ptr<int64_t>();
 
       auto &rows = rows_dict.at(rel_type);
       auto &cols = cols_dict.at(rel_type);

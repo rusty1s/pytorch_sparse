@@ -15,8 +15,6 @@ sample_adj_cpu(torch::Tensor rowptr, torch::Tensor col, torch::Tensor idx,
   CHECK_CPU(idx);
   CHECK_INPUT(idx.dim() == 1);
 
-  srand(time(NULL) + 1000 * getpid()); // Initialize random seed.
-
   auto rowptr_data = rowptr.data_ptr<int64_t>();
   auto col_data = col.data_ptr<int64_t>();
   auto idx_data = idx.data_ptr<int64_t>();
@@ -69,7 +67,7 @@ sample_adj_cpu(torch::Tensor rowptr, torch::Tensor col, torch::Tensor idx,
 
       if (row_count > 0) {
         for (int64_t j = 0; j < num_neighbors; j++) {
-          e = row_start + rand() % row_count;
+          e = row_start + uniform_randint(row_count);
           c = col_data[e];
 
           if (n_id_map.count(c) == 0) {
@@ -96,7 +94,7 @@ sample_adj_cpu(torch::Tensor rowptr, torch::Tensor col, torch::Tensor idx,
       } else { // See: https://www.nowherenearithaca.com/2013/05/
                //      robert-floyds-tiny-and-beautiful.html
         for (int64_t j = row_count - num_neighbors; j < row_count; j++) {
-          if (!perm.insert(rand() % j).second)
+          if (!perm.insert(uniform_randint(j)).second)
             perm.insert(j);
         }
       }
