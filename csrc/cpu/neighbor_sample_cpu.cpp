@@ -118,10 +118,17 @@ bool satisfy_time_constraint(const c10::Dict<node_t, torch::Tensor> &node_time_d
                              const std::string &src_node_type,
                              const int64_t &dst_time,
                              const int64_t &sampled_node) {
-  bool time_constraint = true; // whether src -> dst obeys the time constraint
-  const auto *src_time = node_time_dict.at(src_node_type).data_ptr<int64_t>();
-  if (dst_time < src_time[sampled_node])
-    time_constraint = false;
+  // whether src -> dst obeys the time constraint
+  try {
+    const auto *src_time = node_time_dict.at(src_node_type).data_ptr<int64_t>();
+    if (dst_time < src_time[sampled_node])
+      return false;
+    return true;
+  }
+  catch (int err) {
+    // if the node type does not have timestamp, fall back to normal sampling
+    return true;
+  }
 }
 
 
