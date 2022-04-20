@@ -13,7 +13,7 @@ torch::Tensor non_diag_mask_cpu(torch::Tensor row, torch::Tensor col, int64_t M,
   auto row_data = row.data_ptr<int64_t>();
   auto col_data = col.data_ptr<int64_t>();
 
-  auto mask = torch::zeros(E + num_diag, row.options().dtype(torch::kBool));
+  auto mask = torch::zeros({E + num_diag}, row.options().dtype(torch::kBool));
   auto mask_data = mask.data_ptr<bool>();
 
   int64_t r, c;

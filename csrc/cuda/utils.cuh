@@ -8,11 +8,11 @@
 
 __device__ __inline__ at::Half
 __shfl_sync(const unsigned mask, const at::Half var, const int srcLane) {
-  return __shfl_sync(mask, (__half)var, srcLane);
+  return __shfl_sync(mask, var.operator __half(), srcLane);
 }
 
 __device__ __inline__ at::Half __shfl_down_sync(const unsigned mask,
                                                 const at::Half var,
                                                 const unsigned int delta) {
-  return __shfl_down_sync(mask, (__half)var, delta);
+  return __shfl_down_sync(mask, var.operator __half(), delta);
 }

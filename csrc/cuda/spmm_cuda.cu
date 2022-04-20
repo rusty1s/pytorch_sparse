@@ -213,7 +213,7 @@ torch::Tensor spmm_value_bw_cuda(torch::Tensor row, torch::Tensor rowptr,
   auto B = mat.numel() / (N * K);
   auto BLOCKS = dim3((E * 32 + THREADS - 1) / THREADS);
 
-  auto out = torch::zeros(row.numel(), grad.options());
+  auto out = torch::zeros({row.numel()}, grad.options());
 
   auto row_data = row.data_ptr<int64_t>();
   auto rowptr_data = rowptr.data_ptr<int64_t>();
