@@ -176,25 +176,34 @@ hetero_sample_temporal(const vector<node_t> &node_types,
     const torch::Tensor &input_node = kv.value();
     const auto *input_node_data = input_node.data_ptr<int64_t>();
     // dummy value. will be reset to root time if is_temporal==true
-    const auto *node_time_data = input_node.data_ptr<int64_t>();
+    // const auto *node_time_data = input_node.data_ptr<int64_t>();
     // root_time[i] stores the timestamp of the computation tree root
     // of the node samples[i]
     if (is_temporal) {
-      node_time_data = node_time_dict.at(node_type).data_ptr<int64_t>();
-      // node_time_data = input_node.data_ptr<int64_t>();
-    }
-
-    auto &samples = samples_dict.at(node_type);
-    auto &to_local_node = to_local_node_dict.at(node_type);
-    auto &root_time = root_time_dict.at(node_type);
-    for (int64_t i = 0; i < input_node.numel(); i++) {
-      const auto &v = input_node_data[i];
-      samples.push_back(v);
-      to_local_node.insert({v, i});
-      if (is_temporal) {
+      const auto *node_time_data = node_time_dict.at(node_type).data_ptr<int64_t>();
+      //node_time_data = input_node.data_ptr<int64_t>();
+      auto &samples = samples_dict.at(node_type);
+      auto &to_local_node = to_local_node_dict.at(node_type);
+      auto &root_time = root_time_dict.at(node_type);
+      for (int64_t i = 0; i < input_node.numel(); i++) {
+        const auto &v = input_node_data[i];
+        samples.push_back(v);
+        to_local_node.insert({v, i});
         root_time.push_back(node_time_data[v]);
       }
     }
+    else {
+      auto &samples = samples_dict.at(node_type);
+      auto &to_local_node = to_local_node_dict.at(node_type);
+      auto &root_time = root_time_dict.at(node_type);
+      for (int64_t i = 0; i < input_node.numel(); i++) {
+        const auto &v = input_node_data[i];
+        samples.push_back(v);
+        to_local_node.insert({v, i});
+      }
+    }
+
+    
   }
 
   unordered_map<node_t, pair<int64_t, int64_t>> slice_dict;
@@ -224,6 +233,7 @@ hetero_sample_temporal(const vector<node_t> &node_types,
       const auto &begin = slice_dict.at(dst_node_type).first;
       const auto &end = slice_dict.at(dst_node_type).second;
       if (begin == end){
+        continue;
       }
       // for temporal sampling, sampled src node cannot have timestamp greater
       // than its corresponding dst_root_time
