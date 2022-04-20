@@ -118,7 +118,7 @@ torch::Tensor spmm_value_bw_cpu(torch::Tensor row, torch::Tensor rowptr,
   auto K = mat.size(-1);
   auto B = mat.numel() / (N * K);
 
-  auto out = torch::zeros(row.numel(), grad.options());
+  auto out = torch::zeros({row.numel()}, grad.options());
 
   auto row_data = row.data_ptr<int64_t>();
   auto rowptr_data = rowptr.data_ptr<int64_t>();

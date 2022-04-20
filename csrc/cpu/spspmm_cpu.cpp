@@ -33,11 +33,11 @@ spspmm_cpu(torch::Tensor rowptrA, torch::Tensor colA,
 
   if (!optional_valueA.has_value() && optional_valueB.has_value())
     optional_valueA =
-        torch::ones(colA.numel(), optional_valueB.value().options());
+        torch::ones({colA.numel()}, optional_valueB.value().options());
 
   if (!optional_valueB.has_value() && optional_valueA.has_value())
     optional_valueB =
-        torch::ones(colB.numel(), optional_valueA.value().options());
+        torch::ones({colB.numel()}, optional_valueA.value().options());
 
   auto scalar_type = torch::ScalarType::Float;
   if (optional_valueA.has_value())

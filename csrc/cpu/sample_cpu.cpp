@@ -19,7 +19,7 @@ sample_adj_cpu(torch::Tensor rowptr, torch::Tensor col, torch::Tensor idx,
   auto col_data = col.data_ptr<int64_t>();
   auto idx_data = idx.data_ptr<int64_t>();
 
-  auto out_rowptr = torch::empty(idx.numel() + 1, rowptr.options());
+  auto out_rowptr = torch::empty({idx.numel() + 1}, rowptr.options());
   auto out_rowptr_data = out_rowptr.data_ptr<int64_t>();
   out_rowptr_data[0] = 0;
 
@@ -117,9 +117,9 @@ sample_adj_cpu(torch::Tensor rowptr, torch::Tensor col, torch::Tensor idx,
   auto out_n_id = torch::from_blob(n_ids.data(), {N}, col.options()).clone();
 
   int64_t E = out_rowptr_data[idx.numel()];
-  auto out_col = torch::empty(E, col.options());
+  auto out_col = torch::empty({E}, col.options());
   auto out_col_data = out_col.data_ptr<int64_t>();
-  auto out_e_id = torch::empty(E, col.options());
+  auto out_e_id = torch::empty({E}, col.options());
   auto out_e_id_data = out_e_id.data_ptr<int64_t>();
 
   i = 0;

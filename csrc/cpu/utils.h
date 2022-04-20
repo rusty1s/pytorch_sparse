@@ -61,7 +61,7 @@ choice(int64_t population, int64_t num_samples, bool replace = false,
     return torch::multinomial(weight.value(), num_samples, replace);
 
   if (replace) {
-    const auto out = torch::empty(num_samples, at::kLong);
+    const auto out = torch::empty({num_samples}, at::kLong);
     auto *out_data = out.data_ptr<int64_t>();
     for (int64_t i = 0; i < num_samples; i++) {
       out_data[i] = uniform_randint(population);
@@ -72,7 +72,7 @@ choice(int64_t population, int64_t num_samples, bool replace = false,
     // Sample without replacement via Robert Floyd algorithm:
     // https://www.nowherenearithaca.com/2013/05/
     // robert-floyds-tiny-and-beautiful.html
-    const auto out = torch::empty(num_samples, at::kLong);
+    const auto out = torch::empty({num_samples}, at::kLong);
     auto *out_data = out.data_ptr<int64_t>();
     std::unordered_set<int64_t> samples;
     for (int64_t i = population - num_samples; i < population; i++) {

@@ -59,11 +59,11 @@ spspmm_cuda(torch::Tensor rowptrA, torch::Tensor colA,
 
   if (!optional_valueA.has_value() && optional_valueB.has_value())
     optional_valueA =
-        torch::ones(colA.numel(), optional_valueB.value().options());
+        torch::ones({colA.numel()}, optional_valueB.value().options());
 
   if (!optional_valueB.has_value() && optional_valueA.has_value())
     optional_valueB =
-        torch::ones(colB.numel(), optional_valueA.value().options());
+        torch::ones({colB.numel()}, optional_valueA.value().options());
 
   auto scalar_type = torch::ScalarType::Float;
   if (optional_valueA.has_value())
@@ -108,7 +108,7 @@ spspmm_cuda(torch::Tensor rowptrA, torch::Tensor colA,
     cudaMalloc(&buffer, bufferSize);
 
     // Step 3: Compute CSR row pointer.
-    rowptrC = torch::empty(M + 1, rowptrA.options());
+    rowptrC = torch::empty({M + 1}, rowptrA.options());
     auto rowptrC_data = rowptrC.data_ptr<int>();
     cusparseXcsrgemm2Nnz(handle, M, N, K, descr, colA.numel(), rowptrA_data,
                          colA_data, descr, colB.numel(), rowptrB_data,
@@ -116,11 +116,11 @@ spspmm_cuda(torch::Tensor rowptrA, torch::Tensor colA,
                          nnzTotalDevHostPtr, info, buffer);
 
     // Step 4: Compute CSR entries.
-    colC = torch::empty(nnzC, rowptrC.options());
+    colC = torch::empty({nnzC}, rowptrC.options());
     auto colC_data = colC.data_ptr<int>();
 
     if (optional_valueA.has_value())
-      optional_valueC = torch::empty(nnzC, optional_valueA.value().options());
+      optional_valueC = torch::empty({nnzC}, optional_valueA.value().options());
 
     scalar_t *valA_data = NULL, *valB_data = NULL, *valC_data = NULL;
     if (optional_valueA.has_value()) {
