@@ -44,7 +44,7 @@ torch::Tensor partition_cpu(torch::Tensor rowptr, torch::Tensor col,
     vwgt = optional_node_weight.value().data_ptr<int64_t>();
 
   int64_t objval = -1;
-  auto part = torch::empty(nvtxs, rowptr.options());
+  auto part = torch::empty({nvtxs}, rowptr.options());
   auto part_data = part.data_ptr<int64_t>();
 
   if (recursive) {
@@ -99,7 +99,7 @@ mt_partition_cpu(torch::Tensor rowptr, torch::Tensor col,
 
   mtmetis_pid_type nparts = num_parts;
   mtmetis_wgt_type objval = -1;
-  auto part = torch::empty(nvtxs, rowptr.options());
+  auto part = torch::empty({nvtxs}, rowptr.options());
   mtmetis_pid_type *part_data = (mtmetis_pid_type *)part.data_ptr<int64_t>();
 
   double *opts = mtmetis_init_options();

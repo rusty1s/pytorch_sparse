@@ -27,7 +27,7 @@ torch::Tensor ind2ptr_cuda(torch::Tensor ind, int64_t M) {
   CHECK_CUDA(ind);
   cudaSetDevice(ind.get_device());
 
-  auto out = torch::empty(M + 1, ind.options());
+  auto out = torch::empty({M + 1}, ind.options());
 
   if (ind.numel() == 0)
     return out.zero_();
@@ -57,7 +57,7 @@ torch::Tensor ptr2ind_cuda(torch::Tensor ptr, int64_t E) {
   CHECK_CUDA(ptr);
   cudaSetDevice(ptr.get_device());
 
-  auto out = torch::empty(E, ptr.options());
+  auto out = torch::empty({E}, ptr.options());
   auto ptr_data = ptr.data_ptr<int64_t>();
   auto out_data = out.data_ptr<int64_t>();
   auto stream = at::cuda::getCurrentCUDAStream();

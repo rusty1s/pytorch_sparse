@@ -64,7 +64,7 @@ relabel_one_hop_cpu(torch::Tensor rowptr, torch::Tensor col,
   std::unordered_map<int64_t, int64_t> n_id_map;
   std::unordered_map<int64_t, int64_t>::iterator it;
 
-  auto out_rowptr = torch::empty(idx.numel() + 1, rowptr.options());
+  auto out_rowptr = torch::empty({idx.numel() + 1}, rowptr.options());
   auto out_rowptr_data = out_rowptr.data_ptr<int64_t>();
 
   out_rowptr_data[0] = 0;
@@ -76,12 +76,12 @@ relabel_one_hop_cpu(torch::Tensor rowptr, torch::Tensor col,
     out_rowptr_data[i + 1] = offset;
   }
 
-  auto out_col = torch::empty(offset, col.options());
+  auto out_col = torch::empty({offset}, col.options());
   auto out_col_data = out_col.data_ptr<int64_t>();
 
   torch::optional<torch::Tensor> out_value = torch::nullopt;
   if (optional_value.has_value()) {
-    out_value = torch::empty(offset, optional_value.value().options());
+    out_value = torch::empty({offset}, optional_value.value().options());
 
     AT_DISPATCH_ALL_TYPES(optional_value.value().scalar_type(), "relabel", [&] {
       auto value_data = optional_value.value().data_ptr<scalar_t>();
