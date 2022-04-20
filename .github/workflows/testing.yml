@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-2019]
-        #compiler: [ gcc-8 ]
+        compiler: [ gcc-8 ]
         python-version: [3.7]
         torch-version: [1.10.0, 1.11.0]
 
