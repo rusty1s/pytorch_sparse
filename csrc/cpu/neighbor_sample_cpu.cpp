@@ -180,8 +180,7 @@ hetero_sample_temporal(const vector<node_t> &node_types,
     // root_time[i] stores the timestamp of the computation tree root
     // of the node samples[i]
     if (is_temporal) {
-      const auto tmp = node_time_dict.at(node_type);
-      node_time_data = tmp.data_ptr<int64_t>();
+      node_time_data = node_time_dict.at(node_type).data_ptr<int64_t>();
     }
 
     auto &samples = samples_dict.at(node_type);

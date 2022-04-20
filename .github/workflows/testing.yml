@@ -48,6 +48,8 @@ jobs:
           pip install -e .[test]
         env:
           WITH_METIS: 1
+          CC: gcc-${{ matrix.gcc }}
+          CXX: g++-${{ matrix.gcc }}
 
       - name: Run test-suite
         run: |
