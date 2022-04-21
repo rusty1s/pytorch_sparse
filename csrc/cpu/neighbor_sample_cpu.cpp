@@ -176,7 +176,7 @@ hetero_sample_temporal(const vector<node_t> &node_types,
     const torch::Tensor &input_node = kv.value();
     const auto *input_node_data = input_node.data_ptr<int64_t>();
     // dummy value. will be reset to root time if is_temporal==true
-    const auto *node_time_data = input_node.data_ptr<int64_t>();
+    auto *node_time_data = input_node.data_ptr<int64_t>();
     // root_time[i] stores the timestamp of the computation tree root
     // of the node samples[i]
     if (is_temporal) {
