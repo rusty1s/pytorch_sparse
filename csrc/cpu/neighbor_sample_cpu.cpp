@@ -420,7 +420,7 @@ hetero_neighbor_sample_cpu(
     const int64_t num_hops, const bool replace, const bool directed) {
 
   if (replace && directed) {
-    return hetero_sample_random<true, true>(
+    return hetero_sample<true, true, false>(
         node_types, edge_types, colptr_dict,
         row_dict, input_node_dict,
         num_neighbors_dict, num_hops);
