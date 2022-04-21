@@ -121,7 +121,7 @@ bool satisfy_time_constraint(const c10::Dict<node_t, torch::Tensor> &node_time_d
   // whether src -> dst obeys the time constraint
   try {
     const auto *src_time = node_time_dict.at(src_node_type).data_ptr<int64_t>();
-    if (dst_time < src_time[sampled_node])
+    return dst_time < src_time[sampled_node]
       return false;
     return true;
   }
