@@ -143,7 +143,7 @@ hetero_sample(const vector<node_t> &node_types,
                        const c10::Dict<rel_t, vector<int64_t>> &num_neighbors_dict,
                        const int64_t num_hops,
                        const c10::Dict<node_t, torch::Tensor> &node_time_dict) {
-  bool is_temporal = (!node_time_dict.empty());
+  //bool is_temporal = (!node_time_dict.empty());
 
   // Create a mapping to convert single string relations to edge type triplets:
   unordered_map<rel_t, edge_t> to_edge_type;
@@ -380,7 +380,7 @@ hetero_sample_random(const vector<node_t> &node_types,
               const c10::Dict<rel_t, vector<int64_t>> &num_neighbors_dict,
               const int64_t num_hops) {
   c10::Dict<node_t, torch::Tensor> empty_dict;
-  return hetero_sample_temporal<replace, directed>(node_types,
+  return hetero_sample<replace, directed, false>(node_types,
               edge_types,
               colptr_dict,
               row_dict,
@@ -420,7 +420,7 @@ hetero_neighbor_sample_cpu(
     const int64_t num_hops, const bool replace, const bool directed) {
 
   if (replace && directed) {
-    return hetero_sample<true, true, false>(
+    return hetero_sample_random<true, true>(
         node_types, edge_types, colptr_dict,
         row_dict, input_node_dict,
         num_neighbors_dict, num_hops);
@@ -454,22 +454,22 @@ hetero_neighbor_temporal_sample_cpu(
     const int64_t num_hops, const bool replace, const bool directed) {
 
   if (replace && directed) {
-    return hetero_sample_temporal<true, true>(
+    return hetero_sample<true, true, true>(
         node_types, edge_types, colptr_dict,
         row_dict, input_node_dict,
         num_neighbors_dict, num_hops, node_time_dict);
   } else if (replace && !directed) {
-    return hetero_sample_temporal<true, false>(
+    return hetero_sample<true, false, true>(
         node_types, edge_types, colptr_dict,
         row_dict, input_node_dict,
         num_neighbors_dict, num_hops, node_time_dict);
   } else if (!replace && directed) {
-    return hetero_sample_temporal<false, true>(
+    return hetero_sample<false, true, true>(
         node_types, edge_types, colptr_dict,
         row_dict, input_node_dict,
         num_neighbors_dict, num_hops, node_time_dict);
   } else {
-    return hetero_sample_temporal<false, false>(
+    return hetero_sample<false, false, true>(
         node_types, edge_types, colptr_dict,
         row_dict, input_node_dict,
         num_neighbors_dict, num_hops, node_time_dict);
