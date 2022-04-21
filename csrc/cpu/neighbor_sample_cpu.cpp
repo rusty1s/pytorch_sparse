@@ -132,7 +132,7 @@ bool satisfy_time_constraint(const c10::Dict<node_t, torch::Tensor> &node_time_d
 }
 
 
-template <bool replace, bool directed>
+template <bool replace, bool directed, bool temporal>
 tuple<c10::Dict<node_t, torch::Tensor>, c10::Dict<rel_t, torch::Tensor>,
       c10::Dict<rel_t, torch::Tensor>, c10::Dict<rel_t, torch::Tensor>>
 hetero_sample_temporal(const vector<node_t> &node_types,
