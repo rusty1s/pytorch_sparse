@@ -121,9 +121,7 @@ bool satisfy_time_constraint(const c10::Dict<node_t, torch::Tensor> &node_time_d
   // whether src -> dst obeys the time constraint
   try {
     const auto *src_time = node_time_dict.at(src_node_type).data_ptr<int64_t>();
-    return dst_time < src_time[sampled_node]
-      return false;
-    return true;
+    return dst_time < src_time[sampled_node];
   }
   catch (int err) {
     // if the node type does not have timestamp, fall back to normal sampling
@@ -143,7 +141,7 @@ hetero_sample(const vector<node_t> &node_types,
                        const c10::Dict<rel_t, vector<int64_t>> &num_neighbors_dict,
                        const int64_t num_hops,
                        const c10::Dict<node_t, torch::Tensor> &node_time_dict) {
-  //bool is_temporal = (!node_time_dict.empty());
+  //bool temporal = (!node_time_dict.empty());
 
   // Create a mapping to convert single string relations to edge type triplets:
   unordered_map<rel_t, edge_t> to_edge_type;
@@ -179,7 +177,7 @@ hetero_sample(const vector<node_t> &node_types,
     auto *node_time_data = input_node.data_ptr<int64_t>();
     // root_time[i] stores the timestamp of the computation tree root
     // of the node samples[i]
-    if (is_temporal) {
+    if (temporal) {
       node_time_data = node_time_dict.at(node_type).data_ptr<int64_t>();
     }
 
@@ -190,7 +188,7 @@ hetero_sample(const vector<node_t> &node_types,
       const auto &v = input_node_data[i];
       samples.push_back(v);
       to_local_node.insert({v, i});
-      if (is_temporal) {
+      if (temporal) {
         root_time.push_back(node_time_data[v]);
       }
     }
@@ -245,7 +243,7 @@ hetero_sample(const vector<node_t> &node_types,
           for (int64_t offset = col_start; offset < col_end; offset++) {
             const int64_t &v = row_data[offset];
             bool time_constraint = true;
-            if (is_temporal) {
+            if (temporal) {
               time_constraint = satisfy_time_constraint(
                   node_time_dict, src_node_type, dst_time, v);
             }
@@ -254,7 +252,7 @@ hetero_sample(const vector<node_t> &node_types,
             const auto res = to_local_src_node.insert({v, src_samples.size()});
             if (res.second) {
               src_samples.push_back(v);
-              if (is_temporal)
+              if (temporal)
                 src_root_time.push_back(dst_time);
             }
             if (directed) {
@@ -270,7 +268,7 @@ hetero_sample(const vector<node_t> &node_types,
             const int64_t offset = col_start + uniform_randint(col_count);
             const int64_t &v = row_data[offset];
             bool time_constraint = true;
-            if (is_temporal) {
+            if (temporal) {
               time_constraint = satisfy_time_constraint(
                   node_time_dict, src_node_type, dst_time, v);
             }
@@ -279,7 +277,7 @@ hetero_sample(const vector<node_t> &node_types,
             const auto res = to_local_src_node.insert({v, src_samples.size()});
             if (res.second) {
               src_samples.push_back(v);
-              if (is_temporal)
+              if (temporal)
                 src_root_time.push_back(dst_time);
             }
             if (directed) {
@@ -301,7 +299,7 @@ hetero_sample(const vector<node_t> &node_types,
             const int64_t offset = col_start + rnd;
             const int64_t &v = row_data[offset];
             bool time_constraint = true;
-            if (is_temporal) {
+            if (temporal) {
               time_constraint = satisfy_time_constraint(
                   node_time_dict, src_node_type, dst_time, v);
             }
@@ -310,7 +308,7 @@ hetero_sample(const vector<node_t> &node_types,
             const auto res = to_local_src_node.insert({v, src_samples.size()});
             if (res.second) {
               src_samples.push_back(v);
-              if (is_temporal)
+              if (temporal)
                 src_root_time.push_back(dst_time);
             }
             if (directed) {
