@@ -213,8 +213,8 @@ hetero_sample(const vector<node_t> &node_types,
       if (begin == end)
         continue;
 
-      // for temporal sampling, sampled nodes cannot have a timestamp
-      // greater than the timestamp of the root nodes.
+      // For temporal sampling, sampled nodes cannot have a timestamp greater
+      // than the timestamp of the root nodes.
       const auto &dst_root_time = root_time_dict.at(dst_node_type);
       auto &src_root_time = root_time_dict.at(src_node_type);
 
