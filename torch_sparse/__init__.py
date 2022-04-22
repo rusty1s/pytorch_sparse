@@ -3,7 +3,7 @@ import os.path as osp
 
 import torch
 
-__version__ = '0.6.13'
+__version__ = '0.7.0'
 
 for library in [
         '_version', '_convert', '_diag', '_spmm', '_spspmm', '_metis', '_rw',
@@ -37,35 +37,34 @@ if torch.version.cuda is not None and cuda_version != -1:  # pragma: no cover
             f'{major}.{minor}. Please reinstall the torch_sparse that '
             f'matches your PyTorch install.')
 
+from .add import add, add_, add_nnz, add_nnz_  # noqa
+from .bandwidth import reverse_cuthill_mckee  # noqa
+from .cat import cat  # noqa
+from .coalesce import coalesce  # noqa
+from .convert import to_scipy  # noqa
+from .convert import from_scipy, from_torch_sparse, to_torch_sparse
+from .diag import fill_diag, get_diag, remove_diag, set_diag  # noqa
+from .eye import eye  # noqa
+from .index_select import index_select, index_select_nnz  # noqa
+from .masked_select import masked_select, masked_select_nnz  # noqa
+from .matmul import matmul  # noqa
+from .metis import partition  # noqa
+from .mul import mul, mul_, mul_nnz, mul_nnz_  # noqa
+from .narrow import __narrow_diag__, narrow  # noqa
+from .padding import padded_index, padded_index_select  # noqa
+from .permute import permute  # noqa
+from .reduce import max, mean, min, sum  # noqa
+from .rw import random_walk  # noqa
+from .saint import saint_subgraph  # noqa
+from .sample import sample, sample_adj  # noqa
+from .select import select  # noqa
+from .spadd import spadd  # noqa
+from .spmm import spmm  # noqa
+from .spspmm import spspmm  # noqa
 from .storage import SparseStorage  # noqa
 from .tensor import SparseTensor  # noqa
 from .transpose import t  # noqa
-from .narrow import narrow, __narrow_diag__  # noqa
-from .select import select  # noqa
-from .index_select import index_select, index_select_nnz  # noqa
-from .masked_select import masked_select, masked_select_nnz  # noqa
-from .permute import permute  # noqa
-from .diag import remove_diag, set_diag, fill_diag, get_diag  # noqa
-from .add import add, add_, add_nnz, add_nnz_  # noqa
-from .mul import mul, mul_, mul_nnz, mul_nnz_  # noqa
-from .reduce import sum, mean, min, max  # noqa
-from .matmul import matmul  # noqa
-from .cat import cat  # noqa
-from .rw import random_walk  # noqa
-from .metis import partition  # noqa
-from .bandwidth import reverse_cuthill_mckee  # noqa
-from .saint import saint_subgraph  # noqa
-from .padding import padded_index, padded_index_select  # noqa
-from .sample import sample, sample_adj  # noqa
-
-from .convert import to_torch_sparse, from_torch_sparse  # noqa
-from .convert import to_scipy, from_scipy  # noqa
-from .coalesce import coalesce  # noqa
 from .transpose import transpose  # noqa
-from .eye import eye  # noqa
-from .spmm import spmm  # noqa
-from .spspmm import spspmm  # noqa
-from .spadd import spadd  # noqa
 
 __all__ = [
     'SparseStorage',
