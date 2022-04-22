@@ -116,12 +116,12 @@ sample(const torch::Tensor &colptr, const torch::Tensor &row,
 
 bool satisfy_time_constraint(
     const c10::Dict<node_t, torch::Tensor> &node_time_dict,
-    const std::string &src_node_type, const int64_t &dst_time,
-    const int64_t &sampled_node) {
+    const node_t &src_node_type, const int64_t &dst_time,
+    const int64_t &src_node) {
   // whether src -> dst obeys the time constraint
   try {
-    const auto *src_time = node_time_dict[src_node_type].data_ptr<int64_t>();
-    return dst_time < src_time[sampled_node];
+    auto src_time = node_time_dict.at(src_node_type).data_ptr<int64_t>();
+    return dst_time < src_time[src_node];
   } catch (int err) {
     // if the node type does not have timestamp, fall back to normal sampling
     return true;
@@ -139,8 +139,6 @@ hetero_sample(const vector<node_t> &node_types,
               const c10::Dict<rel_t, vector<int64_t>> &num_neighbors_dict,
               const int64_t num_hops,
               const c10::Dict<node_t, torch::Tensor> &node_time_dict) {
-  // bool temporal = (!node_time_dict.empty());
-
   // Create a mapping to convert single string relations to edge type triplets:
   unordered_map<rel_t, edge_t> to_edge_type;
   for (const auto &k : edge_types)
@@ -172,11 +170,12 @@ hetero_sample(const vector<node_t> &node_types,
     const torch::Tensor &input_node = kv.value();
     const auto *input_node_data = input_node.data_ptr<int64_t>();
     // dummy value. will be reset to root time if is_temporal==true
-    auto *node_time_data = input_node.data_ptr<int64_t>();
+    int64_t *node_time_data;
     // root_time[i] stores the timestamp of the computation tree root
     // of the node samples[i]
     if (temporal) {
-      node_time_data = node_time_dict.at(node_type).data_ptr<int64_t>();
+      torch::Tensor &node_time = node_time_dict.at(node_type);
+      node_time_data = node_time.data_ptr<int64_t>();
     }
 
     auto &samples = samples_dict.at(node_type);
