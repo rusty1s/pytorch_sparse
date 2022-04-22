@@ -174,7 +174,7 @@ hetero_sample(const vector<node_t> &node_types,
     // root_time[i] stores the timestamp of the computation tree root
     // of the node samples[i]
     if (temporal) {
-      torch::Tensor &node_time = node_time_dict.at(node_type);
+      torch::Tensor node_time = node_time_dict.at(node_type);
       node_time_data = node_time.data_ptr<int64_t>();
     }
 
