@@ -25,8 +25,8 @@ hetero_neighbor_sample_cpu(
 
 std::tuple<c10::Dict<node_t, torch::Tensor>, c10::Dict<rel_t, torch::Tensor>,
            c10::Dict<rel_t, torch::Tensor>, c10::Dict<rel_t, torch::Tensor>>
-hetero_neighbor_temporal_sample_cpu(
-    const std::vector<node_t> &node_types, 
+hetero_temporal_neighbor_sample_cpu(
+    const std::vector<node_t> &node_types,
     const std::vector<edge_t> &edge_types,
     const c10::Dict<rel_t, torch::Tensor> &colptr_dict,
     const c10::Dict<rel_t, torch::Tensor> &row_dict,
