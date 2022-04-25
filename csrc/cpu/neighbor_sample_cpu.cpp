@@ -217,7 +217,9 @@ hetero_sample(const vector<node_t> &node_types,
       const auto &end = slice_dict.at(dst_node_type).second;
       for (int64_t i = begin; i < end; i++) {
         const auto &w = dst_samples[i];
-        const auto &dst_time = dst_root_time[i];
+        int64_t dst_time = 0;
+        if (temporal)
+          dst_time = dst_root_time[i];
         const auto &col_start = colptr_data[w];
         const auto &col_end = colptr_data[w + 1];
         const auto col_count = col_end - col_start;
