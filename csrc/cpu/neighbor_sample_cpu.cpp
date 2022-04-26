@@ -117,10 +117,12 @@ sample(const torch::Tensor &colptr, const torch::Tensor &row,
 inline bool satisfy_time(const c10::Dict<node_t, torch::Tensor> &node_time_dict,
                          const node_t &src_node_type, int64_t dst_time,
                          int64_t src_node) {
-  try { // Check whether src -> dst obeys the time constraint:
+  try {
+    // Check whether src -> dst obeys the time constraint
     const torch::Tensor &src_node_time = node_time_dict.at(src_node_type);
     return src_node_time.data_ptr<int64_t>()[src_node] <= dst_time;
-  } catch (int err) { // If no time is given, fall back to normal sampling:
+  } catch (const std::out_of_range& e) {
+    // If no time is given, fall back to normal sampling
     return true;
   }
 }
