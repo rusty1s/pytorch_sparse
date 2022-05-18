@@ -19,7 +19,7 @@ if (WITH_PYTHON)
 endif()
 find_package(Torch REQUIRED)
 
-file(GLOB HEADERS csrc/sparse.h)
+file(GLOB HEADERS csrc/*.h)
 file(GLOB OPERATOR_SOURCES csrc/*.* csrc/cpu/*.*)
 if(WITH_CUDA)
   file(GLOB OPERATOR_SOURCES ${OPERATOR_SOURCES} csrc/cuda/*.h csrc/cuda/*.cu)
