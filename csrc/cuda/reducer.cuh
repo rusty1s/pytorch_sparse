@@ -3,6 +3,8 @@
 #include <limits>
 #include <map>
 
+#include "atomics.cuh"
+
 enum ReductionType { SUM, MEAN, MUL, DIV, MIN, MAX };
 
 const std::map<std::string, ReductionType> reduce2REDUCE = {
@@ -52,6 +54,20 @@ template <typename scalar_t, ReductionType REDUCE> struct Reducer {
       return (scalar_t)0;
   }
 
+  static inline __host__ __device__ void update(scalar_t *val,
+                                                scalar_t new_val) {
+    if (REDUCE == SUM || REDUCE == MEAN)
+      *val = *val + new_val;
+    else if (REDUCE == MUL)
+      *val = *val * new_val;
+    else if (REDUCE == DIV)
+      *val = *val / new_val;
+    else if ((REDUCE == MIN && new_val < *val) ||
+             (REDUCE == MAX && new_val > *val)) {
+      *val = new_val;
+    }
+  }
+
   static inline __host__ __device__ void update(scalar_t *val, scalar_t new_val,
                                                 int64_t *arg, int64_t new_arg) {
     if (REDUCE == SUM || REDUCE == MEAN)
@@ -81,5 +97,18 @@ template <typename scalar_t, ReductionType REDUCE> struct Reducer {
       } else
         *address = (scalar_t)0;
     }
+  }
+
+  static inline __device__ void atomic_write(scalar_t *address, scalar_t val) {
+    if (REDUCE == SUM || REDUCE == MEAN)
+      atomAdd(address, val);
+    else if (REDUCE == MUL)
+      atomMul(address, val);
+    else if (REDUCE == DIV)
+      atomDiv(address, val);
+    else if (REDUCE == MIN)
+      atomMin(address, val);
+    else if (REDUCE == MAX)
+      atomMax(address, val);
   }
 };
