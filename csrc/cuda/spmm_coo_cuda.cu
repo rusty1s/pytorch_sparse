@@ -1,16 +1,16 @@
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <stdio.h>
-#include <assert.h>
+#include "spmm_coo_cuda.h"
+
+//#include <cuda.h>
+//#include <cuda_runtime.h>
+//#include <stdio.h>
+//#include <assert.h>
 #include <ATen/cuda/CUDAContext.h>
 
-#include "spmm_coo_cuda.h"
 #include "reducer.cuh"
 #include "utils.cuh"
 
 #define THREADS 1024
 #define BLOCKS(N) (N + THREADS - 1) / THREADS
-
 
 inline cudaError_t checkCuda(cudaError_t result)
 {
@@ -80,6 +80,7 @@ std::tuple<torch::Tensor,torch::Tensor> spmm_coo_cuda(
     CHECK_INPUT(row.size(0) == col.size(0));
     mat = mat.contiguous();
     
+    // variables for loops
     size_t hidden_dim = 1;
     if(mat.dim() == 2)
         hidden_dim = size(mat, 1);
@@ -89,15 +90,20 @@ std::tuple<torch::Tensor,torch::Tensor> spmm_coo_cuda(
     auto res_dims = mat.sizes().vec();
     res_dims[0] = dim_size;
     torch::Tensor res = torch::empty(res_dims, mat.options());
-    torch::Tensor arg_out = torch::full_like(res,mat.size(0),row.options());
+    torch::Tensor arg_out = torch::empty(0, row.options());
+    int64_t *arg_out_data = nullptr;
+    if (reduce2REDUCE.at(reduce) == MIN || reduce2REDUCE.at(reduce) == MAX) {
+        arg_out = torch::full_like(res,mat.size(0),row.options());
+        arg_out_data = arg_out.data_ptr<int64_t>();
+      }
 
     auto row_data = row.data_ptr<int64_t>();
     auto col_data = col.data_ptr<int64_t>();
    
-    AT_DISPATCH_ALL_TYPES(mat.type(), "_", [&] {
+    // sparse matrix multiplication
+    AT_DISPATCH_ALL_TYPES(mat.scalar_type(), "_", [&] {
         auto mat_data = mat.data_ptr<scalar_t>();
         auto res_data = res.data_ptr<scalar_t>();
-        auto arg_out_data = arg_out.data_ptr<int64_t>();
         
         AT_DISPATCH_REDUCTION_TYPES(reduce, [&] {
             res.fill_(Reducer<scalar_t, REDUCE>::init());

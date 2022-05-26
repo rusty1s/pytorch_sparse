@@ -6,7 +6,7 @@ import torch
 __version__ = '0.7.0'
 
 for library in [
-        '_version', '_convert', '_diag', '_spmm', '_spspmm', '_metis', '_rw',
+        '_version', '_convert', '_diag', '_spmm', '_spmm_coo', '_spspmm', '_metis', '_rw',
         '_saint', '_sample', '_ego_sample', '_hgt_sample', '_neighbor_sample',
         '_relabel'
 ]:

@@ -1,6 +1,7 @@
 #include <torch/script.h>
 #include <vector>
 
+#include "cpu/spmm_coo_cpu.h"
 #include "cuda/spmm_coo_cuda.h"
 
 inline std::vector<int64_t> list2vec(const c10::List<int64_t> list)
@@ -30,10 +31,13 @@ std::tuple<torch::Tensor, torch::Tensor> spmm_coo_fw(
     int64_t dim_size,
     std::string reduce)
 {
-    if (row.device().is_cuda())
+    if(row.device().is_cuda()){
         return spmm_coo_cuda(row, col, mat, dim_size, reduce);
-    else
-        AT_ERROR("Row Tensor not in GPU!");
+    }
+    else{
+        return spmm_coo_cpu(row, col, mat, dim_size, reduce);
+    }
+        //AT_ERROR("Row Tensor not in GPU!");
 }
 
 using torch::autograd::AutogradContext;
@@ -110,7 +114,7 @@ public:
         auto result = spmm_coo_fw(row, col, mat, dim_size, "sum");
         auto out = std::get<0>(result);
         // compute degree of elements in result tensor
-        auto ones = torch::ones(dim_size, mat.options());
+        auto ones = torch::ones(size(mat,0), mat.options());
         result = spmm_coo_fw(row, col, ones, dim_size, "sum");
         auto degree = std::get<0>(result);
         degree.masked_fill_(degree < 1, 1);
@@ -167,13 +171,6 @@ torch::Tensor spmm_coo_mean(const torch::Tensor row,
 
     return SPMMMean::apply(row, col, mat, dim_size)[0];
 }
-
-//PYBIND11_MODULE(TORCH_EXTENSION_NAME, m)
-//{
-//    m.def("spmm_coo_sum", &spmm_coo_sum, "Sum Sparse Mul forward coo");
-//    m.def("spmm_coo_max", &spmm_coo_max, "Max Sparse Mul forward coo");
-//    m.def("spmm_coo_mean", &spmm_coo_mean, "Mean Sparse Mul forward coo");
-//}
 
 static auto registry = torch::RegisterOperators()
                            .op("torch_sparse::spmm_coo_sum", &spmm_coo_sum)
