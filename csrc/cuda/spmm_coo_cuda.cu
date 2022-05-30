@@ -66,7 +66,7 @@ __global__ void spmm_coo_arg_kernel(
     }
 }
 
-std::tuple<torch::Tensor,torch::Tensor> spmm_coo_cuda(
+std::tuple<torch::Tensor,torch::optional<torch::Tensor>> spmm_coo_cuda(
     const torch::Tensor row, 
     const torch::Tensor col, 
     torch::Tensor mat,
@@ -90,11 +90,11 @@ std::tuple<torch::Tensor,torch::Tensor> spmm_coo_cuda(
     auto res_dims = mat.sizes().vec();
     res_dims[0] = dim_size;
     torch::Tensor res = torch::empty(res_dims, mat.options());
-    torch::Tensor arg_out = torch::empty(0, row.options());
+    torch::optional<torch::Tensor> arg_out = torch::nullopt;
     int64_t *arg_out_data = nullptr;
     if (reduce2REDUCE.at(reduce) == MIN || reduce2REDUCE.at(reduce) == MAX) {
         arg_out = torch::full_like(res,mat.size(0),row.options());
-        arg_out_data = arg_out.data_ptr<int64_t>();
+        arg_out_data = arg_out.value().data_ptr<int64_t>();
       }
 
     auto row_data = row.data_ptr<int64_t>();

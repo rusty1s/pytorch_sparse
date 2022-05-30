@@ -24,7 +24,7 @@ torch::Tensor broadcast(torch::Tensor src, torch::Tensor other, int64_t dim)
     return src;
 }
 
-std::tuple<torch::Tensor, torch::Tensor> spmm_coo_fw(
+std::tuple<torch::Tensor, torch::optional<torch::Tensor>> spmm_coo_fw(
     const torch::Tensor row,
     const torch::Tensor col,
     const torch::Tensor mat,
@@ -55,7 +55,7 @@ public:
         ctx->saved_data["mat_shape"] = mat.sizes();
         auto result = spmm_coo_fw(row, col, mat, dim_size, "max");
         auto out = std::get<0>(result);
-        auto arg_out = std::get<1>(result);
+        auto arg_out = std::get<1>(result).value();
         ctx->save_for_backward({arg_out});
         ctx->mark_non_differentiable({arg_out});
         return {out, arg_out};
@@ -144,7 +144,7 @@ public:
     }
 };
 
-std::tuple<torch::Tensor, torch::Tensor> spmm_coo_max(const torch::Tensor row,
+SPARSE_API std::tuple<torch::Tensor, torch::Tensor> spmm_coo_max(const torch::Tensor row,
                                                       const torch::Tensor col,
                                                       const torch::Tensor mat,
                                                       int64_t dim_size)
@@ -154,7 +154,7 @@ std::tuple<torch::Tensor, torch::Tensor> spmm_coo_max(const torch::Tensor row,
     return std::make_tuple(result[0], result[1]);
 }
 
-torch::Tensor spmm_coo_sum(const torch::Tensor row,
+SPARSE_API torch::Tensor spmm_coo_sum(const torch::Tensor row,
                            const torch::Tensor col,
                            const torch::Tensor mat,
                            int64_t dim_size)
@@ -163,7 +163,7 @@ torch::Tensor spmm_coo_sum(const torch::Tensor row,
     return SPMMSum::apply(row, col, mat, dim_size)[0];
 }
 
-torch::Tensor spmm_coo_mean(const torch::Tensor row,
+SPARSE_API torch::Tensor spmm_coo_mean(const torch::Tensor row,
                             const torch::Tensor col,
                             const torch::Tensor mat,
                             int64_t dim_size)
