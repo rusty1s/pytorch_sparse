@@ -172,6 +172,14 @@ SPARSE_API torch::Tensor spmm_coo_mean(const torch::Tensor row,
     return SPMMMean::apply(row, col, mat, dim_size)[0];
 }
 
+
+PYBIND11_MODULE(TORCH_EXTENSION_NAME, m)
+{
+  m.def("spmm_coo_sum", &spmm_coo_sum, "Sum Sparse Mul forward");
+  m.def("spmm_coo_max", &spmm_coo_max, "Max Sparse Mul forward");
+  m.def("spmm_coo_mean", &spmm_coo_mean, "Mean Sparse Mul forward");
+}
+
 static auto registry = torch::RegisterOperators()
                            .op("torch_sparse::spmm_coo_sum", &spmm_coo_sum)
                            .op("torch_sparse::spmm_coo_mean", &spmm_coo_mean)
