@@ -44,35 +44,6 @@ using torch::autograd::AutogradContext;
 using torch::autograd::Variable;
 using torch::autograd::variable_list;
 
-class SPMMMax : public torch::autograd::Function<SPMMMax>
-{
-public:
-    static variable_list forward(AutogradContext *ctx, Variable row,
-                                 Variable col,
-                                 Variable mat,
-                                 int64_t dim_size)
-    {
-        ctx->saved_data["mat_shape"] = mat.sizes();
-        auto result = spmm_coo_fw(row, col, mat, dim_size, "max");
-        auto out = std::get<0>(result);
-        auto arg_out = std::get<1>(result).value();
-        ctx->save_for_backward({arg_out});
-        ctx->mark_non_differentiable({arg_out});
-        return {out, arg_out};
-    }
-
-    static variable_list backward(AutogradContext *ctx, variable_list grad_outs)
-    {
-        auto grad_out = grad_outs[0];
-        auto arg_out = ctx->get_saved_variables()[0];
-        auto mat_shape = list2vec(ctx->saved_data["mat_shape"].toIntList());
-        mat_shape[0] += 1;
-        auto grad_in = torch::zeros(mat_shape, grad_out.options());
-        grad_in.scatter_(0, arg_out, grad_out, "add");
-        grad_in = grad_in.narrow(0, 0, mat_shape[0] - 1);
-        return {grad_in, Variable(), Variable(), Variable()};
-    }
-};
 
 class SPMMSum : public torch::autograd::Function<SPMMSum>
 {
@@ -98,7 +69,7 @@ public:
         auto mat_shape = list2vec(ctx->saved_data["mat_shape"].toIntList());
         auto result = spmm_coo_fw(col, row, grad_out, mat_shape[0], "sum");
         auto grad_in = std::get<0>(result);
-        return {grad_in, Variable(), Variable(), Variable()};
+        return {Variable(),Variable(),grad_in, Variable()};
     }
 };
 
@@ -140,7 +111,37 @@ public:
         grad_out.true_divide_(degree);
         auto result = spmm_coo_fw(col, row, grad_out, mat_shape[0], "sum");
         auto grad_in = std::get<0>(result);
-        return {grad_in, Variable(), Variable(), Variable(), Variable()};
+        return { Variable(), Variable(),grad_in, Variable()};
+    }
+};
+
+class SPMMMax : public torch::autograd::Function<SPMMMax>
+{
+public:
+    static variable_list forward(AutogradContext *ctx, Variable row,
+                                 Variable col,
+                                 Variable mat,
+                                 int64_t dim_size)
+    {
+        ctx->saved_data["mat_shape"] = mat.sizes();
+        auto result = spmm_coo_fw(row, col, mat, dim_size, "max");
+        auto out = std::get<0>(result);
+        auto arg_out = std::get<1>(result).value();
+        ctx->save_for_backward({arg_out});
+        ctx->mark_non_differentiable({arg_out});
+        return {out, arg_out};
+    }
+
+    static variable_list backward(AutogradContext *ctx, variable_list grad_outs)
+    {
+        auto grad_out = grad_outs[0];
+        auto arg_out = ctx->get_saved_variables()[0];
+        auto mat_shape = list2vec(ctx->saved_data["mat_shape"].toIntList());
+        mat_shape[0] += 1;
+        auto grad_in = torch::zeros(mat_shape, grad_out.options());
+        grad_in.scatter_(0, arg_out, grad_out, "add");
+        grad_in = grad_in.narrow(0, 0, mat_shape[0] - 1);
+        return {Variable(), Variable(), grad_in, Variable()};
     }
 };
 
@@ -160,7 +161,7 @@ SPARSE_API torch::Tensor spmm_coo_sum(const torch::Tensor row,
                            int64_t dim_size)
 {
 
-    return SPMMSum::apply(row, col, mat, dim_size)[0];
+    return SPMMSum::apply( row, col, mat, dim_size)[0];
 }
 
 SPARSE_API torch::Tensor spmm_coo_mean(const torch::Tensor row,
