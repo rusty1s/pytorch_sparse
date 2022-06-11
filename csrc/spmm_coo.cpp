@@ -1,7 +1,7 @@
 #include <torch/script.h>
 #include <vector>
 
-#include "cpu/spmm_coo_cpu.h"
+//#include "cpu/spmm_coo_cpu.h"
 #include "cuda/spmm_coo_cuda.h"
 
 inline std::vector<int64_t> list2vec(const c10::List<int64_t> list)
@@ -38,9 +38,9 @@ std::tuple<torch::Tensor, torch::optional<torch::Tensor>> spmm_coo_fw(
     }
     else
     {
-        return spmm_coo_cpu(row, col, mat, dim_size, reduce);
+        AT_ERROR("Row Tensor not in GPU!");
+        //return spmm_coo_cpu(row, col, optional_value, mat, dim_size, reduce);
     }
-    // AT_ERROR("Row Tensor not in GPU!");
 }
 
 using torch::autograd::AutogradContext;
@@ -179,7 +179,57 @@ public:
         auto arg_out = saved[0];
         auto value = saved[1];
         auto row = saved[2];
-        //mat_shape[0] += 1;
+        auto invalid_arg_mask = arg_out == row.size(0);
+        arg_out = arg_out.masked_fill(invalid_arg_mask, 0);
+        grad_out = grad_out.masked_fill(invalid_arg_mask, 0);
+
+        //compute gradient of mat
+        auto grad_mat = torch::zeros(mat_shape, grad_out.options());
+        if (has_value){
+            grad_out = value.index_select(0, arg_out.flatten()).view_as(grad_out).mul_(grad_out);
+            arg_out = row.index_select(0,arg_out.flatten()).view_as(grad_out);
+        }
+        grad_mat.scatter_(0, arg_out, grad_out,"add");
+
+        return {Variable(), Variable(),Variable(), grad_mat, Variable(),Variable()};
+    }
+};
+
+
+class SPMMMin : public torch::autograd::Function<SPMMMin>
+{
+public:
+    static variable_list forward(AutogradContext *ctx, Variable row,
+                                 Variable col,
+                                 Variable value,
+                                 Variable mat,
+                                 int64_t dim_size,
+                                 bool has_value)
+    {
+        ctx->saved_data["mat_shape"] = mat.sizes();
+        ctx->saved_data["has_value"] = has_value;
+        torch::optional<torch::Tensor> opt_value = torch::nullopt;
+        if (has_value)
+            opt_value = value;
+
+        auto result = spmm_coo_fw(row, col, opt_value, mat, dim_size, "min");
+        auto out = std::get<0>(result);
+        auto arg_out = std::get<1>(result).value();
+        ctx->save_for_backward({arg_out, value,row});
+        ctx->mark_non_differentiable({row, col, arg_out, value});
+
+        return {out, arg_out};
+    }
+
+    static variable_list backward(AutogradContext *ctx, variable_list grad_outs)
+    {
+        auto has_value = ctx->saved_data["has_value"].toBool();
+        auto mat_shape = list2vec(ctx->saved_data["mat_shape"].toIntList());
+        auto grad_out = grad_outs[0];
+        auto saved = ctx->get_saved_variables();
+        auto arg_out = saved[0];
+        auto value = saved[1];
+        auto row = saved[2];
         auto invalid_arg_mask = arg_out == row.size(0);
         arg_out = arg_out.masked_fill(invalid_arg_mask, 0);
         grad_out = grad_out.masked_fill(invalid_arg_mask, 0);
@@ -206,6 +256,16 @@ SPARSE_API torch::Tensor spmm_coo_sum(const torch::Tensor row,
     return SPMMSum::apply(row, col, value, mat, dim_size, opt_value.has_value())[0];
 }
 
+SPARSE_API torch::Tensor spmm_coo_mean(const torch::Tensor row,
+                                       const torch::Tensor col,
+                                       const torch::optional<torch::Tensor> opt_value,
+                                       const torch::Tensor mat,
+                                       int64_t dim_size)
+{
+    auto value = opt_value.has_value() ? opt_value.value() : col;
+    return SPMMMean::apply(row, col, value, mat, dim_size, opt_value.has_value())[0];
+}
+
 SPARSE_API std::tuple<torch::Tensor, torch::Tensor> spmm_coo_max(const torch::Tensor row,
                                                                  const torch::Tensor col,
                                                                  const torch::optional<torch::Tensor> opt_value,
@@ -218,24 +278,28 @@ SPARSE_API std::tuple<torch::Tensor, torch::Tensor> spmm_coo_max(const torch::Te
     return std::make_tuple(result[0], result[1]);
 }
 
-SPARSE_API torch::Tensor spmm_coo_mean(const torch::Tensor row,
-                                       const torch::Tensor col,
-                                       const torch::optional<torch::Tensor> opt_value,
-                                       const torch::Tensor mat,
-                                       int64_t dim_size)
+SPARSE_API std::tuple<torch::Tensor, torch::Tensor> spmm_coo_min(const torch::Tensor row,
+                                                                 const torch::Tensor col,
+                                                                 const torch::optional<torch::Tensor> opt_value,
+                                                                 const torch::Tensor mat,
+                                                                 int64_t dim_size)
 {
     auto value = opt_value.has_value() ? opt_value.value() : col;
-    return SPMMMean::apply(row, col, value, mat, dim_size, opt_value.has_value())[0];
+    auto result = SPMMMin::apply(row, col, value, mat, dim_size, opt_value.has_value());
+
+    return std::make_tuple(result[0], result[1]);
 }
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m)
 {
-    m.def("spmm_coo_sum", &spmm_coo_sum, "Sum Sparse Mul forward");
-    m.def("spmm_coo_max", &spmm_coo_max, "Max Sparse Mul forward");
-    m.def("spmm_coo_mean", &spmm_coo_mean, "Mean Sparse Mul forward");
+    m.def("spmm_coo_sum", &spmm_coo_sum, "Sum Sparse coo Mul forward");
+    m.def("spmm_coo_mean", &spmm_coo_mean, "Mean Sparse coo Mul forward");
+    m.def("spmm_coo_max", &spmm_coo_max, "Max Sparse coo Mul forward");
+    m.def("spmm_coo_min", &spmm_coo_min, "Min Sparse coo Mul forward");
 }
 
 static auto registry = torch::RegisterOperators()
-                           .op("torch_sparse::spmm_coo_sum", &spmm_coo_sum);
-//.op("torch_sparse::spmm_coo_mean", &spmm_coo_mean)
-//.op("torch_sparse::spmm_coo_max", &spmm_coo_max);
+                           .op("torch_sparse::spmm_coo_sum", &spmm_coo_sum)
+                           .op("torch_sparse::spmm_coo_mean", &spmm_coo_mean)
+                           .op("torch_sparse::spmm_coo_min", &spmm_coo_min)
+                           .op("torch_sparse::spmm_coo_max", &spmm_coo_max);

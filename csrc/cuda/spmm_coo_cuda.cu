@@ -1,9 +1,5 @@
 #include "spmm_coo_cuda.h"
 
-//#include <cuda.h>
-//#include <cuda_runtime.h>
-//#include <stdio.h>
-//#include <assert.h>
 #include <ATen/cuda/CUDAContext.h>
 
 #include "reducer.cuh"
@@ -54,12 +50,11 @@ __global__ void spmm_coo_kernel(
         //compute arg out tensor
         if(REDUCE == MIN || REDUCE == MAX){
             __syncthreads();
-            if (HAS_VALUE)
+            if(HAS_VALUE)
                edge_start = edge_index;
 
-            if(res[res_index] == write_val){
+            if(res[res_index] == write_val)
                 arg_out[res_index] = edge_start;
-            }
         }
     }
 }
@@ -77,7 +72,7 @@ std::tuple<torch::Tensor,torch::optional<torch::Tensor>> spmm_coo_cuda(
     CHECK_CUDA(col);
     CHECK_CUDA(mat);
     CHECK_INPUT(row.size(0) == col.size(0)); 
-    if (optional_value.has_value()){
+    if(optional_value.has_value()){
         CHECK_CUDA(optional_value.value());
         CHECK_INPUT(optional_value.value().dim() == 1);
         CHECK_INPUT(optional_value.value().size(0) == col.size(0));
@@ -90,13 +85,13 @@ std::tuple<torch::Tensor,torch::optional<torch::Tensor>> spmm_coo_cuda(
         hidden_dim = size(mat, 1);
     size_t N = row.numel()*hidden_dim;
 
-    //create out and arg_out Tensor with given out_dim
+    //create out and arg_out Tensor
     auto res_dims = mat.sizes().vec();
     res_dims[0] = dim_size;
     torch::Tensor res = torch::empty(res_dims, mat.options());
     torch::optional<torch::Tensor> arg_out = torch::nullopt;
     int64_t *arg_out_data = nullptr;
-    if (reduce2REDUCE.at(reduce) == MIN || reduce2REDUCE.at(reduce) == MAX) {
+    if(reduce2REDUCE.at(reduce) == MIN || reduce2REDUCE.at(reduce) == MAX){
         arg_out = torch::full_like(res,col.size(0),row.options());
         arg_out_data = arg_out.value().data_ptr<int64_t>();
     }
