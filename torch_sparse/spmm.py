@@ -8,10 +8,13 @@ def spmm(index: Tensor, value: Tensor, m: int, n: int,
 
     Args:
         index (:class:`LongTensor`): The index tensor of sparse matrix.
-        value (:class:`Tensor`): The value tensor of sparse matrix.
+        value (:class:`Tensor`): The value tensor of sparse matrix, either of
+            floating-point or integer type. Does not work for boolean and
+            complex number data types.
         m (int): The first dimension of sparse matrix.
         n (int): The second dimension of sparse matrix.
-        matrix (:class:`Tensor`): The dense matrix.
+        matrix (:class:`Tensor`): The dense matrix of same type as
+            :obj:`value`.
 
     :rtype: :class:`Tensor`
     """
