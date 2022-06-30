@@ -8,10 +8,14 @@ from itertools import product
 import torch
 from setuptools import find_packages, setup
 from torch.__config__ import parallel_info
-from torch.utils.cpp_extension import (CUDA_HOME, BuildExtension, CppExtension,
-                                       CUDAExtension)
+from torch.utils.cpp_extension import (
+    CUDA_HOME,
+    BuildExtension,
+    CppExtension,
+    CUDAExtension,
+)
 
-__version__ = '0.7.0'
+__version__ = '0.6.14'
 URL = 'https://github.com/rusty1s/pytorch_sparse'
 
 WITH_CUDA = torch.cuda.is_available() and CUDA_HOME is not None
