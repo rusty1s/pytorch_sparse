@@ -277,6 +277,11 @@ hetero_sample(const vector<node_t> &node_types,
               if (res.second)
                 src_samples.push_back(v);
             }
+            if (directed) {
+              cols.push_back(i);
+              rows.push_back(res.first->second);
+              edges.push_back(offset);
+            }
             num_neighbors += 1;
           }
         } else {
@@ -290,6 +295,11 @@ hetero_sample(const vector<node_t> &node_types,
             }
             const int64_t offset = col_start + rnd;
             const int64_t &v = row_data[offset];
+            if (temporal) {
+              if (!satisfy_time(node_time_dict, src_node_type, dst_time, v))
+                continue;
+            }
+            const auto res = to_local_src_node.insert({v, src_samples.size()});
             if (temporal) {
               // force disjoint of computation tree
               // note that the sampling always needs to have directed=True
