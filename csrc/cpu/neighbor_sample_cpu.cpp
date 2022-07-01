@@ -249,11 +249,11 @@ hetero_sample(const vector<node_t> &node_types,
               const auto res = to_local_src_node.insert({v, src_samples.size()});
               if (res.second)
                 src_samples.push_back(v);
-            }
-            if (directed) {
-              cols.push_back(i);
-              rows.push_back(res.first->second);
-              edges.push_back(offset);
+              if (directed) {
+                cols.push_back(i);
+                rows.push_back(res.first->second);
+                edges.push_back(offset);
+              }
             }
           }
         } else if (replace) {
@@ -278,11 +278,11 @@ hetero_sample(const vector<node_t> &node_types,
               const auto res = to_local_src_node.insert({v, src_samples.size()});
               if (res.second)
                 src_samples.push_back(v);
-            }
-            if (directed) {
-              cols.push_back(i);
-              rows.push_back(res.first->second);
-              edges.push_back(offset);
+              if (directed) {
+                cols.push_back(i);
+                rows.push_back(res.first->second);
+                edges.push_back(offset);
+              }
             }
             num_neighbors += 1;
           }
@@ -312,11 +312,11 @@ hetero_sample(const vector<node_t> &node_types,
               const auto res = to_local_src_node.insert({v, src_samples.size()});
               if (res.second)
                 src_samples.push_back(v);
-            }
-            if (directed) {
-              cols.push_back(i);
-              rows.push_back(res.first->second);
-              edges.push_back(offset);
+              if (directed) {
+                cols.push_back(i);
+                rows.push_back(res.first->second);
+                edges.push_back(offset);
+              }
             }
           }
         }
