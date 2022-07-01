@@ -238,10 +238,16 @@ hetero_sample(const vector<node_t> &node_types,
                 continue;
             }
             const auto res = to_local_src_node.insert({v, src_samples.size()});
-            if (res.second) {
+            if (temporal) {
+              // force disjoint of computation tree
+              // note that the sampling always needs to have directed=True
+              // for temporal case
+              // to_local_src_node is not used for temporal / directed case
               src_samples.push_back(v);
-              if (temporal)
-                src_root_time.push_back(dst_time);
+              src_root_time.push_back(dst_time);
+            } else {
+              if (res.second)
+                src_samples.push_back(v);
             }
             if (directed) {
               cols.push_back(i);
@@ -261,15 +267,15 @@ hetero_sample(const vector<node_t> &node_types,
                 continue;
             }
             const auto res = to_local_src_node.insert({v, src_samples.size()});
-            if (res.second) {
+            if (temporal) {
+              // force disjoint of computation tree
+              // note that the sampling always needs to have directed=True
+              // for temporal case
               src_samples.push_back(v);
-              if (temporal)
-                src_root_time.push_back(dst_time);
-            }
-            if (directed) {
-              cols.push_back(i);
-              rows.push_back(res.first->second);
-              edges.push_back(offset);
+              src_root_time.push_back(dst_time);
+            } else {
+              if (res.second)
+                src_samples.push_back(v);
             }
             num_neighbors += 1;
           }
@@ -285,14 +291,14 @@ hetero_sample(const vector<node_t> &node_types,
             const int64_t offset = col_start + rnd;
             const int64_t &v = row_data[offset];
             if (temporal) {
-              if (!satisfy_time(node_time_dict, src_node_type, dst_time, v))
-                continue;
-            }
-            const auto res = to_local_src_node.insert({v, src_samples.size()});
-            if (res.second) {
+              // force disjoint of computation tree
+              // note that the sampling always needs to have directed=True
+              // for temporal case
               src_samples.push_back(v);
-              if (temporal)
-                src_root_time.push_back(dst_time);
+              src_root_time.push_back(dst_time);
+            } else {
+              if (res.second)
+                src_samples.push_back(v);
             }
             if (directed) {
               cols.push_back(i);
@@ -409,22 +415,15 @@ hetero_temporal_neighbor_sample_cpu(
     const c10::Dict<node_t, torch::Tensor> &input_node_dict,
     const c10::Dict<rel_t, vector<int64_t>> &num_neighbors_dict,
     const c10::Dict<node_t, torch::Tensor> &node_time_dict,
-    const int64_t num_hops, const bool replace, const bool directed) {
+    const int64_t num_hops, const bool replace) {
 
-  if (replace && directed) {
+  if (replace) {
+    // directed = True for temporal sampling
     return hetero_sample<true, true, true>(
         node_types, edge_types, colptr_dict, row_dict, input_node_dict,
         num_neighbors_dict, node_time_dict, num_hops);
-  } else if (replace && !directed) {
-    return hetero_sample<true, false, true>(
-        node_types, edge_types, colptr_dict, row_dict, input_node_dict,
-        num_neighbors_dict, node_time_dict, num_hops);
-  } else if (!replace && directed) {
-    return hetero_sample<false, true, true>(
-        node_types, edge_types, colptr_dict, row_dict, input_node_dict,
-        num_neighbors_dict, node_time_dict, num_hops);
   } else {
-    return hetero_sample<false, false, true>(
+    return hetero_sample<false, true, true>(
         node_types, edge_types, colptr_dict, row_dict, input_node_dict,
         num_neighbors_dict, node_time_dict, num_hops);
   }
