@@ -236,16 +236,17 @@ hetero_sample(const vector<node_t> &node_types,
             if (temporal) {
               if (!satisfy_time(node_time_dict, src_node_type, dst_time, v))
                 continue;
-            }
-            const auto res = to_local_src_node.insert({v, src_samples.size()});
-            if (temporal) {
               // force disjoint of computation tree
               // note that the sampling always needs to have directed=True
               // for temporal case
               // to_local_src_node is not used for temporal / directed case
               src_samples.push_back(v);
               src_root_time.push_back(dst_time);
+              cols.push_back(i);
+              rows.push_back(src_samples.size());
+              edges.push_back(offset);
             } else {
+              const auto res = to_local_src_node.insert({v, src_samples.size()});
               if (res.second)
                 src_samples.push_back(v);
             }
@@ -265,15 +266,16 @@ hetero_sample(const vector<node_t> &node_types,
               // TODO Infinity loop if no neighbor satisfies time constraint:
               if (!satisfy_time(node_time_dict, src_node_type, dst_time, v))
                 continue;
-            }
-            const auto res = to_local_src_node.insert({v, src_samples.size()});
-            if (temporal) {
               // force disjoint of computation tree
               // note that the sampling always needs to have directed=True
               // for temporal case
               src_samples.push_back(v);
               src_root_time.push_back(dst_time);
+              cols.push_back(i);
+              rows.push_back(src_samples.size());
+              edges.push_back(offset);
             } else {
+              const auto res = to_local_src_node.insert({v, src_samples.size()});
               if (res.second)
                 src_samples.push_back(v);
             }
@@ -298,15 +300,16 @@ hetero_sample(const vector<node_t> &node_types,
             if (temporal) {
               if (!satisfy_time(node_time_dict, src_node_type, dst_time, v))
                 continue;
-            }
-            const auto res = to_local_src_node.insert({v, src_samples.size()});
-            if (temporal) {
               // force disjoint of computation tree
               // note that the sampling always needs to have directed=True
               // for temporal case
               src_samples.push_back(v);
               src_root_time.push_back(dst_time);
+              cols.push_back(i);
+              rows.push_back(src_samples.size());
+              edges.push_back(offset);
             } else {
+              const auto res = to_local_src_node.insert({v, src_samples.size()});
               if (res.second)
                 src_samples.push_back(v);
             }
