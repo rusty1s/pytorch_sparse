@@ -38,7 +38,7 @@ Given that you have [`pytorch >= 1.8.0` installed](https://pytorch.org/get-start
 ```
 conda install pytorch-sparse -c pyg
 ```
-
+#### Note: Conda packages are not published for PyTorch 1.12 yet
 ### Binaries
 
 We alternatively provide pip wheels for all major OS/PyTorch/CUDA combinations, see [here](https://data.pyg.org/whl).
