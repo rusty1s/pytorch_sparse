@@ -39,6 +39,9 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
+set(PHMAP_DIR third_party/parallel-hashmap)
+target_include_directories(${PROJECT_NAME} PRIVATE ${PHMAP_DIR})
+
 set(TORCHSPARSE_CMAKECONFIG_INSTALL_DIR "share/cmake/TorchSparse" CACHE STRING "install path for TorchSparseConfig.cmake")
 
 configure_package_config_file(cmake/TorchSparseConfig.cmake.in
