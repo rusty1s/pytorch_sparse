@@ -103,11 +103,13 @@ def get_extensions():
         if suffix == 'cuda' and osp.exists(path):
             sources += [path]
 
+        phmap_dir = "third_party/parallel-hashmap"
+
         Extension = CppExtension if suffix == 'cpu' else CUDAExtension
         extension = Extension(
             f'torch_sparse._{name}_{suffix}',
             sources,
-            include_dirs=[extensions_dir],
+            include_dirs=[extensions_dir, phmap_dir],
             define_macros=define_macros,
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args,

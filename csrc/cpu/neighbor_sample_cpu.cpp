@@ -2,6 +2,8 @@
 
 #include "utils.h"
 
+#include "parallel_hashmap/phmap.h"
+
 #ifdef _WIN32
 #include <process.h>
 #endif
@@ -17,7 +19,7 @@ sample(const torch::Tensor &colptr, const torch::Tensor &row,
 
   // Initialize some data structures for the sampling process:
   vector<int64_t> samples;
-  unordered_map<int64_t, int64_t> to_local_node;
+  phmap::flat_hash_map<int64_t, int64_t> to_local_node;
 
   auto *colptr_data = colptr.data_ptr<int64_t>();
   auto *row_data = row.data_ptr<int64_t>();
@@ -93,7 +95,7 @@ sample(const torch::Tensor &colptr, const torch::Tensor &row,
   }
 
   if (!directed) {
-    unordered_map<int64_t, int64_t>::iterator iter;
+    phmap::flat_hash_map<int64_t, int64_t>::iterator iter;
     for (int64_t i = 0; i < (int64_t)samples.size(); i++) {
       const auto &w = samples[i];
       const auto &col_start = colptr_data[w];
