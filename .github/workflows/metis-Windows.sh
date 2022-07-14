@@ -2,7 +2,7 @@
 
 METIS=metis-5.1.0
 
-curl -k -L "http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz" --output "${METIS}.tar.gz"
+curl -k -L "https://web.archive.org/web/20170712055800/http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz" --output "${METIS}.tar.gz"
 tar -xvzf "${METIS}.tar.gz"
 rm -f "${METIS}.tar.gz"
 cd "${METIS}" || exit
