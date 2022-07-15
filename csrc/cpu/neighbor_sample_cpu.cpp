@@ -272,7 +272,7 @@ hetero_sample(const vector<node_t> &node_types,
               src_samples.push_back(v);
               src_root_time.push_back(dst_time);
               cols.push_back(i);
-              rows.push_back(src_samples.size());
+              rows.push_back(src_samples.size() - 1);
               edges.push_back(offset);
             } else {
               const auto res = to_local_src_node.insert({v, src_samples.size()});
