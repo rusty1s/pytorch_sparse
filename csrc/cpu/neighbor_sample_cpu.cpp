@@ -433,7 +433,12 @@ hetero_temporal_neighbor_sample_cpu(
     const int64_t num_hops, const bool replace) {
 
   if (replace) {
-    // directed = True for temporal sampling
+    // We assume that directed = True for temporal sampling
+    // The current implementatio uses disjoint computation tree
+    // to tackle the case of the same node sampled having different
+    // root time constraint.
+    // In future, we could extend to directed = False case,
+    // allowing additional edges within each computation tree.
     return hetero_sample<true, true, true>(
         node_types, edge_types, colptr_dict, row_dict, input_node_dict,
         num_neighbors_dict, node_time_dict, num_hops);
