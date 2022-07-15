@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(torchsparse)
 set(CMAKE_CXX_STANDARD 14)
-set(TORCHSPARSE_VERSION 0.7.0)
+set(TORCHSPARSE_VERSION 0.6.14)
 
 option(WITH_CUDA "Enable CUDA support" OFF)
 option(WITH_PYTHON "Link to Python when building" ON)
@@ -38,6 +38,9 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
+
+set(PHMAP_DIR third_party/parallel-hashmap)
+target_include_directories(${PROJECT_NAME} PRIVATE ${PHMAP_DIR})
 
 set(TORCHSPARSE_CMAKECONFIG_INSTALL_DIR "share/cmake/TorchSparse" CACHE STRING "install path for TorchSparseConfig.cmake")
 
