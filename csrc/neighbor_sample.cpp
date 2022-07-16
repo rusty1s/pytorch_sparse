@@ -55,7 +55,7 @@ hetero_temporal_neighbor_sample(
     const int64_t num_hops, const bool replace, const bool directed) {
   return hetero_temporal_neighbor_sample_cpu(
       node_types, edge_types, colptr_dict, row_dict, input_node_dict,
-      num_neighbors_dict, node_time_dict, num_hops, replace);
+      num_neighbors_dict, node_time_dict, num_hops, replace, directed);
 }
 
 static auto registry =
