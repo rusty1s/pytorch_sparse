@@ -431,8 +431,7 @@ hetero_temporal_neighbor_sample_cpu(
     const c10::Dict<rel_t, vector<int64_t>> &num_neighbors_dict,
     const c10::Dict<node_t, torch::Tensor> &node_time_dict,
     const int64_t num_hops, const bool replace, const bool directed) {
-  AT_ASSERTM(directed,
-             "Currently, directed must be true for temporal sampling")
+  AT_ASSERTM(directed, "Temporal sampling requires 'directed' sampling")
   if (replace) {
     // We assume that directed = True for temporal sampling
     // The current implementation uses disjoint computation trees
