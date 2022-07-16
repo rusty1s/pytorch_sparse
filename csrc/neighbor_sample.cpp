@@ -52,7 +52,7 @@ hetero_temporal_neighbor_sample(
     const c10::Dict<node_t, torch::Tensor> &input_node_dict,
     const c10::Dict<rel_t, std::vector<int64_t>> &num_neighbors_dict,
     const c10::Dict<node_t, torch::Tensor> &node_time_dict,
-    const int64_t num_hops, const bool replace) {
+    const int64_t num_hops, const bool replace, const bool directed) {
   return hetero_temporal_neighbor_sample_cpu(
       node_types, edge_types, colptr_dict, row_dict, input_node_dict,
       num_neighbors_dict, node_time_dict, num_hops, replace);
