@@ -435,7 +435,7 @@ hetero_temporal_neighbor_sample_cpu(
              "Currently, directed must be true for temporal sampling")
   if (replace) {
     // We assume that directed = True for temporal sampling
-    // The current implementatio uses disjoint computation tree
+    // The current implementation uses disjoint computation trees
     // to tackle the case of the same node sampled having different
     // root time constraint.
     // In future, we could extend to directed = False case,
