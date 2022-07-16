@@ -242,10 +242,11 @@ hetero_sample(const vector<node_t> &node_types,
               // note that the sampling always needs to have directed=True
               // for temporal case
               // to_local_src_node is not used for temporal / directed case
+              const int64_t sample_idx = src_samples.size();
               src_samples.push_back(v);
               src_root_time.push_back(dst_time);
               cols.push_back(i);
-              rows.push_back(src_samples.size() - 1);
+              rows.push_back(sample_idx);
               edges.push_back(offset);
             } else {
               const auto res = to_local_src_node.insert({v, src_samples.size()});
@@ -271,10 +272,11 @@ hetero_sample(const vector<node_t> &node_types,
               // force disjoint of computation tree
               // note that the sampling always needs to have directed=True
               // for temporal case
+              const int64_t sample_idx = src_samples.size();
               src_samples.push_back(v);
               src_root_time.push_back(dst_time);
               cols.push_back(i);
-              rows.push_back(src_samples.size() - 1);
+              rows.push_back(sample_idx);
               edges.push_back(offset);
             } else {
               const auto res = to_local_src_node.insert({v, src_samples.size()});
@@ -305,11 +307,11 @@ hetero_sample(const vector<node_t> &node_types,
               // force disjoint of computation tree
               // note that the sampling always needs to have directed=True
               // for temporal case
-              const int64_t sample_size = src_samples.size();
+              const int64_t sample_idx = src_samples.size();
               src_samples.push_back(v);
               src_root_time.push_back(dst_time);
               cols.push_back(i);
-              rows.push_back(sample_size);
+              rows.push_back(sample_idx);
               edges.push_back(offset);
             } else {
               const auto res = to_local_src_node.insert({v, src_samples.size()});
