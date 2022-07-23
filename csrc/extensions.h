@@ -1,2 +1,2 @@
 #include "macros.h"
-#include <torch/extension.h>
+#include <torch/torch.h>

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <torch/extension.h>
-
+#include "extensions.h"
 #include "macros.h"
 
 namespace sparse {
