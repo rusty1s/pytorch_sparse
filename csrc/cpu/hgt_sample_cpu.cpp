@@ -224,12 +224,10 @@ hgt_sample_cpu(const c10::Dict<rel_t, torch::Tensor> &colptr_dict,
         }
       }
     }
-    if (rows.size() > 0) {
-      out_row_dict.insert(rel_type, from_vector<int64_t>(rows));
-      out_col_dict.insert(rel_type, from_vector<int64_t>(cols));
-      out_edge_dict.insert(rel_type, from_vector<int64_t>(edges));
-    }
-  }
+    out_row_dict.insert(rel_type, from_vector<int64_t>(rows));
+    out_col_dict.insert(rel_type, from_vector<int64_t>(cols));
+    out_edge_dict.insert(rel_type, from_vector<int64_t>(edges));
+}
 
   // Generate tensor-valued output node dictionary (line 20):
   for (const auto &kv : nodes_dict) {
