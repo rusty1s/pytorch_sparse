@@ -15,7 +15,7 @@ from torch.utils.cpp_extension import (
     CUDAExtension,
 )
 
-__version__ = '0.6.14'
+__version__ = '0.6.15'
 URL = 'https://github.com/rusty1s/pytorch_sparse'
 
 WITH_CUDA = torch.cuda.is_available() and CUDA_HOME is not None

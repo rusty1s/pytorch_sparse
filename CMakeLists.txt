@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(torchsparse)
 set(CMAKE_CXX_STANDARD 14)
-set(TORCHSPARSE_VERSION 0.6.14)
+set(TORCHSPARSE_VERSION 0.6.15)
 
 option(WITH_CUDA "Enable CUDA support" OFF)
 option(WITH_PYTHON "Link to Python when building" ON)
