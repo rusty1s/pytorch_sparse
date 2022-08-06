@@ -192,13 +192,18 @@ hetero_sample(const vector<node_t> &node_types,
   for (const auto &kv : samples_dict)
     slice_dict[kv.first] = {0, kv.second.size()};
 
+  vector<rel_t> all_rel_types;
+  for (const auto &kv : num_neighbors_dict) {
+    all_rel_types.push_back(kv.key());
+  }
+  std::sort(all_rel_types.begin(), all_rel_types.end());
+
   for (int64_t ell = 0; ell < num_hops; ell++) {
-    for (const auto &kv : num_neighbors_dict) {
-      const auto &rel_type = kv.key();
+    for (const auto &rel_type : all_rel_types) {
       const auto &edge_type = to_edge_type[rel_type];
       const auto &src_node_type = get<0>(edge_type);
       const auto &dst_node_type = get<2>(edge_type);
-      const auto num_samples = kv.value()[ell];
+      const auto num_samples = num_neighbors_dict.at(rel_type)[ell];
       const auto &dst_samples = samples_dict.at(dst_node_type);
       auto &src_samples = samples_dict.at(src_node_type);
       auto &to_local_src_node = to_local_node_dict.at(src_node_type);
