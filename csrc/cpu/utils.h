@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../extensions.h"
+#include "parallel_hashmap/phmap.h"
 
 #define CHECK_CPU(x) AT_ASSERTM(x.device().is_cpu(), #x " must be CPU tensor")
 #define CHECK_INPUT(x) AT_ASSERTM(x, "Input mismatch")
@@ -27,7 +28,7 @@ inline torch::Tensor from_vector(const std::vector<scalar_t> &vec,
 
 template <typename key_t, typename scalar_t>
 inline c10::Dict<key_t, torch::Tensor>
-from_vector(const std::unordered_map<key_t, std::vector<scalar_t>> &vec_dict,
+from_vector(const phmap::flat_hash_map<key_t, std::vector<scalar_t>> &vec_dict,
             bool inplace = false) {
   c10::Dict<key_t, torch::Tensor> out_dict;
   for (const auto &kv : vec_dict)
@@ -91,7 +92,7 @@ template <bool replace>
 inline void
 uniform_choice(const int64_t population, const int64_t num_samples,
                const int64_t *idx_data, std::vector<int64_t> *samples,
-               std::unordered_map<int64_t, int64_t> *to_local_node) {
+               phmap::flat_hash_map<int64_t, int64_t> *to_local_node) {
 
   if (population == 0 || num_samples == 0)
     return;
