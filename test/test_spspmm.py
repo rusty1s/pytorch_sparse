@@ -6,6 +6,8 @@ from torch_sparse import spspmm, SparseTensor
 
 from .utils import grad_dtypes, devices, tensor
 
+grad_dtypes.append(torch.bfloat16)
+
 
 @pytest.mark.parametrize('dtype,device', product(grad_dtypes, devices))
 def test_spspmm(dtype, device):
@@ -35,7 +37,7 @@ def test_sparse_tensor_spspmm(dtype, device):
         ], dtype=dtype, device=device),
     )
 
-    expected = torch.eye(10, dtype=dtype, device=device)
+    expected = torch.eye(10, device=device).to(dtype)
 
     out = x @ x.to_dense().t()
     assert torch.allclose(out, expected, atol=1e-2)

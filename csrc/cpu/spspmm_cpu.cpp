@@ -55,7 +55,7 @@ spspmm_cpu(torch::Tensor rowptrA, torch::Tensor colA,
   torch::Tensor colC;
   torch::optional<torch::Tensor> optional_valueC = torch::nullopt;
 
-  AT_DISPATCH_ALL_TYPES(scalar_type, "spspmm", [&] {
+  AT_DISPATCH_ALL_TYPES_AND(at::ScalarType::BFloat16, scalar_type, "spspmm", [&] {
     AT_DISPATCH_HAS_VALUE(optional_valueA, [&] {
       scalar_t *valA_data = nullptr, *valB_data = nullptr;
       if (HAS_VALUE) {
@@ -77,7 +77,7 @@ spspmm_cpu(torch::Tensor rowptrA, torch::Tensor colA,
             if (HAS_VALUE)
               tmp_vals[cB] += valA_data[eA] * valB_data[eB];
             else
-              tmp_vals[cB]++;
+              tmp_vals[cB] += 1;
           }
         }
 
