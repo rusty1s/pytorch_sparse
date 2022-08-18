@@ -365,11 +365,11 @@ hetero_sample(const vector<node_t> &node_types,
 
     if (temporal) {
       for (const auto &kv : temp_samples_dict) {
-        slice_dict[kv.first] = {0, kv.second.size()};
+        slice_dict[kv.first] = {slice_dict.at(kv.first).second, kv.second.size()};
       }
     } else {
       for (const auto &kv : samples_dict)
-        slice_dict[kv.first] = {0, kv.second.size()};
+        slice_dict[kv.first] = {slice_dict.at(kv.first).second, kv.second.size()};
     }
   }
 
