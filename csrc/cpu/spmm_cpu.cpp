@@ -44,7 +44,7 @@ spmm_cpu(torch::Tensor rowptr, torch::Tensor col,
   auto K = mat.size(-1);
   auto B = mat.numel() / (N * K);
 
-  AT_DISPATCH_ALL_TYPES_AND(at::ScalarType::Half, mat.scalar_type(), "_", [&] {
+  AT_DISPATCH_ALL_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, mat.scalar_type(), "spmm_cpu", [&] {
     scalar_t *value_data = nullptr;
     auto mat_data = mat.data_ptr<scalar_t>();
     auto out_data = out.data_ptr<scalar_t>();
@@ -123,7 +123,7 @@ torch::Tensor spmm_value_bw_cpu(torch::Tensor row, torch::Tensor rowptr,
   auto row_data = row.data_ptr<int64_t>();
   auto rowptr_data = rowptr.data_ptr<int64_t>();
   auto col_data = col.data_ptr<int64_t>();
-  AT_DISPATCH_ALL_TYPES_AND(at::ScalarType::Half, mat.scalar_type(), "_", [&] {
+  AT_DISPATCH_ALL_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, mat.scalar_type(), "spmm_value_bw_cpu", [&] {
     auto mat_data = mat.data_ptr<scalar_t>();
     auto grad_data = grad.data_ptr<scalar_t>();
     auto out_data = out.data_ptr<scalar_t>();
