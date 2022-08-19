@@ -65,4 +65,3 @@ def test_spspmm(dtype, device):
     rowptr, col, value = out.csr()
     assert rowptr.tolist() == [0, 1, 2, 3]
     assert col.tolist() == [0, 1, 2]
-

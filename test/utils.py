@@ -1,12 +1,13 @@
 import torch
+import torch_scatter
+from packaging import version
 
 reductions = ['sum', 'add', 'mean', 'min', 'max']
 
 dtypes = [torch.half, torch.float, torch.double, torch.int, torch.long]
 grad_dtypes = [torch.half, torch.float, torch.double]
 
-import torch_scatter
-if torch_scatter.__version__ > '2.0.9':
+if version.parse(torch_scatter.__version__) > version.parse("2.0.9"):
     dtypes.append(torch.bfloat16)
     grad_dtypes.append(torch.bfloat16)
 del torch_scatter
