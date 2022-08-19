@@ -10,7 +10,6 @@ grad_dtypes = [torch.half, torch.float, torch.double]
 if version.parse(torch_scatter.__version__) > version.parse("2.0.9"):
     dtypes.append(torch.bfloat16)
     grad_dtypes.append(torch.bfloat16)
-del torch_scatter
 
 devices = [torch.device('cpu')]
 if torch.cuda.is_available():
