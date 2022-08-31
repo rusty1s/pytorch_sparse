@@ -5,6 +5,7 @@
 
 #define CHECK_CPU(x) AT_ASSERTM(x.device().is_cpu(), #x " must be CPU tensor")
 #define CHECK_INPUT(x) AT_ASSERTM(x, "Input mismatch")
+#define CHECK_LT(low, high) AT_ASSERTM(low < high, "low must be smaller than high")
 
 #define AT_DISPATCH_HAS_VALUE(optional_value, ...)                             \
   [&] {                                                                        \
