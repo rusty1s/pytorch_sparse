@@ -55,7 +55,6 @@ from .rw import random_walk  # noqa
 from .metis import partition  # noqa
 from .bandwidth import reverse_cuthill_mckee  # noqa
 from .saint import saint_subgraph  # noqa
-from .padding import padded_index, padded_index_select  # noqa
 from .sample import sample, sample_adj  # noqa
 
 from .convert import to_torch_sparse, from_torch_sparse  # noqa
@@ -101,8 +100,6 @@ __all__ = [
     'partition',
     'reverse_cuthill_mckee',
     'saint_subgraph',
-    'padded_index',
-    'padded_index_select',
     'to_torch_sparse',
     'from_torch_sparse',
     'to_scipy',
