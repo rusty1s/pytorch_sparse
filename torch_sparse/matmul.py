@@ -74,21 +74,6 @@ def spmm_max(src: SparseTensor,
 
     return torch.ops.torch_sparse.spmm_max(rowptr, col, value, other)
 
-
-def spmm(src: SparseTensor, other: torch.Tensor,
-         reduce: str = "sum") -> torch.Tensor:
-    if reduce == 'sum' or reduce == 'add':
-        return spmm_sum(src, other)
-    elif reduce == 'mean':
-        return spmm_mean(src, other)
-    elif reduce == 'min':
-        return spmm_min(src, other)[0]
-    elif reduce == 'max':
-        return spmm_max(src, other)[0]
-    else:
-        raise ValueError
-
-
 def spspmm_sum(src: SparseTensor, other: SparseTensor) -> SparseTensor:
     assert src.sparse_size(1) == other.sparse_size(0)
     rowptrA, colA, valueA = src.csr()
