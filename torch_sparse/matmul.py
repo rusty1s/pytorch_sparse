@@ -5,30 +5,30 @@ import torch
 from torch_sparse.tensor import SparseTensor
 
 
-def spmm_sum(src: SparseTensor, other: torch.Tensor) -> torch.Tensor:
-    rowptr, col, value = src.csr()
+# def spmm_sum(src: SparseTensor, other: torch.Tensor) -> torch.Tensor:
+#     rowptr, col, value = src.csr()
 
-    row = src.storage._row
-    csr2csc = src.storage._csr2csc
-    colptr = src.storage._colptr
+#     row = src.storage._row
+#     csr2csc = src.storage._csr2csc
+#     colptr = src.storage._colptr
 
-    if value is not None:
-        value = value.to(other.dtype)
+#     if value is not None:
+#         value = value.to(other.dtype)
 
-    if value is not None and value.requires_grad:
-        row = src.storage.row()
+#     if value is not None and value.requires_grad:
+#         row = src.storage.row()
 
-    if other.requires_grad:
-        row = src.storage.row()
-        csr2csc = src.storage.csr2csc()
-        colptr = src.storage.colptr()
+#     if other.requires_grad:
+#         row = src.storage.row()
+#         csr2csc = src.storage.csr2csc()
+#         colptr = src.storage.colptr()
 
-    return torch.ops.torch_sparse.spmm_sum(row, rowptr, col, value, colptr,
-                                           csr2csc, other)
+#     return torch.ops.torch_sparse.spmm_sum(row, rowptr, col, value, colptr,
+#                                            csr2csc, other)
 
 
-def spmm_add(src: SparseTensor, other: torch.Tensor) -> torch.Tensor:
-    return spmm_sum(src, other)
+# def spmm_add(src: SparseTensor, other: torch.Tensor) -> torch.Tensor:
+#     return spmm_sum(src, other)
 
 
 def spmm_mean(src: SparseTensor, other: torch.Tensor) -> torch.Tensor:
@@ -120,30 +120,3 @@ def spspmm(src: SparseTensor, other: SparseTensor,
     else:
         raise ValueError
 
-
-@torch.jit._overload  # noqa: F811
-def matmul(src, other, reduce):  # noqa: F811
-    # type: (SparseTensor, torch.Tensor, str) -> torch.Tensor
-    pass
-
-
-@torch.jit._overload  # noqa: F811
-def matmul(src, other, reduce):  # noqa: F811
-    # type: (SparseTensor, SparseTensor, str) -> SparseTensor
-    pass
-
-
-def matmul(src, other, reduce="sum"):  # noqa: F811
-    if isinstance(other, torch.Tensor):
-        return spmm(src, other, reduce)
-    elif isinstance(other, SparseTensor):
-        return spspmm(src, other, reduce)
-    raise ValueError
-
-
-SparseTensor.spmm = lambda self, other, reduce="sum": spmm(self, other, reduce)
-SparseTensor.spspmm = lambda self, other, reduce="sum": spspmm(
-    self, other, reduce)
-SparseTensor.matmul = lambda self, other, reduce="sum": matmul(
-    self, other, reduce)
-SparseTensor.__matmul__ = lambda self, other: matmul(self, other, 'sum')

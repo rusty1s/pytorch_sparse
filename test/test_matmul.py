@@ -3,7 +3,7 @@ from itertools import product
 import pytest
 import torch
 import torch_scatter
-from torch_sparse.matmul import matmul
+from torch.sparse.matmul import matmul
 from torch_sparse.tensor import SparseTensor
 
 from .utils import devices, grad_dtypes, reductions

@@ -1,6 +1,6 @@
 import torch
 from torch_sparse.tensor import SparseTensor
-from torch_sparse.matmul import matmul
+from torch.sparse.matmul import matmul
 
 
 def spspmm(indexA, valueA, indexB, valueB, m, k, n, coalesced=False):
