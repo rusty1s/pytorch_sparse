@@ -4,7 +4,11 @@
 #include <torch/script.h>
 
 #ifdef WITH_CUDA
+#ifdef USE_ROCM
+#include <hip/hip_version.h>
+#else
 #include <cuda.h>
+#endif
 #endif
 
 #include "macros.h"
@@ -22,7 +26,11 @@ PyMODINIT_FUNC PyInit__version_cpu(void) { return NULL; }
 namespace sparse {
 SPARSE_API int64_t cuda_version() noexcept {
 #ifdef WITH_CUDA
+#ifdef USE_ROCM
+  return HIP_VERSION;
+#else
   return CUDA_VERSION;
+#endif
 #else
   return -1;
 #endif
