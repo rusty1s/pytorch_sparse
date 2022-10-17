@@ -18,7 +18,9 @@ from torch.utils.cpp_extension import (
 __version__ = '0.6.15'
 URL = 'https://github.com/rusty1s/pytorch_sparse'
 
-WITH_CUDA = torch.cuda.is_available() and CUDA_HOME is not None
+WITH_CUDA = False
+if torch.cuda.is_available():
+    WITH_CUDA = CUDA_HOME is not None or torch.version.hip
 suffices = ['cpu', 'cuda'] if WITH_CUDA else ['cpu']
 if os.getenv('FORCE_CUDA', '0') == '1':
     suffices = ['cuda', 'cpu']
@@ -40,9 +42,12 @@ def get_extensions():
 
     extensions_dir = osp.join('csrc')
     main_files = glob.glob(osp.join(extensions_dir, '*.cpp'))
+    # remove generated 'hip' files, in case of rebuilds
+    main_files = [path for path in main_files if 'hip' not in path]
 
     for main, suffix in product(main_files, suffices):
         define_macros = [('WITH_PYTHON', None)]
+        undef_macros = []
 
         if sys.platform == 'win32':
             define_macros += [('torchsparse_EXPORTS', None)]
@@ -84,13 +89,26 @@ def get_extensions():
             define_macros += [('WITH_CUDA', None)]
             nvcc_flags = os.getenv('NVCC_FLAGS', '')
             nvcc_flags = [] if nvcc_flags == '' else nvcc_flags.split(' ')
-            nvcc_flags += ['--expt-relaxed-constexpr', '-O2']
+            nvcc_flags += ['-O2']
             extra_compile_args['nvcc'] = nvcc_flags
-
-            if sys.platform == 'win32':
-                extra_link_args += ['cusparse.lib']
+            if torch.version.hip:
+                # USE_ROCM was added to later versions of PyTorch
+                # Define here to support older PyTorch versions as well:
+                define_macros += [('USE_ROCM', None)]
+                undef_macros += ['__HIP_NO_HALF_CONVERSIONS__']
             else:
-                extra_link_args += ['-lcusparse', '-l', 'cusparse']
+                nvcc_flags += ['--expt-relaxed-constexpr']
+
+            if torch.version.hip:
+                if sys.platform == 'win32':
+                    extra_link_args += ['hipsparse.lib']
+                else:
+                    extra_link_args += ['-lhipsparse', '-l', 'hipsparse']
+            else:
+                if sys.platform == 'win32':
+                    extra_link_args += ['cusparse.lib']
+                else:
+                    extra_link_args += ['-lcusparse', '-l', 'cusparse']
 
         name = main.split(os.sep)[-1][:-4]
         sources = [main]
@@ -111,6 +129,7 @@ def get_extensions():
             sources,
             include_dirs=[extensions_dir, phmap_dir],
             define_macros=define_macros,
+            undef_macros=undef_macros,
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args,
             libraries=libraries,
@@ -128,6 +147,11 @@ test_requires = [
     'pytest',
     'pytest-cov',
 ]
+
+# work-around hipify abs paths
+include_package_data = True
+if torch.cuda.is_available() and torch.version.hip:
+    include_package_data = False
 
 setup(
     name='torch_sparse',
@@ -155,5 +179,5 @@ setup(
         BuildExtension.with_options(no_python_abi_suffix=True, use_ninja=False)
     },
     packages=find_packages(),
-    include_package_data=True,
+    include_package_data=include_package_data,
 )
