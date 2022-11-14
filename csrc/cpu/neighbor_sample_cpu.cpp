@@ -10,8 +10,7 @@ using namespace std;
 
 namespace {
 
-typedef phmap::flat_hash_map<pair<int64_t, int64_t>, int64_t>
-    temporarl_edge_dict;
+typedef phmap::flat_hash_map<pair<int64_t, int64_t>, int64_t> temporarl_edge_dict;
 
 template <bool replace, bool directed>
 tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
@@ -124,7 +123,7 @@ inline bool satisfy_time(const c10::Dict<node_t, torch::Tensor> &node_time_dict,
     // Check whether src -> dst obeys the time constraint
     const torch::Tensor &src_node_time = node_time_dict.at(src_node_type);
     return src_node_time.data_ptr<int64_t>()[src_node] <= dst_time;
-  } catch (const std::out_of_range &e) {
+  } catch (const std::out_of_range& e) {
     // If no time is given, fall back to normal sampling
     return true;
   }
@@ -149,10 +148,8 @@ hetero_sample(const vector<node_t> &node_types,
 
   // Initialize some data structures for the sampling process:
   phmap::flat_hash_map<node_t, vector<int64_t>> samples_dict;
-  phmap::flat_hash_map<node_t, vector<pair<int64_t, int64_t>>>
-      temp_samples_dict;
-  phmap::flat_hash_map<node_t, phmap::flat_hash_map<int64_t, int64_t>>
-      to_local_node_dict;
+  phmap::flat_hash_map<node_t, vector<pair<int64_t, int64_t>>> temp_samples_dict;
+  phmap::flat_hash_map<node_t, phmap::flat_hash_map<int64_t, int64_t>> to_local_node_dict;
   phmap::flat_hash_map<node_t, temporarl_edge_dict> temp_to_local_node_dict;
   phmap::flat_hash_map<node_t, vector<int64_t>> root_time_dict;
   for (const auto &node_type : node_types) {
@@ -271,8 +268,7 @@ hetero_sample(const vector<node_t> &node_types,
               // note that the sampling always needs to have directed=True
               // for temporal case
               // to_local_src_node is not used for temporal / directed case
-              const auto res = temp_to_local_src_node.insert(
-                  {{v, root_w}, (int64_t)temp_src_samples.size()});
+              const auto res = temp_to_local_src_node.insert({{v, root_w}, (int64_t)temp_src_samples.size()});
               if (res.second) {
                 temp_src_samples.push_back({v, root_w});
                 src_root_time.push_back(dst_time);
@@ -282,8 +278,7 @@ hetero_sample(const vector<node_t> &node_types,
               rows.push_back(res.first->second);
               edges.push_back(offset);
             } else {
-              const auto res =
-                  to_local_src_node.insert({v, src_samples.size()});
+              const auto res = to_local_src_node.insert({v, src_samples.size()});
               if (res.second)
                 src_samples.push_back(v);
               if (directed) {
@@ -306,8 +301,7 @@ hetero_sample(const vector<node_t> &node_types,
               // force disjoint of computation tree based on source batch idx.
               // note that the sampling always needs to have directed=True
               // for temporal case
-              const auto res = temp_to_local_src_node.insert(
-                  {{v, root_w}, (int64_t)temp_src_samples.size()});
+              const auto res = temp_to_local_src_node.insert({{v, root_w}, (int64_t)temp_src_samples.size()});
               if (res.second) {
                 temp_src_samples.push_back({v, root_w});
                 src_root_time.push_back(dst_time);
@@ -317,8 +311,7 @@ hetero_sample(const vector<node_t> &node_types,
               rows.push_back(res.first->second);
               edges.push_back(offset);
             } else {
-              const auto res =
-                  to_local_src_node.insert({v, src_samples.size()});
+              const auto res = to_local_src_node.insert({v, src_samples.size()});
               if (res.second)
                 src_samples.push_back(v);
               if (directed) {
@@ -346,8 +339,7 @@ hetero_sample(const vector<node_t> &node_types,
               // force disjoint of computation tree based on source batch idx.
               // note that the sampling always needs to have directed=True
               // for temporal case
-              const auto res = temp_to_local_src_node.insert(
-                  {{v, root_w}, (int64_t)temp_src_samples.size()});
+              const auto res = temp_to_local_src_node.insert({{v, root_w}, (int64_t)temp_src_samples.size()});
               if (res.second) {
                 temp_src_samples.push_back({v, root_w});
                 src_root_time.push_back(dst_time);
@@ -357,8 +349,7 @@ hetero_sample(const vector<node_t> &node_types,
               rows.push_back(res.first->second);
               edges.push_back(offset);
             } else {
-              const auto res =
-                  to_local_src_node.insert({v, src_samples.size()});
+              const auto res = to_local_src_node.insert({v, src_samples.size()});
               if (res.second)
                 src_samples.push_back(v);
               if (directed) {
@@ -374,13 +365,11 @@ hetero_sample(const vector<node_t> &node_types,
 
     if (temporal) {
       for (const auto &kv : temp_samples_dict) {
-        slice_dict[kv.first] = {slice_dict.at(kv.first).second,
-                                kv.second.size()};
+        slice_dict[kv.first] = {slice_dict.at(kv.first).second, kv.second.size()};
       }
     } else {
       for (const auto &kv : samples_dict)
-        slice_dict[kv.first] = {slice_dict.at(kv.first).second,
-                                kv.second.size()};
+        slice_dict[kv.first] = {slice_dict.at(kv.first).second, kv.second.size()};
     }
   }
 
