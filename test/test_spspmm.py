@@ -2,13 +2,17 @@ from itertools import product
 
 import pytest
 import torch
-from torch_sparse import spspmm, SparseTensor
 
-from .utils import grad_dtypes, devices, tensor
+from torch_sparse import SparseTensor, spspmm
+
+from .utils import devices, grad_dtypes, tensor
 
 
 @pytest.mark.parametrize('dtype,device', product(grad_dtypes, devices))
 def test_spspmm(dtype, device):
+    if device == torch.device('cuda:0') and dtype == torch.bfloat16:
+        return  # Not yet implemented.
+
     indexA = torch.tensor([[0, 0, 1, 2, 2], [1, 2, 0, 0, 1]], device=device)
     valueA = tensor([1, 2, 3, 4, 5], dtype, device)
     indexB = torch.tensor([[0, 2], [1, 0]], device=device)
@@ -21,6 +25,9 @@ def test_spspmm(dtype, device):
 
 @pytest.mark.parametrize('dtype,device', product(grad_dtypes, devices))
 def test_sparse_tensor_spspmm(dtype, device):
+    if device == torch.device('cuda:0') and dtype == torch.bfloat16:
+        return  # Not yet implemented.
+
     x = SparseTensor(
         row=torch.tensor(
             [0, 1, 1, 1, 2, 3, 4, 5, 5, 6, 6, 7, 7, 7, 8, 8, 9, 9],

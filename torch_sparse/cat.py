@@ -1,4 +1,4 @@
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple  # noqa
 
 import torch
 from torch_sparse.storage import SparseStorage
