@@ -63,9 +63,9 @@ __global__ void spmm_kernel(const int64_t *rowptr_data, const int64_t *col_data,
 #pragma unroll
       for (int i = 0; i < 32; i++) {
         // Communication between all threads in a warp.
-        mat_rows[i] = __shfl_sync(FULL_MASK, mat_row, i);
+        mat_rows[i] = SHFL_SYNC(FULL_MASK, mat_row, i);
         if (HAS_VALUE)
-          vals[i] = __shfl_sync(FULL_MASK, val, i);
+          vals[i] = SHFL_SYNC(FULL_MASK, val, i);
       }
 
 #pragma unroll
@@ -179,7 +179,7 @@ spmm_value_bw_kernel(const int64_t *row_data, const int64_t *rowptr_data,
 
 #pragma unroll
     for (int i = 32 / 2; i > 0; i /= 2) { // Parallel reduction inside a warp.
-      val += __shfl_down_sync(FULL_MASK, val, i);
+      val += SHFL_DOWN_SYNC(FULL_MASK, val, i);
     }
 
     if (lane_idx == 0) {
