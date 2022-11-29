@@ -2,6 +2,7 @@ from typing import Optional
 
 import torch
 from torch import Tensor
+
 from torch_sparse.storage import SparseStorage
 from torch_sparse.tensor import SparseTensor
 
@@ -97,7 +98,7 @@ def get_diag(src: SparseTensor) -> Tensor:
     row, col, value = src.coo()
 
     if value is None:
-        value = torch.ones(row.size(0))
+        value = torch.ones(row.size(0), device=row.device)
 
     sizes = list(value.size())
     sizes[0] = min(src.size(0), src.size(1))
