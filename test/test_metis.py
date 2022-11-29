@@ -2,9 +2,9 @@ from itertools import product
 
 import pytest
 import torch
-from torch_sparse.tensor import SparseTensor
 
-from .utils import devices
+from torch_sparse.tensor import SparseTensor
+from torch_sparse.testing import devices
 
 try:
     rowptr = torch.tensor([0, 1])
