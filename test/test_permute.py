@@ -1,8 +1,8 @@
 import pytest
 import torch
-from torch_sparse.tensor import SparseTensor
 
-from .utils import devices, tensor
+from torch_sparse.tensor import SparseTensor
+from torch_sparse.testing import devices, tensor
 
 
 @pytest.mark.parametrize('device', devices)

@@ -6,8 +6,7 @@ import torch_scatter
 
 from torch_sparse.matmul import matmul
 from torch_sparse.tensor import SparseTensor
-
-from .utils import devices, grad_dtypes, reductions
+from torch_sparse.testing import devices, grad_dtypes, reductions
 
 
 @pytest.mark.parametrize('dtype,device,reduce',

@@ -4,8 +4,7 @@ import pytest
 import torch
 
 from torch_sparse import SparseTensor, spspmm
-
-from .utils import devices, grad_dtypes, tensor
+from torch_sparse.testing import devices, grad_dtypes, tensor
 
 
 @pytest.mark.parametrize('dtype,device', product(grad_dtypes, devices))
