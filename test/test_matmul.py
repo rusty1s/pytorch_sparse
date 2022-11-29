@@ -5,13 +5,15 @@ import torch
 import torch_scatter
 from torch.sparse.matmul import matmul
 from torch_sparse.tensor import SparseTensor
-
-from .utils import devices, grad_dtypes, reductions
+from torch_sparse.testing import devices, grad_dtypes, reductions
 
 
 @pytest.mark.parametrize('dtype,device,reduce',
                          product(grad_dtypes, devices, reductions))
 def test_spmm(dtype, device, reduce):
+    if device == torch.device('cuda:0') and dtype == torch.bfloat16:
+        return  # Not yet implemented.
+
     src = torch.randn((10, 8), dtype=dtype, device=device)
     src[2:4, :] = 0  # Remove multiple rows.
     src[:, 2:4] = 0  # Remove multiple columns.
@@ -39,13 +41,20 @@ def test_spmm(dtype, device, reduce):
     out = matmul(src, other, reduce)
     out.backward(grad_out)
 
-    assert torch.allclose(expected, out, atol=1e-2)
-    assert torch.allclose(expected_grad_value, value.grad, atol=1e-2)
-    assert torch.allclose(expected_grad_other, other.grad, atol=1e-2)
+    atol = 1e-7
+    if dtype == torch.float16 or dtype == torch.bfloat16:
+        atol = 1e-1
+
+    assert torch.allclose(expected, out, atol=atol)
+    assert torch.allclose(expected_grad_value, value.grad, atol=atol)
+    assert torch.allclose(expected_grad_other, other.grad, atol=atol)
 
 
 @pytest.mark.parametrize('dtype,device', product(grad_dtypes, devices))
 def test_spspmm(dtype, device):
+    if device == torch.device('cuda:0') and dtype == torch.bfloat16:
+        return  # Not yet implemented.
+
     src = torch.tensor([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=dtype,
                        device=device)
 

@@ -1,9 +1,9 @@
 from itertools import product
 
 import pytest
-from torch_sparse.tensor import SparseTensor
 
-from .utils import dtypes, devices
+from torch_sparse.tensor import SparseTensor
+from torch_sparse.testing import devices, dtypes
 
 
 @pytest.mark.parametrize('dtype,device', product(dtypes, devices))

@@ -2,9 +2,9 @@ from itertools import product
 
 import pytest
 import torch
-from torch_sparse.storage import SparseStorage
 
-from .utils import dtypes, devices, tensor
+from torch_sparse.storage import SparseStorage
+from torch_sparse.testing import devices, dtypes, tensor
 
 
 @pytest.mark.parametrize('device', devices)

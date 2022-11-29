@@ -2,9 +2,9 @@ from itertools import product
 
 import pytest
 import torch
-from torch_sparse import SparseTensor
 
-from .utils import grad_dtypes, devices
+from torch_sparse import SparseTensor
+from torch_sparse.testing import devices, grad_dtypes
 
 
 @pytest.mark.parametrize('dtype,device', product(grad_dtypes, devices))
@@ -15,8 +15,8 @@ def test_getitem(dtype, device):
     mat = torch.randn(m, n, dtype=dtype, device=device)
     mat = SparseTensor.from_dense(mat)
 
-    idx1 = torch.randint(0, m, (k,), dtype=torch.long, device=device)
-    idx2 = torch.randint(0, n, (k,), dtype=torch.long, device=device)
+    idx1 = torch.randint(0, m, (k, ), dtype=torch.long, device=device)
+    idx2 = torch.randint(0, n, (k, ), dtype=torch.long, device=device)
     bool1 = torch.zeros(m, dtype=torch.bool, device=device)
     bool2 = torch.zeros(n, dtype=torch.bool, device=device)
     bool1.scatter_(0, idx1, 1)
