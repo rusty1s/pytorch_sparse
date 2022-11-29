@@ -42,14 +42,13 @@ def test_spmm(dtype, device, reduce):
     out = matmul(src, other, reduce)
     out.backward(grad_out)
 
+    atol = 1e-7
     if dtype == torch.float16 or dtype == torch.bfloat16:
-        assert torch.allclose(expected, out, atol=1e-1)
-        assert torch.allclose(expected_grad_value, value.grad, atol=1e-1)
-        assert torch.allclose(expected_grad_other, other.grad, atol=1e-1)
-    else:
-        assert torch.allclose(expected, out)
-        assert torch.allclose(expected_grad_value, value.grad)
-        assert torch.allclose(expected_grad_other, other.grad)
+        atol = 1e-1
+
+    assert torch.allclose(expected, out, atol=atol)
+    assert torch.allclose(expected_grad_value, value.grad, atol=atol)
+    assert torch.allclose(expected_grad_other, other.grad, atol=atol)
 
 
 @pytest.mark.parametrize('dtype,device', product(grad_dtypes, devices))
