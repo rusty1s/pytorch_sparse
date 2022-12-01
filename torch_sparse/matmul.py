@@ -8,17 +8,17 @@ from torch_sparse import SparseTensor
 def spmm_sum(src: SparseTensor, other: torch.Tensor) -> torch.Tensor:
     rowptr, col, value = src.csr()
 
-    row = src.storage._row # COO rowindx
+    row = src.storage._row
     csr2csc = src.storage._csr2csc
     colptr = src.storage._colptr
 
     if value is not None:
         value = value.to(other.dtype)
 
-    if value is not None and value.requires_grad: # sparse value grad
+    if value is not None and value.requires_grad:
         row = src.storage.row()
 
-    if other.requires_grad: # dense grad
+    if other.requires_grad:
         row = src.storage.row()
         csr2csc = src.storage.csr2csc()
         colptr = src.storage.colptr()
