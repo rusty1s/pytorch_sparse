@@ -498,17 +498,21 @@ class SparseTensor(object):
 
         if value is None:
             value = torch.ones(self.nnz(), dtype=dtype, device=self.device())
-
-        return torch.sparse_coo_tensor(index, value, self.sizes())
+        coo = torch.sparse_coo_tensor(index, value, self.sizes())
+        if value.requires_grad:
+            coo.requires_grad_()
+        return coo
 
     def to_torch_sparse_csr_tensor(
             self, dtype: Optional[int] = None) -> torch.Tensor:
         rowptr, col, value = self.csr()
-
+        
         if value is None:
             value = torch.ones(self.nnz(), dtype=dtype, device=self.device())
-
-        return torch.sparse_csr_tensor(rowptr, col, value, self.sizes())
+        csr = torch.sparse_csr_tensor(rowptr, col, value, self.sizes())
+        if value.requires_grad:
+            csr.requires_grad_()
+        return csr
 
 
 # Python Bindings #############################################################
