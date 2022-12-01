@@ -62,7 +62,7 @@ from .convert import to_scipy, from_scipy  # noqa
 from .coalesce import coalesce  # noqa
 from .transpose import transpose  # noqa
 from .eye import eye  # noqa
-from .spmm import spmm  # noqa
+# from .spmm import spmm  # noqa
 from .spspmm import spspmm  # noqa
 from .spadd import spadd  # noqa
 
@@ -94,7 +94,7 @@ __all__ = [
     'mean',
     'min',
     'max',
-    'matmul',
+    # 'matmul',
     'cat',
     'random_walk',
     'partition',
@@ -107,7 +107,7 @@ __all__ = [
     'coalesce',
     'transpose',
     'eye',
-    'spmm',
+    # 'spmm',
     'spspmm',
     'spadd',
     '__version__',
