@@ -1,6 +1,14 @@
 include README.md
 include LICENSE
 
-recursive-exclude test *
-recursive include third_party *
 recursive-include csrc *
+
+recursive-include third_party *
+recursive-exclude third_party/parallel-hashmap/css *
+recursive-exclude third_party/parallel-hashmap/html *
+recursive-exclude third_party/parallel-hashmap/tests *
+recursive-exclude third_party/parallel-hashmap/examples *
+recursive-exclude third_party/parallel-hashmap/benchmark *
+
+recursive-exclude test *
+recursive-exclude benchmark *
