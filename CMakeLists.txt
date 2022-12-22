@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(torchsparse)
 set(CMAKE_CXX_STANDARD 14)
-set(TORCHSPARSE_VERSION 0.6.15)
+set(TORCHSPARSE_VERSION 0.6.16)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 option(WITH_CUDA "Enable CUDA support" OFF)
@@ -34,9 +34,6 @@ endif()
 
 add_library(${PROJECT_NAME} SHARED ${OPERATOR_SOURCES})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${TORCH_LIBRARIES})
-if (WITH_CUDA)
-  target_link_libraries(${PROJECT_NAME} PRIVATE ${CUDA_cusparse_LIBRARY})
-endif()
 if (WITH_PYTHON)
   target_link_libraries(${PROJECT_NAME} PRIVATE Python3::Python)
 endif()
@@ -95,7 +92,6 @@ install(FILES
   csrc/cpu/saint_cpu.h
   csrc/cpu/sample_cpu.h
   csrc/cpu/spmm_cpu.h
-  csrc/cpu/spspmm_cpu.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/cpu)
 if(WITH_CUDA)
   install(FILES
@@ -103,7 +99,6 @@ if(WITH_CUDA)
     csrc/cuda/diag_cuda.h
     csrc/cuda/rw_cuda.h
     csrc/cuda/spmm_cuda.h
-    csrc/cuda/spspmm_cuda.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/cuda)
 endif()
 
