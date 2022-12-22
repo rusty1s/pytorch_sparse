@@ -1,6 +1,7 @@
-from typing import Tuple
+from typing import Optional, Tuple
 
 import torch
+from torch import Tensor
 
 from torch_sparse.tensor import SparseTensor
 
@@ -90,21 +91,23 @@ def spmm(src: SparseTensor, other: torch.Tensor,
 
 
 def spspmm_sum(src: SparseTensor, other: SparseTensor) -> SparseTensor:
-    assert src.sparse_size(1) == other.sparse_size(0)
-    rowptrA, colA, valueA = src.csr()
-    rowptrB, colB, valueB = other.csr()
-    value = valueA if valueA is not None else valueB
-    if valueA is not None and valueA.dtype == torch.half:
-        valueA = valueA.to(torch.float)
-    if valueB is not None and valueB.dtype == torch.half:
-        valueB = valueB.to(torch.float)
-    M, K = src.sparse_size(0), other.sparse_size(1)
-    rowptrC, colC, valueC = torch.ops.torch_sparse.spspmm_sum(
-        rowptrA, colA, valueA, rowptrB, colB, valueB, K)
-    if valueC is not None and value is not None:
-        valueC = valueC.to(value.dtype)
-    return SparseTensor(row=None, rowptr=rowptrC, col=colC, value=valueC,
-                        sparse_sizes=(M, K), is_sorted=True)
+    A = src.to_torch_sparse_coo_tensor()
+    B = other.to_torch_sparse_coo_tensor()
+    C = torch.sparse.mm(A, B)
+    edge_index = C._indices()
+    row, col = edge_index[0], edge_index[1]
+    value: Optional[Tensor] = None
+    if src.has_value() and other.has_value():
+        value = C._values()
+
+    return SparseTensor(
+        row=row,
+        col=col,
+        value=value,
+        sparse_sizes=(C.size(0), C.size(1)),
+        is_sorted=True,
+        trust_data=True,
+    )
 
 
 def spspmm_add(src: SparseTensor, other: SparseTensor) -> SparseTensor:

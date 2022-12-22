@@ -4,7 +4,7 @@ import pytest
 import torch
 import torch_scatter
 
-from torch_sparse.matmul import matmul
+from torch_sparse.matmul import matmul, spspmm
 from torch_sparse.tensor import SparseTensor
 from torch_sparse.testing import devices, grad_dtypes, reductions
 
@@ -53,7 +53,7 @@ def test_spmm(dtype, device, reduce):
 
 @pytest.mark.parametrize('dtype,device', product(grad_dtypes, devices))
 def test_spspmm(dtype, device):
-    if device == torch.device('cuda:0') and dtype == torch.bfloat16:
+    if dtype in {torch.half, torch.bfloat16}:
         return  # Not yet implemented.
 
     src = torch.tensor([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=dtype,
@@ -75,3 +75,5 @@ def test_spspmm(dtype, device):
     rowptr, col, value = out.csr()
     assert rowptr.tolist() == [0, 1, 2, 3]
     assert col.tolist() == [0, 1, 2]
+
+    torch.jit.script(spspmm)

@@ -9,7 +9,7 @@ from torch_sparse.testing import devices, grad_dtypes, tensor
 
 @pytest.mark.parametrize('dtype,device', product(grad_dtypes, devices))
 def test_spspmm(dtype, device):
-    if device == torch.device('cuda:0') and dtype == torch.bfloat16:
+    if dtype in {torch.half, torch.bfloat16}:
         return  # Not yet implemented.
 
     indexA = torch.tensor([[0, 0, 1, 2, 2], [1, 2, 0, 0, 1]], device=device)
@@ -24,7 +24,7 @@ def test_spspmm(dtype, device):
 
 @pytest.mark.parametrize('dtype,device', product(grad_dtypes, devices))
 def test_sparse_tensor_spspmm(dtype, device):
-    if device == torch.device('cuda:0') and dtype == torch.bfloat16:
+    if dtype in {torch.half, torch.bfloat16}:
         return  # Not yet implemented.
 
     x = SparseTensor(
