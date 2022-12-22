@@ -15,7 +15,7 @@ from torch.utils.cpp_extension import (
     CUDAExtension,
 )
 
-__version__ = '0.6.15'
+__version__ = '0.6.16'
 URL = 'https://github.com/rusty1s/pytorch_sparse'
 
 WITH_CUDA = False
@@ -64,7 +64,7 @@ def get_extensions():
             define_macros += [('MTMETIS_64BIT_PARTITIONS', None)]
             libraries += ['mtmetis', 'wildriver']
 
-        extra_compile_args = {'cxx': ['-O2']}
+        extra_compile_args = {'cxx': ['-O3']}
         if not os.name == 'nt':  # Not on Windows:
             extra_compile_args['cxx'] += ['-Wno-sign-compare']
         extra_link_args = [] if WITH_SYMBOLS else ['-s']
@@ -89,8 +89,7 @@ def get_extensions():
             define_macros += [('WITH_CUDA', None)]
             nvcc_flags = os.getenv('NVCC_FLAGS', '')
             nvcc_flags = [] if nvcc_flags == '' else nvcc_flags.split(' ')
-            nvcc_flags += ['-O2']
-            extra_compile_args['nvcc'] = nvcc_flags
+            nvcc_flags += ['-O3']
             if torch.version.hip:
                 # USE_ROCM was added to later versions of PyTorch
                 # Define here to support older PyTorch versions as well:
@@ -98,17 +97,7 @@ def get_extensions():
                 undef_macros += ['__HIP_NO_HALF_CONVERSIONS__']
             else:
                 nvcc_flags += ['--expt-relaxed-constexpr']
-
-            if torch.version.hip:
-                if sys.platform == 'win32':
-                    extra_link_args += ['hipsparse.lib']
-                else:
-                    extra_link_args += ['-lhipsparse', '-l', 'hipsparse']
-            else:
-                if sys.platform == 'win32':
-                    extra_link_args += ['cusparse.lib']
-                else:
-                    extra_link_args += ['-lcusparse', '-l', 'cusparse']
+            extra_compile_args['nvcc'] = nvcc_flags
 
         name = main.split(os.sep)[-1][:-4]
         sources = [main]

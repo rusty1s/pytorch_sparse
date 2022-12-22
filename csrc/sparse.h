@@ -74,10 +74,3 @@ spmm_min(torch::Tensor rowptr, torch::Tensor col,
 SPARSE_API std::tuple<torch::Tensor, torch::Tensor>
 spmm_max(torch::Tensor rowptr, torch::Tensor col,
          torch::optional<torch::Tensor> opt_value, torch::Tensor mat);
-
-SPARSE_API
-std::tuple<torch::Tensor, torch::Tensor, torch::optional<torch::Tensor>>
-spspmm_sum(torch::Tensor rowptrA, torch::Tensor colA,
-           torch::optional<torch::Tensor> optional_valueA,
-           torch::Tensor rowptrB, torch::Tensor colB,
-           torch::optional<torch::Tensor> optional_valueB, int64_t K);
