@@ -76,7 +76,8 @@ def spmm_max(src: SparseTensor,
     return torch.ops.torch_sparse.spmm_max(rowptr, col, value, other)
 
 
-def spmm(src: SparseTensor, other: torch.Tensor,
+def spmm(src: SparseTensor,
+         other: torch.Tensor,
          reduce: str = "sum") -> torch.Tensor:
     if reduce == 'sum' or reduce == 'add':
         return spmm_sum(src, other)
@@ -97,7 +98,7 @@ def spspmm_sum(src: SparseTensor, other: SparseTensor) -> SparseTensor:
     edge_index = C._indices()
     row, col = edge_index[0], edge_index[1]
     value: Optional[Tensor] = None
-    if src.has_value() and other.has_value():
+    if src.has_value() or other.has_value():
         value = C._values()
 
     return SparseTensor(
@@ -114,7 +115,8 @@ def spspmm_add(src: SparseTensor, other: SparseTensor) -> SparseTensor:
     return spspmm_sum(src, other)
 
 
-def spspmm(src: SparseTensor, other: SparseTensor,
+def spspmm(src: SparseTensor,
+           other: SparseTensor,
            reduce: str = "sum") -> SparseTensor:
     if reduce == 'sum' or reduce == 'add':
         return spspmm_sum(src, other)
