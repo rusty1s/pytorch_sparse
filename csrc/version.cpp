@@ -38,4 +38,4 @@ SPARSE_API int64_t cuda_version() noexcept {
 } // namespace sparse
 
 static auto registry = torch::RegisterOperators().op(
-    "torch_sparse::cuda_version", &sparse::cuda_version);
+    "torch_sparse::cuda_version", [] { return sparse::cuda_version(); });
