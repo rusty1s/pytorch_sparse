@@ -3,7 +3,7 @@ from typing import Optional, List, Tuple
 
 import torch
 from torch_scatter import segment_csr, scatter_add
-from torch_sparse.utils import Final
+from torch_sparse.utils import Final, index_sort
 
 layouts: Final[List[str]] = ['coo', 'csr', 'csc']
 
@@ -151,7 +151,7 @@ class SparseStorage(object):
             idx[1:] *= self._sparse_sizes[1]
             idx[1:] += self._col
             if (idx[1:] < idx[:-1]).any():
-                perm = idx[1:].argsort()
+                _, perm = index_sort(idx[1:])
                 self._row = self.row()[perm]
                 self._col = self._col[perm]
                 if value is not None:
@@ -389,7 +389,7 @@ class SparseStorage(object):
             return csr2csc
 
         idx = self._sparse_sizes[0] * self._col + self.row()
-        csr2csc = idx.argsort()
+        _, csr2csc = index_sort(idx)
         self._csr2csc = csr2csc
         return csr2csc
 
@@ -401,7 +401,7 @@ class SparseStorage(object):
         if csc2csr is not None:
             return csc2csr
 
-        csc2csr = self.csr2csc().argsort()
+        _, csc2csr = index_sort(self.csr2csc())
         self._csc2csr = csc2csr
         return csc2csr
 
