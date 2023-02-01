@@ -1,8 +1,9 @@
 import warnings
-from typing import Optional, List, Tuple
+from typing import List, Optional, Tuple
 
 import torch
-from torch_scatter import segment_csr, scatter_add
+from torch_scatter import scatter_add, segment_csr
+
 from torch_sparse.utils import Final, index_sort
 
 layouts: Final[List[str]] = ['coo', 'csr', 'csc']
@@ -151,7 +152,8 @@ class SparseStorage(object):
             idx[1:] *= self._sparse_sizes[1]
             idx[1:] += self._col
             if (idx[1:] < idx[:-1]).any():
-                _, perm = index_sort(idx[1:])
+                max_value = self._sparse_sizes[0] * self._sparse_sizes[1]
+                _, perm = index_sort(idx[1:], max_value)
                 self._row = self.row()[perm]
                 self._col = self._col[perm]
                 if value is not None:
@@ -163,10 +165,20 @@ class SparseStorage(object):
     def empty(self):
         row = torch.tensor([], dtype=torch.long)
         col = torch.tensor([], dtype=torch.long)
-        return SparseStorage(row=row, rowptr=None, col=col, value=None,
-                             sparse_sizes=(0, 0), rowcount=None, colptr=None,
-                             colcount=None, csr2csc=None, csc2csr=None,
-                             is_sorted=True, trust_data=True)
+        return SparseStorage(
+            row=row,
+            rowptr=None,
+            col=col,
+            value=None,
+            sparse_sizes=(0, 0),
+            rowcount=None,
+            colptr=None,
+            colcount=None,
+            csr2csc=None,
+            csc2csr=None,
+            is_sorted=True,
+            trust_data=True,
+        )
 
     def has_row(self) -> bool:
         return self._row is not None
@@ -209,8 +221,11 @@ class SparseStorage(object):
     def value(self) -> Optional[torch.Tensor]:
         return self._value
 
-    def set_value_(self, value: Optional[torch.Tensor],
-                   layout: Optional[str] = None):
+    def set_value_(
+        self,
+        value: Optional[torch.Tensor],
+        layout: Optional[str] = None,
+    ):
         if value is not None:
             if get_layout(layout) == 'csc':
                 value = value[self.csc2csr()]
@@ -221,8 +236,11 @@ class SparseStorage(object):
         self._value = value
         return self
 
-    def set_value(self, value: Optional[torch.Tensor],
-                  layout: Optional[str] = None):
+    def set_value(
+        self,
+        value: Optional[torch.Tensor],
+        layout: Optional[str] = None,
+    ):
         if value is not None:
             if get_layout(layout) == 'csc':
                 value = value[self.csc2csr()]
@@ -375,8 +393,11 @@ class SparseStorage(object):
         if colptr is not None:
             colcount = colptr[1:] - colptr[:-1]
         else:
-            colcount = scatter_add(torch.ones_like(self._col), self._col,
-                                   dim_size=self._sparse_sizes[1])
+            colcount = scatter_add(
+                torch.ones_like(self._col),
+                self._col,
+                dim_size=self._sparse_sizes[1],
+            )
         self._colcount = colcount
         return colcount
 
@@ -389,7 +410,8 @@ class SparseStorage(object):
             return csr2csc
 
         idx = self._sparse_sizes[0] * self._col + self.row()
-        _, csr2csc = index_sort(idx)
+        max_value = self._sparse_sizes[0] * self._sparse_sizes[1]
+        _, csr2csc = index_sort(idx, max_value)
         self._csr2csc = csr2csc
         return csr2csc
 
@@ -401,7 +423,8 @@ class SparseStorage(object):
         if csc2csr is not None:
             return csc2csr
 
-        _, csc2csr = index_sort(self.csr2csc())
+        max_value = self._sparse_sizes[0] * self._sparse_sizes[1]
+        _, csc2csr = index_sort(self.csr2csc(), max_value)
         self._csc2csr = csc2csr
         return csc2csr
 
@@ -543,7 +566,8 @@ class SparseStorage(object):
             else:
                 return self.set_value(
                     value.to(dtype=dtype, non_blocking=non_blocking),
-                    layout='coo')
+                    layout='coo',
+                )
         else:
             return self
 
