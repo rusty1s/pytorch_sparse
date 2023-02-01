@@ -11,7 +11,6 @@ except ImportError:
     from torch.jit import Final  # noqa
 
 
-@torch.jit.script
 def index_sort(
         inputs: torch.Tensor,
         max_value: Optional[int] = None) -> Tuple[torch.Tensor, torch.Tensor]:
