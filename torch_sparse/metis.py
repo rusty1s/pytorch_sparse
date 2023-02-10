@@ -1,44 +1,13 @@
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
 import torch
-from torch_sparse.tensor import SparseTensor
-from torch_sparse.permute import permute
-
 from torch import Tensor
 
-def maybe_num_nodes(edge_index, num_nodes=None):
-    if num_nodes is not None:
-        return num_nodes
-    elif isinstance(edge_index, Tensor):
-        return int(edge_index.max()) + 1 if edge_index.numel() > 0 else 0
-    else:
-        return max(edge_index.size(0), edge_index.size(1))
+from torch_sparse.permute import permute
+from torch_sparse.tensor import SparseTensor
 
 
-def degree(index: Tensor, num_nodes: Optional[int] = None,
-           dtype: Optional[torch.dtype] = None) -> Tensor:
-    r"""Computes the (unweighted) degree of a given one-dimensional index
-    tensor.
-    Args:
-        index (LongTensor): Index tensor.
-        num_nodes (int, optional): The number of nodes, *i.e.*
-            :obj:`max_val + 1` of :attr:`index`. (default: :obj:`None`)
-        dtype (:obj:`torch.dtype`, optional): The desired data type of the
-            returned tensor.
-    :rtype: :class:`Tensor`
-    Example:
-        >>> row = torch.tensor([0, 1, 0, 2, 0])
-        >>> degree(row, dtype=torch.long)
-        tensor([3, 1, 1])
-    """
-    N = maybe_num_nodes(index, num_nodes)
-    out = torch.zeros((N, ), dtype=dtype, device=index.device)
-    one = torch.ones((index.size(0), ), dtype=out.dtype, device=out.device)
-    return out.scatter_add_(0, index, one)
-
-
-
-def weight2metis(weight: torch.Tensor) -> Optional[torch.Tensor]:
+def weight2metis(weight: Tensor) -> Optional[Tensor]:
     sorted_weight = weight.sort()[0]
     diff = sorted_weight[1:] - sorted_weight[:-1]
     if diff.sum() == 0:
@@ -53,16 +22,23 @@ def weight2metis(weight: torch.Tensor) -> Optional[torch.Tensor]:
 
 
 def partition(
-    src: SparseTensor, num_parts: int, recursive: bool = False,
-    weighted: bool = False, node_weight: Optional[torch.Tensor] = None,
-    balance_edge: bool = False
-) -> Tuple[SparseTensor, torch.Tensor, torch.Tensor]:
+    src: SparseTensor,
+    num_parts: int,
+    recursive: bool = False,
+    weighted: bool = False,
+    node_weight: Optional[Tensor] = None,
+    balance_edge: bool = False,
+) -> Tuple[SparseTensor, Tensor, Tensor]:
 
     assert num_parts >= 1
     if num_parts == 1:
         partptr = torch.tensor([0, src.size(0)], device=src.device())
         perm = torch.arange(src.size(0), device=src.device())
         return src, partptr, perm
+
+    if balance_edge and node_weight:
+        raise ValueError("Cannot set 'balance_edge' and 'node_weight' at the "
+                         "same time in 'torch_sparse.partition'")
 
     rowptr, col, value = src.csr()
     rowptr, col = rowptr.cpu(), col.cpu()
@@ -76,9 +52,8 @@ def partition(
         value = None
 
     if balance_edge:
-        idx = col
-        deg = degree(idx, src.size(0), dtype=torch.long)
-        node_weight = deg
+        node_weight = col.new_zeros(col.size(0))
+        node_weight.scatter_add_(0, col, torch.ones_like(col))
 
     if node_weight is not None:
         assert node_weight.numel() == rowptr.numel() - 1
