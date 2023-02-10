@@ -4,6 +4,8 @@ import torch
 from torch_sparse.tensor import SparseTensor
 from torch_sparse.permute import permute
 
+from torch import Tensor
+
 def maybe_num_nodes(edge_index, num_nodes=None):
     if num_nodes is not None:
         return num_nodes
