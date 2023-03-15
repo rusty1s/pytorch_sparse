@@ -144,8 +144,7 @@ def matmul(src, other, reduce="sum"):  # noqa: F811
      stored as a list of edges. This method multiplies elements along the rows
      of the adjacency matrix with the column of the other matrix. In regular
      matrix multiplication, the products are then summed together, but this
-     method allows us to use other aggregation functions.
-
+     method allows us to use other aggregation functions as well.
 
     Args:
         src (:class:`Tensor`): A sparse tensor representing an adjacency
