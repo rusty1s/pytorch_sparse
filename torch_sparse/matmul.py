@@ -150,8 +150,9 @@ def matmul(src, other, reduce="sum"):  # noqa: F811
         src (:class:`SparseTensor`): The sparse tensor.
         other (:class:`Tensor` or :class:`SparseTensor`): The second matrix.
         reduce (string, optional): The function to reduce along the rows of
-            'src' and columns of 'other'. Can be 'sum', 'add', 'mean', 'min',
-            or 'max'.
+            :obj:`src` and columns of :obj:`other`. Can be :obj:`"sum"`,
+            :obj:`"mean"`, :obj:`"min"` or :obj:`"max"`.
+            (default: :obj:`"sum"`)
 
     :rtype: (:class:`Tensor`)
     """
