@@ -149,7 +149,7 @@ def matmul(src, other, reduce="sum"):  # noqa: F811
     Args:
         src (:class:`Tensor`): A sparse tensor representing an adjacency
             matrix.
-        other (:class:`Tensor`): Can be either a sparse or a dense tensor.
+        other (:class:`Tensor` or :class:`SparseTensor`): The second matrix.
         reduce (string, optional): The function to reduce along the rows of
             'src' and columns of 'other'. Can be 'sum', 'add', 'mean', 'min',
             or 'max'.
