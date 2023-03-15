@@ -139,6 +139,23 @@ def matmul(src, other, reduce):  # noqa: F811
 
 
 def matmul(src, other, reduce="sum"):  # noqa: F811
+    """Matrix product of a sparse tensor with either another sparse tensor or a
+     dense tensor. The sparse tensor represents an adjacency matrix and is
+     stored as a list of edges. This method multiplies elements along the rows
+     of the adjacency matrix with the column of the other matrix. In regular
+     matrix multiplication, the products are then summed together, but this
+     method allows us to use other aggregation functions as well.
+
+    Args:
+        src (:class:`SparseTensor`): The sparse tensor.
+        other (:class:`Tensor` or :class:`SparseTensor`): The second matrix.
+        reduce (string, optional): The function to reduce along the rows of
+            :obj:`src` and columns of :obj:`other`. Can be :obj:`"sum"`,
+            :obj:`"mean"`, :obj:`"min"` or :obj:`"max"`.
+            (default: :obj:`"sum"`)
+
+    :rtype: (:class:`Tensor`)
+    """
     if isinstance(other, torch.Tensor):
         return spmm(src, other, reduce)
     elif isinstance(other, SparseTensor):
