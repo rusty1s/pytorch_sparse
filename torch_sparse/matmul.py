@@ -147,8 +147,7 @@ def matmul(src, other, reduce="sum"):  # noqa: F811
      method allows us to use other aggregation functions as well.
 
     Args:
-        src (:class:`Tensor`): A sparse tensor representing an adjacency
-            matrix.
+        src (:class:`SparseTensor`): The sparse tensor.
         other (:class:`Tensor` or :class:`SparseTensor`): The second matrix.
         reduce (string, optional): The function to reduce along the rows of
             'src' and columns of 'other'. Can be 'sum', 'add', 'mean', 'min',
