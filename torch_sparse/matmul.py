@@ -141,7 +141,7 @@ def matmul(src, other, reduce):  # noqa: F811
 def matmul(src, other, reduce="sum"):  # noqa: F811
     """Matrix product of a sparse tensor with either another sparse tensor or a
      dense tensor. The sparse tensor represents an adjacency matrix and is
-     stored as a list of edges. This method multiples elements along the rows
+     stored as a list of edges. This method multiplies elements along the rows
      of the adjacency matrix with the column of the other matrix. In regular
      matrix multiplication, the products are then summed together, but this
      method allows us to use other aggregation functions.
