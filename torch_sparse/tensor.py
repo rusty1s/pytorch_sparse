@@ -510,6 +510,15 @@ class SparseTensor(object):
 
         return torch.sparse_csr_tensor(rowptr, col, value, self.sizes())
 
+    def to_torch_sparse_csc_tensor(
+            self, dtype: Optional[int] = None) -> torch.Tensor:
+        colptr, row, value = self.csc()
+
+        if value is None:
+            value = torch.ones(self.nnz(), dtype=dtype, device=self.device())
+
+        return torch.sparse_csc_tensor(colptr, row, value, self.sizes())
+
 
 # Python Bindings #############################################################
 
