@@ -282,9 +282,9 @@ class SparseStorage(object):
                 rowcount = torch.cat([rowcount, rowcount.new_zeros(diff_0)])
         elif diff_0 < 0:
             if rowptr is not None:
-                rowptr = rowptr[:-diff_0]
+                rowptr = rowptr[:diff_0]
             if rowcount is not None:
-                rowcount = rowcount[:-diff_0]
+                rowcount = rowcount[:diff_0]
 
         diff_1 = sparse_sizes[1] - old_sparse_sizes[1]
         colcount, colptr = self._colcount, self._colptr
@@ -295,9 +295,9 @@ class SparseStorage(object):
                 colcount = torch.cat([colcount, colcount.new_zeros(diff_1)])
         elif diff_1 < 0:
             if colptr is not None:
-                colptr = colptr[:-diff_1]
+                colptr = colptr[:diff_1]
             if colcount is not None:
-                colcount = colcount[:-diff_1]
+                colcount = colcount[:diff_1]
 
         return SparseStorage(
             row=self._row,
