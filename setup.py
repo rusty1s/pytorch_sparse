@@ -67,6 +67,8 @@ def get_extensions():
         extra_compile_args = {'cxx': ['-O3']}
         if not os.name == 'nt':  # Not on Windows:
             extra_compile_args['cxx'] += ['-Wno-sign-compare']
+        if sys.platform == 'darwin':  # On macOS:
+            extra_compile_args['cxx'] += ['-D_LIBCPP_DISABLE_AVAILABILITY']
         extra_link_args = [] if WITH_SYMBOLS else ['-s']
 
         info = parallel_info()
