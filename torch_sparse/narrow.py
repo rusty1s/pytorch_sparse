@@ -6,11 +6,11 @@ from torch_sparse.tensor import SparseTensor
 
 
 def narrow(src: SparseTensor, dim: int, start: int,
-           length: int, bidim: False, 
+           length: int, bidim: False,
            n_active_nodes: None) -> SparseTensor:
-    r"""It resizes :obj:`src` SparseTensor along one 
+    r"""It resizes :obj:`src` SparseTensor along one
     specified dimension, or two dimensions at the same time
-    if the SparseTensor has 2 dimensions. In the 
+    if the SparseTensor has 2 dimensions. In the
     latter case, it returns a squared SparseTensor.
     In the case of 1-dimensional resizing,
     :obj:'start' and :obj:'lenght' are supported
@@ -28,32 +28,32 @@ def narrow(src: SparseTensor, dim: int, start: int,
         bidim (bool):  it applies bidimensional and squared narrowing
                     of the src, which must be a bidimensional SparseTensor.
         n_active_nodes (int): Required only if bidim option is True;
-                    used for efficient manipulation of the rowptr in bidim case.
+                    for efficient manipulation of the rowptr bidim case.
     """
-    if bidim: 
+    if bidim:
         if len(src.storage._sparse_sizes) != 2:
-            raise NotImplementedError 
-        
-        start = 0 # only start at 0 is supported for bidim resizing
+            raise NotImplementedError
+               
+        start = 0
         if src.storage._rowptr is None:
             rowptr, col, value = src.csr()
 
         # rowptr
-        rowptr = torch.narrow(src.storage._rowptr, 
+        rowptr = torch.narrow(src.storage._rowptr,
                               0, start, length + 1).clone()
         rowptr[(n_active_nodes + 1):] = rowptr[n_active_nodes]
 
         # col and value
-        col = torch.narrow(src.storage._col, 
+        col = torch.narrow(src.storage._col,
                            0, start, rowptr[-1])
         value = torch.narrow(src.storage._value,
                     0, start, rowptr[-1]
-                        ) if src.storage._value is not None else None
+                    ) if src.storage._value is not None else None
 
         # indeces for conversion to csc
         csr2csc = src.storage._csr2csc[src.storage._csr2csc < len(col)] \
             if src.storage._csr2csc is not None else None
-        
+                
         # update storage and edge_index
         storage = SparseStorage(row=None, rowptr=rowptr, col=col,
                                 value=value, sparse_sizes=(length, length),
@@ -62,7 +62,7 @@ def narrow(src: SparseTensor, dim: int, start: int,
                                 csc2csr=None, is_sorted=True,
                                 trust_data=False)
         return src.from_storage(storage)
-      
+    
     if dim < 0:
         dim = src.dim() + dim
 
@@ -188,8 +188,7 @@ def __narrow_diag__(src: SparseTensor, start: Tuple[int, int],
 
 
 SparseTensor.narrow = lambda self, dim, start, length, \
-                        bidim=False, n_active_nodes=None: narrow(
-                        self, dim, start, length, 
-                        bidim, n_active_nodes)
+    bidim=False, n_active_nodes=None: narrow(self, dim, start, length, 
+        bidim, n_active_nodes)
 SparseTensor.__narrow_diag__ = lambda self, start, length: __narrow_diag__(
     self, start, length)
