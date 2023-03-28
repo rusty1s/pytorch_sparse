@@ -33,7 +33,7 @@ def narrow(src: SparseTensor, dim: int, start: int,
     if bidim:
         if len(src.storage._sparse_sizes) != 2:
             raise NotImplementedError
-               
+        
         start = 0
         if src.storage._rowptr is None:
             rowptr, col, value = src.csr()
@@ -47,13 +47,14 @@ def narrow(src: SparseTensor, dim: int, start: int,
         col = torch.narrow(src.storage._col,
                            0, start, rowptr[-1])
         value = torch.narrow(src.storage._value,
-                    0, start, rowptr[-1]
-                    ) if src.storage._value is not None else None
+                             0, start, rowptr[-1]) \
+                                if src.storage._value \
+                                    is not None else None
 
         # indeces for conversion to csc
         csr2csc = src.storage._csr2csc[src.storage._csr2csc < len(col)] \
             if src.storage._csr2csc is not None else None
-                
+        
         # update storage and edge_index
         storage = SparseStorage(row=None, rowptr=rowptr, col=col,
                                 value=value, sparse_sizes=(length, length),
@@ -188,7 +189,7 @@ def __narrow_diag__(src: SparseTensor, start: Tuple[int, int],
 
 
 SparseTensor.narrow = lambda self, dim, start, length, \
-    bidim=False, n_active_nodes=None: narrow(self, dim, start, length, 
-        bidim, n_active_nodes)
+    bidim=False, n_active_nodes=None: narrow(self, dim, start, length,
+                                                  bidim, n_active_nodes)
 SparseTensor.__narrow_diag__ = lambda self, start, length: __narrow_diag__(
     self, start, length)
