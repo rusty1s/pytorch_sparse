@@ -3,6 +3,7 @@ from typing import Optional
 import torch
 from torch import Tensor
 from torch_scatter import gather_csr
+
 from torch_sparse.tensor import SparseTensor
 
 
@@ -37,53 +38,46 @@ def mul(src, other):  # noqa: F811
         else:
             value = other
         return src.set_value(value, layout='coo')
-    elif isinstance(other, SparseTensor):  # Element-wise
-        if src.is_coalesced() and other.is_coalesced():
-            rowA, colA, valueA = src.coo()
-            rowB, colB, valueB = other.coo()
 
-            row = torch.cat([rowA, rowB], dim=0)
-            col = torch.cat([colA, colB], dim=0)
+    assert isinstance(other, SparseTensor)
 
-            if valueA is not None and valueB is not None:
-                value = torch.cat([valueA, valueB], dim=0)
-            else:
-                raise TypeError('Value of SparseTensor is None.')
+    if not src.is_coalesced():
+        raise ValueError("The `src` tensor is not coalesced")
+    if not other.is_coalesced():
+        raise ValueError("The `other` tensor is not coalesced")
 
-            M = max(src.size(0), other.size(0))
-            N = max(src.size(1), other.size(1))
-            sparse_sizes = (M, N)
+    rowA, colA, valueA = src.coo()
+    rowB, colB, valueB = other.coo()
 
-            # Sort indices
-            idx = col.new_full((col.numel() + 1,), -1)
-            idx[1:] = row * sparse_sizes[1] + col
-            perm = idx[1:].argsort()
-            row, col, value = row[perm], col[perm], value[perm]
+    row = torch.cat([rowA, rowB], dim=0)
+    col = torch.cat([colA, colB], dim=0)
 
-            idx[1:] = idx[1:][perm]
-            mask = idx[1:] > idx[:-1]
-            # Skip if indices are already coalesced (no-overlaps).
-            if mask.all():
-                return SparseTensor(
-                    row=row, col=col, value=torch.zeros(
-                        len(value),
-                        dtype=value.dtype),
-                    sparse_sizes=sparse_sizes)
-
-            rmask = ~mask
-            ridx = rmask.nonzero().flatten()
-
-            out = SparseTensor(
-                row=row[rmask],
-                col=col[rmask],
-                value=value[ridx - 1] * value[ridx],
-                sparse_sizes=sparse_sizes)
-            return out
-        else:
-            raise ValueError('SparseTensor is not coalesced.')
-
+    if valueA is not None and valueB is not None:
+        value = torch.cat([valueA, valueB], dim=0)
     else:
-        raise NotImplementedError
+        raise ValueError('Both sparse tensors must contain values')
+
+    M = max(src.size(0), other.size(0))
+    N = max(src.size(1), other.size(1))
+    sparse_sizes = (M, N)
+
+    # Sort indices:
+    idx = col.new_full((col.numel() + 1, ), -1)
+    idx[1:] = row * sparse_sizes[1] + col
+    perm = idx[1:].argsort()
+    idx[1:] = idx[1:][perm]
+
+    row, col, value = row[perm], col[perm], value[perm]
+
+    valid_mask = idx[1:] == idx[:-1]
+    valid_idx = valid_mask.nonzero().view(-1)
+
+    return SparseTensor(
+        row=row[valid_mask],
+        col=col[valid_mask],
+        value=value[valid_idx - 1] * value[valid_idx],
+        sparse_sizes=sparse_sizes,
+    )
 
 
 def mul_(src: SparseTensor, other: torch.Tensor) -> SparseTensor:
@@ -105,7 +99,8 @@ def mul_(src: SparseTensor, other: torch.Tensor) -> SparseTensor:
     return src.set_value_(value, layout='coo')
 
 
-def mul_nnz(src: SparseTensor, other: torch.Tensor,
+def mul_nnz(src: SparseTensor,
+            other: torch.Tensor,
             layout: Optional[str] = None) -> SparseTensor:
     value = src.storage.value()
     if value is not None:
@@ -115,7 +110,8 @@ def mul_nnz(src: SparseTensor, other: torch.Tensor,
     return src.set_value(value, layout=layout)
 
 
-def mul_nnz_(src: SparseTensor, other: torch.Tensor,
+def mul_nnz_(src: SparseTensor,
+             other: torch.Tensor,
              layout: Optional[str] = None) -> SparseTensor:
     value = src.storage.value()
     if value is not None:
