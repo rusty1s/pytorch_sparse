@@ -48,7 +48,7 @@ jobs:
 
       - name: Install main package
         run: |
-          py setup.py develop
+          python setup.py develop
         env:
           WITH_METIS: 1
 
