@@ -99,9 +99,11 @@ def mul_(src: SparseTensor, other: torch.Tensor) -> SparseTensor:
     return src.set_value_(value, layout='coo')
 
 
-def mul_nnz(src: SparseTensor,
-            other: torch.Tensor,
-            layout: Optional[str] = None) -> SparseTensor:
+def mul_nnz(
+    src: SparseTensor,
+    other: torch.Tensor,
+    layout: Optional[str] = None,
+) -> SparseTensor:
     value = src.storage.value()
     if value is not None:
         value = value.mul(other.to(value.dtype))
@@ -110,9 +112,11 @@ def mul_nnz(src: SparseTensor,
     return src.set_value(value, layout=layout)
 
 
-def mul_nnz_(src: SparseTensor,
-             other: torch.Tensor,
-             layout: Optional[str] = None) -> SparseTensor:
+def mul_nnz_(
+    src: SparseTensor,
+    other: torch.Tensor,
+    layout: Optional[str] = None,
+) -> SparseTensor:
     value = src.storage.value()
     if value is not None:
         value = value.mul_(other.to(value.dtype))
