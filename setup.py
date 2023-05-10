@@ -112,7 +112,7 @@ def get_extensions():
         if suffix == 'cuda' and osp.exists(path):
             sources += [path]
 
-        phmap_dir = "third_party/parallel-hashmap"
+        phmap_dir = osp.abspath("third_party/parallel-hashmap")
 
         Extension = CppExtension if suffix == 'cpu' else CUDAExtension
         extension = Extension(
@@ -167,7 +167,7 @@ setup(
     ext_modules=get_extensions() if not BUILD_DOCS else [],
     cmdclass={
         'build_ext':
-        BuildExtension.with_options(no_python_abi_suffix=True, use_ninja=False)
+        BuildExtension.with_options(no_python_abi_suffix=True)
     },
     packages=find_packages(),
     include_package_data=include_package_data,
