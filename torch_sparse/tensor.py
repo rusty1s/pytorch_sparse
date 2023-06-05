@@ -357,6 +357,8 @@ class SparseTensor(object):
             return self.nnz()
 
     def density(self) -> float:
+        if self.sparse_size(0) == 0 or self.sparse_size(1) == 0:
+            return 0.0
         return self.nnz() / (self.sparse_size(0) * self.sparse_size(1))
 
     def sparsity(self) -> float:
