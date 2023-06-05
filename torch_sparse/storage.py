@@ -146,7 +146,7 @@ class SparseStorage(object):
         self._csr2csc = csr2csc
         self._csc2csr = csc2csr
 
-        if not is_sorted:
+        if not is_sorted and self._col.numel() > 0:
             idx = self._col.new_zeros(self._col.numel() + 1)
             idx[1:] = self.row()
             idx[1:] *= self._sparse_sizes[1]
