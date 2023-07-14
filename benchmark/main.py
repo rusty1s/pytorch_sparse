@@ -62,6 +62,12 @@ def time_func(func, x):
     try:
         if torch.cuda.is_available():
             torch.cuda.synchronize()
+        elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+            try:
+                import torch.mps
+                torch.mps.synchronize()
+            except ImportError:
+                pass
         t = time.perf_counter()
 
         if not args.with_backward:
@@ -77,6 +83,12 @@ def time_func(func, x):
 
         if torch.cuda.is_available():
             torch.cuda.synchronize()
+        elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+            try:
+                import torch.mps
+                torch.mps.synchronize()
+            except ImportError:
+                pass
         return time.perf_counter() - t
     except RuntimeError as e:
         if 'out of memory' not in str(e):
