@@ -63,6 +63,7 @@ def time_func(func, x):
         if torch.cuda.is_available():
             torch.cuda.synchronize()
         elif torch.backends.mps.is_available():
+            import torch.mps
             torch.mps.synchronize()
         t = time.perf_counter()
 
@@ -80,6 +81,7 @@ def time_func(func, x):
         if torch.cuda.is_available():
             torch.cuda.synchronize()
         elif torch.backends.mps.is_available():
+            import torch.mps
             torch.mps.synchronize()
         return time.perf_counter() - t
     except RuntimeError as e:
