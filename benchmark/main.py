@@ -1,13 +1,13 @@
-import time
-import os.path as osp
-import itertools
-
 import argparse
-import wget
-import torch
-from scipy.io import loadmat
+import itertools
+import os.path as osp
+import time
 
+import torch
+import wget
+from scipy.io import loadmat
 from torch_scatter import scatter_add
+
 from torch_sparse.tensor import SparseTensor
 
 short_rows = [
@@ -62,6 +62,9 @@ def time_func(func, x):
     try:
         if torch.cuda.is_available():
             torch.cuda.synchronize()
+        elif torch.backends.mps.is_available():
+            import torch.mps
+            torch.mps.synchronize()
         t = time.perf_counter()
 
         if not args.with_backward:
@@ -77,6 +80,9 @@ def time_func(func, x):
 
         if torch.cuda.is_available():
             torch.cuda.synchronize()
+        elif torch.backends.mps.is_available():
+            import torch.mps
+            torch.mps.synchronize()
         return time.perf_counter() - t
     except RuntimeError as e:
         if 'out of memory' not in str(e):
