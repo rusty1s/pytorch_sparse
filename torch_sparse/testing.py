@@ -16,7 +16,7 @@ if version.parse(torch_scatter.__version__) > version.parse("2.0.9"):
 devices = [torch.device('cpu')]
 if torch.cuda.is_available():
     devices += [torch.device('cuda:0')]
-elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+if torch.backends.mps.is_available():
     devices += [torch.device('mps')]
 
 
