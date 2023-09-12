@@ -52,7 +52,7 @@ def partition(
         value = None
 
     if balance_edge:
-        node_weight = col.new_zeros(col.size(0))
+        node_weight = col.new_zeros(rowptr.numel() - 1)
         node_weight.scatter_add_(0, col, torch.ones_like(col))
 
     if node_weight is not None:
