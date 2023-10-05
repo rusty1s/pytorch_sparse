@@ -15,7 +15,7 @@ from torch.utils.cpp_extension import (
     CUDAExtension,
 )
 
-__version__ = '0.6.17'
+__version__ = '0.6.18'
 URL = 'https://github.com/rusty1s/pytorch_sparse'
 
 WITH_CUDA = False
@@ -159,15 +159,14 @@ setup(
         'sparse-matrices',
         'autograd',
     ],
-    python_requires='>=3.7',
+    python_requires='>=3.8',
     install_requires=install_requires,
     extras_require={
         'test': test_requires,
     },
     ext_modules=get_extensions() if not BUILD_DOCS else [],
     cmdclass={
-        'build_ext':
-        BuildExtension.with_options(no_python_abi_suffix=True)
+        'build_ext': BuildExtension.with_options(no_python_abi_suffix=True)
     },
     packages=find_packages(),
     include_package_data=include_package_data,

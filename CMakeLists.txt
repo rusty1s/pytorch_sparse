@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(torchsparse)
 set(CMAKE_CXX_STANDARD 14)
-set(TORCHSPARSE_VERSION 0.6.17)
+set(TORCHSPARSE_VERSION 0.6.18)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 option(WITH_CUDA "Enable CUDA support" OFF)
