@@ -54,6 +54,8 @@ echo "- $CONDA_CUDATOOLKIT_CONSTRAINT"
 
 if [ "${TORCH_VERSION}" = "1.12.0" ] && [ "${CUDA_VERSION}" = "cu116" ]; then
   conda build . -c pytorch -c pyg -c default -c nvidia -c conda-forge --output-folder "$HOME/conda-bld"
+elif [ "${CUDA_VERSION}" = "cpu" ]; then
+  conda build . -c pytorch -c pyg -c default --output-folder "$HOME/conda-bld"
 else
   conda build . -c pytorch -c pyg -c default -c nvidia --output-folder "$HOME/conda-bld"
 fi
