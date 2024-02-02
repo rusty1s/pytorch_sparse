@@ -16,7 +16,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-2019]
         python-version: [3.8]
-        torch-version: [2.0.0, 2.1.0]
+        torch-version: [2.1.0, 2.2.0]
 
     steps:
       - uses: actions/checkout@v2
@@ -46,9 +46,13 @@ jobs:
         run: |
           bash .github/workflows/metis-${{ runner.os }}.sh
 
+      - name: Install scipy
+        if: ${{ matrix.python-version == '3.8' }}
+        run: |
+          pip install scipy==1.10.1
+
       - name: Install main package
         run: |
-          pip install scipy==1.10.1  # Python 3.8 support
           python setup.py develop
         env:
           WITH_METIS: 1
