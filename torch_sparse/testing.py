@@ -16,8 +16,6 @@ if version.parse(torch_scatter.__version__) > version.parse("2.0.9"):
 devices = [torch.device('cpu')]
 if torch.cuda.is_available():
     devices += [torch.device('cuda:0')]
-if torch.backends.mps.is_available():
-    devices += [torch.device('mps')]
 
 
 def tensor(x: Any, dtype: torch.dtype, device: torch.device):
