@@ -99,7 +99,7 @@ spmm_cuda(torch::Tensor rowptr, torch::Tensor col,
   if (optional_value.has_value())
     CHECK_CUDA(optional_value.value());
   CHECK_CUDA(mat);
-  cudaSetDevice(rowptr.get_device());
+  c10::cuda::MaybeSetDevice(rowptr.get_device());
 
   CHECK_INPUT(rowptr.dim() == 1);
   CHECK_INPUT(col.dim() == 1);
@@ -201,7 +201,7 @@ torch::Tensor spmm_value_bw_cuda(torch::Tensor row, torch::Tensor rowptr,
   CHECK_CUDA(col);
   CHECK_CUDA(mat);
   CHECK_CUDA(grad);
-  cudaSetDevice(row.get_device());
+  c10::cuda::MaybeSetDevice(row.get_device());
 
   mat = mat.contiguous();
   grad = grad.contiguous();

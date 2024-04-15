@@ -33,7 +33,7 @@ torch::Tensor random_walk_cuda(torch::Tensor rowptr, torch::Tensor col,
   CHECK_CUDA(rowptr);
   CHECK_CUDA(col);
   CHECK_CUDA(start);
-  cudaSetDevice(rowptr.get_device());
+  c10::cuda::MaybeSetDevice(rowptr.get_device());
 
   CHECK_INPUT(rowptr.dim() == 1);
   CHECK_INPUT(col.dim() == 1);
