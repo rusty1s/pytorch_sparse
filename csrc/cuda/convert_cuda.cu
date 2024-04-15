@@ -25,7 +25,7 @@ __global__ void ind2ptr_kernel(const int64_t *ind_data, int64_t *out_data,
 
 torch::Tensor ind2ptr_cuda(torch::Tensor ind, int64_t M) {
   CHECK_CUDA(ind);
-  cudaSetDevice(ind.get_device());
+  c10::cuda::MaybeSetDevice(ind.get_device());
 
   auto out = torch::empty({M + 1}, ind.options());
 
@@ -55,7 +55,7 @@ __global__ void ptr2ind_kernel(const int64_t *ptr_data, int64_t *out_data,
 
 torch::Tensor ptr2ind_cuda(torch::Tensor ptr, int64_t E) {
   CHECK_CUDA(ptr);
-  cudaSetDevice(ptr.get_device());
+  c10::cuda::MaybeSetDevice(ptr.get_device());
 
   auto out = torch::empty({E}, ptr.options());
   auto ptr_data = ptr.data_ptr<int64_t>();
