@@ -15,8 +15,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-2019]
-        python-version: [3.8]
-        torch-version: [2.3.0, 2.4.0]
+        python-version: [3.9]
+        torch-version: [2.4.0, 2.5.0]
 
     steps:
       - uses: actions/checkout@v2
@@ -47,7 +47,7 @@ jobs:
           bash .github/workflows/metis-${{ runner.os }}.sh
 
       - name: Install scipy
-        if: ${{ matrix.python-version == '3.8' }}
+        if: ${{ matrix.python-version == '3.9' }}
         run: |
           pip install scipy==1.10.1
 
