@@ -5,9 +5,9 @@
 #include "reducer.h"
 #include "utils.h"
 
-std::tuple<torch::Tensor, torch::optional<torch::Tensor>>
+std::tuple<torch::Tensor, std::optional<torch::Tensor>>
 spmm_cpu(torch::Tensor rowptr, torch::Tensor col,
-         torch::optional<torch::Tensor> optional_value, torch::Tensor mat,
+         std::optional<torch::Tensor> optional_value, torch::Tensor mat,
          std::string reduce) {
   CHECK_CPU(rowptr);
   CHECK_CPU(col);
@@ -29,7 +29,7 @@ spmm_cpu(torch::Tensor rowptr, torch::Tensor col,
   sizes[mat.dim() - 2] = rowptr.numel() - 1;
   auto out = torch::empty(sizes, mat.options());
 
-  torch::optional<torch::Tensor> arg_out = torch::nullopt;
+  std::optional<torch::Tensor> arg_out = std::nullopt;
   int64_t *arg_out_data = nullptr;
   if (reduce2REDUCE.at(reduce) == MIN || reduce2REDUCE.at(reduce) == MAX) {
     arg_out = torch::full_like(out, col.numel(), rowptr.options());

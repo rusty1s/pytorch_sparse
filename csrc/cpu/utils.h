@@ -51,7 +51,7 @@ inline int64_t uniform_randint(int64_t high) {
 
 inline torch::Tensor
 choice(int64_t population, int64_t num_samples, bool replace = false,
-       torch::optional<torch::Tensor> weight = torch::nullopt) {
+       std::optional<torch::Tensor> weight = std::nullopt) {
 
   if (population == 0 || num_samples == 0)
     return torch::empty({0}, at::kLong);

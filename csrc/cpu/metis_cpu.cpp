@@ -11,8 +11,8 @@
 #include "utils.h"
 
 torch::Tensor partition_cpu(torch::Tensor rowptr, torch::Tensor col,
-                            torch::optional<torch::Tensor> optional_value,
-                            torch::optional<torch::Tensor> optional_node_weight,
+                            std::optional<torch::Tensor> optional_value,
+                            std::optional<torch::Tensor> optional_node_weight,
                             int64_t num_parts, bool recursive) {
 #ifdef WITH_METIS
   CHECK_CPU(rowptr);
@@ -66,8 +66,8 @@ torch::Tensor partition_cpu(torch::Tensor rowptr, torch::Tensor col,
 //             --partitions64bit
 torch::Tensor
 mt_partition_cpu(torch::Tensor rowptr, torch::Tensor col,
-                 torch::optional<torch::Tensor> optional_value,
-                 torch::optional<torch::Tensor> optional_node_weight,
+                 std::optional<torch::Tensor> optional_value,
+                 std::optional<torch::Tensor> optional_node_weight,
                  int64_t num_parts, bool recursive, int64_t num_workers) {
 #ifdef WITH_MTMETIS
   CHECK_CPU(rowptr);

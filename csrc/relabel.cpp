@@ -28,10 +28,10 @@ SPARSE_API std::tuple<torch::Tensor, torch::Tensor> relabel(torch::Tensor col,
   }
 }
 
-SPARSE_API std::tuple<torch::Tensor, torch::Tensor, torch::optional<torch::Tensor>,
+SPARSE_API std::tuple<torch::Tensor, torch::Tensor, std::optional<torch::Tensor>,
            torch::Tensor>
 relabel_one_hop(torch::Tensor rowptr, torch::Tensor col,
-                torch::optional<torch::Tensor> optional_value,
+                std::optional<torch::Tensor> optional_value,
                 torch::Tensor idx, bool bipartite) {
   if (rowptr.device().is_cuda()) {
 #ifdef WITH_CUDA
