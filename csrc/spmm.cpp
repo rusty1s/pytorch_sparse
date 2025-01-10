@@ -19,9 +19,9 @@ PyMODINIT_FUNC PyInit__spmm_cpu(void) { return NULL; }
 #endif
 #endif
 
-std::tuple<torch::Tensor, torch::optional<torch::Tensor>>
+std::tuple<torch::Tensor, std::optional<torch::Tensor>>
 spmm_fw(torch::Tensor rowptr, torch::Tensor col,
-        torch::optional<torch::Tensor> optional_value, torch::Tensor mat,
+        std::optional<torch::Tensor> optional_value, torch::Tensor mat,
         std::string reduce) {
   if (rowptr.device().is_cuda()) {
 #ifdef WITH_CUDA
@@ -55,10 +55,10 @@ using torch::autograd::variable_list;
 class SPMMSum : public torch::autograd::Function<SPMMSum> {
 public:
   static variable_list forward(AutogradContext *ctx,
-                               torch::optional<Variable> opt_row,
+                               std::optional<Variable> opt_row,
                                Variable rowptr, Variable col, Variable value,
-                               torch::optional<Variable> opt_colptr,
-                               torch::optional<Variable> opt_csr2csc,
+                               std::optional<Variable> opt_colptr,
+                               std::optional<Variable> opt_csr2csc,
                                Variable mat, bool has_value) {
 
     if (has_value && torch::autograd::any_variable_requires_grad({value})) {
@@ -75,7 +75,7 @@ public:
     auto colptr = opt_colptr.has_value() ? opt_colptr.value() : col;
     auto csr2csc = opt_csr2csc.has_value() ? opt_csr2csc.value() : col;
 
-    torch::optional<torch::Tensor> opt_value = torch::nullopt;
+    std::optional<torch::Tensor> opt_value = std::nullopt;
     if (has_value)
       opt_value = value;
 
@@ -99,7 +99,7 @@ public:
 
     auto grad_mat = Variable();
     if (torch::autograd::any_variable_requires_grad({mat})) {
-      torch::optional<torch::Tensor> opt_value = torch::nullopt;
+      std::optional<torch::Tensor> opt_value = std::nullopt;
       if (has_value)
         opt_value = value.view({-1, 1}).index_select(0, csr2csc).view(-1);
 
@@ -115,11 +115,11 @@ public:
 class SPMMMean : public torch::autograd::Function<SPMMMean> {
 public:
   static variable_list forward(AutogradContext *ctx,
-                               torch::optional<Variable> opt_row,
+                               std::optional<Variable> opt_row,
                                Variable rowptr, Variable col, Variable value,
-                               torch::optional<Variable> opt_rowcount,
-                               torch::optional<Variable> opt_colptr,
-                               torch::optional<Variable> opt_csr2csc,
+                               std::optional<Variable> opt_rowcount,
+                               std::optional<Variable> opt_colptr,
+                               std::optional<Variable> opt_csr2csc,
                                Variable mat, bool has_value) {
 
     if (has_value && torch::autograd::any_variable_requires_grad({value})) {
@@ -138,7 +138,7 @@ public:
     auto colptr = opt_colptr.has_value() ? opt_colptr.value() : col;
     auto csr2csc = opt_csr2csc.has_value() ? opt_csr2csc.value() : col;
 
-    torch::optional<torch::Tensor> opt_value = torch::nullopt;
+    std::optional<torch::Tensor> opt_value = std::nullopt;
     if (has_value)
       opt_value = value;
 
@@ -188,7 +188,7 @@ public:
                                Variable col, Variable value, Variable mat,
                                bool has_value) {
 
-    torch::optional<torch::Tensor> opt_value = torch::nullopt;
+    std::optional<torch::Tensor> opt_value = std::nullopt;
     if (has_value)
       opt_value = value;
 
@@ -248,7 +248,7 @@ public:
                                Variable col, Variable value, Variable mat,
                                bool has_value) {
 
-    torch::optional<torch::Tensor> opt_value = torch::nullopt;
+    std::optional<torch::Tensor> opt_value = std::nullopt;
     if (has_value)
       opt_value = value;
 
@@ -302,23 +302,23 @@ public:
   }
 };
 
-SPARSE_API torch::Tensor spmm_sum(torch::optional<torch::Tensor> opt_row,
+SPARSE_API torch::Tensor spmm_sum(std::optional<torch::Tensor> opt_row,
                        torch::Tensor rowptr, torch::Tensor col,
-                       torch::optional<torch::Tensor> opt_value,
-                       torch::optional<torch::Tensor> opt_colptr,
-                       torch::optional<torch::Tensor> opt_csr2csc,
+                       std::optional<torch::Tensor> opt_value,
+                       std::optional<torch::Tensor> opt_colptr,
+                       std::optional<torch::Tensor> opt_csr2csc,
                        torch::Tensor mat) {
   auto value = opt_value.has_value() ? opt_value.value() : col;
   return SPMMSum::apply(opt_row, rowptr, col, value, opt_colptr, opt_csr2csc,
                         mat, opt_value.has_value())[0];
 }
 
-SPARSE_API torch::Tensor spmm_mean(torch::optional<torch::Tensor> opt_row,
+SPARSE_API torch::Tensor spmm_mean(std::optional<torch::Tensor> opt_row,
                         torch::Tensor rowptr, torch::Tensor col,
-                        torch::optional<torch::Tensor> opt_value,
-                        torch::optional<torch::Tensor> opt_rowcount,
-                        torch::optional<torch::Tensor> opt_colptr,
-                        torch::optional<torch::Tensor> opt_csr2csc,
+                        std::optional<torch::Tensor> opt_value,
+                        std::optional<torch::Tensor> opt_rowcount,
+                        std::optional<torch::Tensor> opt_colptr,
+                        std::optional<torch::Tensor> opt_csr2csc,
                         torch::Tensor mat) {
   auto value = opt_value.has_value() ? opt_value.value() : col;
   return SPMMMean::apply(opt_row, rowptr, col, value, opt_rowcount, opt_colptr,
@@ -327,7 +327,7 @@ SPARSE_API torch::Tensor spmm_mean(torch::optional<torch::Tensor> opt_row,
 
 SPARSE_API std::tuple<torch::Tensor, torch::Tensor>
 spmm_min(torch::Tensor rowptr, torch::Tensor col,
-         torch::optional<torch::Tensor> opt_value, torch::Tensor mat) {
+         std::optional<torch::Tensor> opt_value, torch::Tensor mat) {
   auto value = opt_value.has_value() ? opt_value.value() : col;
   auto result = SPMMMin::apply(rowptr, col, value, mat, opt_value.has_value());
   return std::make_tuple(result[0], result[1]);
@@ -335,7 +335,7 @@ spmm_min(torch::Tensor rowptr, torch::Tensor col,
 
 SPARSE_API std::tuple<torch::Tensor, torch::Tensor>
 spmm_max(torch::Tensor rowptr, torch::Tensor col,
-         torch::optional<torch::Tensor> opt_value, torch::Tensor mat) {
+         std::optional<torch::Tensor> opt_value, torch::Tensor mat) {
   auto value = opt_value.has_value() ? opt_value.value() : col;
   auto result = SPMMMax::apply(rowptr, col, value, mat, opt_value.has_value());
   return std::make_tuple(result[0], result[1]);

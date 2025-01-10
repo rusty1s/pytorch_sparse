@@ -42,10 +42,10 @@ std::tuple<torch::Tensor, torch::Tensor> relabel_cpu(torch::Tensor col,
   return std::make_tuple(out_col, out_idx);
 }
 
-std::tuple<torch::Tensor, torch::Tensor, torch::optional<torch::Tensor>,
+std::tuple<torch::Tensor, torch::Tensor, std::optional<torch::Tensor>,
            torch::Tensor>
 relabel_one_hop_cpu(torch::Tensor rowptr, torch::Tensor col,
-                    torch::optional<torch::Tensor> optional_value,
+                    std::optional<torch::Tensor> optional_value,
                     torch::Tensor idx, bool bipartite) {
 
   CHECK_CPU(rowptr);
@@ -79,7 +79,7 @@ relabel_one_hop_cpu(torch::Tensor rowptr, torch::Tensor col,
   auto out_col = torch::empty({offset}, col.options());
   auto out_col_data = out_col.data_ptr<int64_t>();
 
-  torch::optional<torch::Tensor> out_value = torch::nullopt;
+  std::optional<torch::Tensor> out_value = std::nullopt;
   if (optional_value.has_value()) {
     out_value = torch::empty({offset}, optional_value.value().options());
 
