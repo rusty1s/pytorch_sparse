@@ -30,8 +30,6 @@ Note that only `value` comes with autograd support, as `index` is discrete and t
 
 ## Installation
 
-### Anaconda
-
 ### Binaries
 
 We provide pip wheels for all major OS/PyTorch/CUDA combinations, see [here](https://data.pyg.org/whl).
@@ -297,7 +295,7 @@ pytest
 ## C++ API
 
 `torch-sparse` also offers a C++ API that contains C++ equivalent of python models.
-For this, we need to add `TorchLib` to the `-DCMAKE_PREFIX_PATH` (*e.g.*, it may exists in `{CONDA}/lib/python{X.X}/site-packages/torch` if installed via `conda`):
+For this, we need to add `TorchLib` to the `-DCMAKE_PREFIX_PATH` (run `import torch; print(torch.utils.cmake_prefix_path)` to obtain it).
 
 ```
 mkdir build
