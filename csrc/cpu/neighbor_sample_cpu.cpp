@@ -325,11 +325,11 @@ hetero_sample(const vector<node_t> &node_types,
         } else {
           // Sample without replacement:
           unordered_set<int64_t> rnd_indices;
-          for (int64_t j = col_count - num_samples; j < col_count; j++) {
+          for (int64_t j = col_count - num_samples + 1; j < col_count + 1; j++) {
             int64_t rnd = uniform_randint(j);
             if (!rnd_indices.insert(rnd).second) {
-              rnd = j;
-              rnd_indices.insert(j);
+              rnd = j - 1;
+              rnd_indices.insert(rnd);
             }
             const int64_t offset = col_start + rnd;
             const int64_t &v = row_data[offset];
