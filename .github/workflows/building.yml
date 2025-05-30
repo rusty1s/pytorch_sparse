@@ -49,6 +49,7 @@ jobs:
       - name: Upgrade pip
         run: |
           pip install --upgrade setuptools
+          pip install wheel
 
       - name: Install scipy
         if: ${{ (matrix.python-version == '3.8') || (matrix.python-version == '3.9') }}
@@ -96,29 +97,20 @@ jobs:
         run: |
           bash .github/workflows/metis-${{ runner.os }}.sh
 
-      - name: Install main package for CPU
+      - name: Build wheel on CPU
         if: ${{ matrix.cuda-version == 'cpu' }}
         run: |
-          FORCE_ONLY_CPU=1 WITH_METIS=1 pip install -v -e . --no-build-isolation
+          FORCE_ONLY_CPU=1 WITH_METIS=1 python setup.py bdist_wheel --dist-dir=dist
         shell:
           bash
 
-      - name: Install main package for GPU
+      - name: Build wheel on GPU
         if: ${{ matrix.cuda-version != 'cpu' }}
         run: |
           source .github/workflows/cuda/${{ matrix.cuda-version }}-${{ runner.os }}-env.sh
-          FORCE_CUDA=1 WITH_METIS=1 pip install -v -e . --no-build-isolation
+          FORCE_CUDA=1 WITH_METIS=1 python setup.py bdist_wheel --dist-dir=dist
         shell:
           bash
-
-      - name: Test installation
-        run: |
-          python -c "import torch_sparse; print('torch-sparse:', torch_sparse.__version__)"
-
-      - name: Build wheel
-        run: |
-          pip install wheel
-          python setup.py bdist_wheel --dist-dir=dist
 
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v1
