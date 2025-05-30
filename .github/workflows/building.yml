@@ -99,7 +99,7 @@ jobs:
       - name: Install main package for CPU
         if: ${{ matrix.cuda-version == 'cpu' }}
         run: |
-          FORCE_ONLY_CPU=1 WITH_METIS=1 pip install -e . --no-build-isolation
+          FORCE_ONLY_CPU=1 WITH_METIS=1 pip install -v -e . --no-build-isolation
         shell:
           bash
 
@@ -107,7 +107,7 @@ jobs:
         if: ${{ matrix.cuda-version != 'cpu' }}
         run: |
           source .github/workflows/cuda/${{ matrix.cuda-version }}-${{ runner.os }}-env.sh
-          WITH_METIS=1 pip install -e . --no-build-isolation
+          FORCE_CUDA=1 WITH_METIS=1 pip install -v -e . --no-build-isolation
         shell:
           bash
 
