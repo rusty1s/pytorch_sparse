@@ -2,7 +2,7 @@
 
 METIS=metis-5.1.0
 
-wget -nv "https://web.archive.org/web/20211119110155/http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz"
+wget -nv "https://github.com/xijunke/METIS-1/raw/refs/heads/master/metis-5.1.0.tar.gz"
 tar -xvzf "${METIS}.tar.gz"
 rm -f "${METIS}.tar.gz"
 cd "${METIS}" || exit
