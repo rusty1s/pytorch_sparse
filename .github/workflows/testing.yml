@@ -16,15 +16,15 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-2019]
         python-version: [3.9]
-        torch-version: [2.6.0, 2.7.0]
+        torch-version: [2.7.0, 2.8.0]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
