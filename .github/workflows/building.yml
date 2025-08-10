@@ -106,30 +106,30 @@ jobs:
         if: ${{ runner.os != 'Windows' }}
         run: |
           bash .github/workflows/metis.sh
-	  echo WITH_METIS=1 >> $GITHUB_ENV
+    echo WITH_METIS=1 >> $GITHUB_ENV
 
       - name: Install METIS on Windows
         if: ${{ runner.os == 'Windows' }}
         run: |
           # bash .github/workflows/metis-${{ runner.os }}.sh
-	  echo WITH_METIS=0 >> $GITHUB_ENV
+    echo WITH_METIS=0 >> $GITHUB_ENV
 
       - name: Build wheel for CPU
         if: ${{ matrix.cuda-version == 'cpu' }}
         run: |
           python setup.py bdist_wheel --dist-dir=dist
-	env:
+        env:
           FORCE_ONLY_CPU: 1
-	  WITH_METIS: ${{ env.WITH_METIS }}
+          WITH_METIS: ${{ env.WITH_METIS }}
 
       - name: Build wheel for GPU
         if: ${{ matrix.cuda-version != 'cpu' }}
         run: |
           source .github/workflows/cuda/${{ matrix.cuda-version }}-${{ runner.os }}-env.sh
           python setup.py bdist_wheel --dist-dir=dist
-	env:
+        env:
           FORCE_CUDA: 1
-	  WITH_METIS: ${{ env.WITH_METIS }}
+          WITH_METIS: ${{ env.WITH_METIS }}
 
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v1
