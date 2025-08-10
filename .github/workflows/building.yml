@@ -2,6 +2,9 @@ name: Building Wheels
 
 on: [workflow_dispatch]
 
+defaults:
+  shell: bash
+
 jobs:
 
   wheel:
@@ -92,8 +95,6 @@ jobs:
           echo "New version name: $VERSION+$TORCH_VERSION$CUDA_VERSION"
           sed -i "s/$VERSION/$VERSION+$TORCH_VERSION$CUDA_VERSION/" setup.py
           sed -i "s/$VERSION/$VERSION+$TORCH_VERSION$CUDA_VERSION/" torch_sparse/__init__.py
-        shell:
-          bash
 
       - name: Install torch-scatter
         run: |
@@ -103,26 +104,30 @@ jobs:
         if: ${{ runner.os != 'Windows' }}
         run: |
           bash .github/workflows/metis.sh
+	  echo WITH_METIS=1 >> $GITHUB_ENV
 
       - name: Install METIS on Windows
         if: ${{ runner.os == 'Windows' }}
         run: |
-          bash .github/workflows/metis-${{ runner.os }}.sh
+          # bash .github/workflows/metis-${{ runner.os }}.sh
+	  echo WITH_METIS=0 >> $GITHUB_ENV
 
       - name: Build wheel for CPU
         if: ${{ matrix.cuda-version == 'cpu' }}
         run: |
-          FORCE_ONLY_CPU=1 WITH_METIS=1 python setup.py bdist_wheel --dist-dir=dist
-        shell:
-          bash
+          python setup.py bdist_wheel --dist-dir=dist
+	env:
+          FORCE_ONLY_CPU: 1
+	  WITH_METIS: ${{ env.WITH_METIS }}
 
       - name: Build wheel for GPU
         if: ${{ matrix.cuda-version != 'cpu' }}
         run: |
           source .github/workflows/cuda/${{ matrix.cuda-version }}-${{ runner.os }}-env.sh
-          FORCE_CUDA=1 WITH_METIS=1 python setup.py bdist_wheel --dist-dir=dist
-        shell:
-          bash
+          python setup.py bdist_wheel --dist-dir=dist
+	env:
+          FORCE_CUDA: 1
+	  WITH_METIS: ${{ env.WITH_METIS }}
 
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v1
