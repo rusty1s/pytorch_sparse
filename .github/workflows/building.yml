@@ -2,8 +2,10 @@ name: Building Wheels
 
 on: [workflow_dispatch]
 
+
 defaults:
-  shell: bash
+  run:
+    shell: bash
 
 jobs:
 
