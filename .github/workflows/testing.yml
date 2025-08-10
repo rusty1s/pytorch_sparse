@@ -6,6 +6,9 @@ on:
       - master
   pull_request:
 
+defaults:
+  shell: bash
+
 jobs:
 
   pytest:
@@ -40,11 +43,13 @@ jobs:
         if: ${{ runner.os != 'Windows' }}
         run: |
           bash .github/workflows/metis.sh
+          echo WITH_METIS=1 >> $GITHUB_ENV
 
       - name: Install METIS on Windows
         if: ${{ runner.os == 'Windows' }}
         run: |
           bash .github/workflows/metis-${{ runner.os }}.sh
+          echo WITH_METIS=0 >> $GITHUB_ENV
 
       - name: Install scipy
         if: ${{ matrix.python-version == '3.9' }}
@@ -55,7 +60,7 @@ jobs:
         run: |
           python setup.py develop
         env:
-          WITH_METIS: 1
+          WITH_METIS: ${{ env.WITH_METIS }}
 
       - name: Run test-suite
         run: |
