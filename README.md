@@ -34,6 +34,22 @@ Note that only `value` comes with autograd support, as `index` is discrete and t
 
 We provide pip wheels for all major OS/PyTorch/CUDA combinations, see [here](https://data.pyg.org/whl).
 
+#### PyTorch 2.11
+
+To install the binaries for PyTorch 2.11, simply run
+
+```
+pip install torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.11.0+${CUDA}.html
+```
+
+where `${CUDA}` should be replaced by either `cpu`, `cu126`, `cu128`, or `cu130` depending on your PyTorch installation.
+
+|             | `cpu` | `cu126` | `cu128` | `cu130` |
+|-------------|-------|---------|---------|---------|
+| **Linux**   | ✅    | ✅      | ✅      | ✅      |
+| **Windows** | ✅    | ✅      | ✅      | ✅      |
+| **macOS**   | ✅    |         |         |         |
+
 #### PyTorch 2.10
 
 To install the binaries for PyTorch 2.10, simply run
@@ -66,23 +82,7 @@ where `${CUDA}` should be replaced by either `cpu`, `cu126`, `cu128`, or `cu130`
 | **Windows** | ✅    | ✅      | ✅      | ✅      |
 | **macOS**   | ✅    |         |         |         |
 
-#### PyTorch 2.8
-
-To install the binaries for PyTorch 2.8, simply run
-
-```
-pip install torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.8.0+${CUDA}.html
-```
-
-where `${CUDA}` should be replaced by either `cpu`, `cu126`, `cu128`, or `cu129` depending on your PyTorch installation.
-
-|             | `cpu` | `cu126` | `cu128` | `cu129` |
-|-------------|-------|---------|---------|---------|
-| **Linux**   | ✅    | ✅      | ✅      | ✅      |
-| **Windows** | ✅    | ✅      | ✅      | ✅      |
-| **macOS**   | ✅    |         |         |         |
-
-**Note:** Binaries of older versions are also provided for PyTorch 1.4.0, PyTorch 1.5.0, PyTorch 1.6.0, PyTorch 1.7.0/1.7.1, PyTorch 1.8.0/1.8.1, PyTorch 1.9.0, PyTorch 1.10.0/1.10.1/1.10.2, PyTorch 1.11.0, PyTorch 1.12.0/1.12.1, PyTorch 1.13.0/1.13.1, PyTorch 2.0.0/2.0.1, PyTorch 2.1.0/2.1.1/2.1.2, PyTorch 2.2.0/2.2.1/2.2.2, PyTorch 2.3.0/2.3.1, PyTorch 2.4.0/2.4.1, PyTorch 2.5.0/2.5.1, PyTorch 2.6.0, and PyTorch 2.7.0/2.7.1 (following the same procedure).
+**Note:** Binaries of older versions are also provided for PyTorch 1.4.0, PyTorch 1.5.0, PyTorch 1.6.0, PyTorch 1.7.0/1.7.1, PyTorch 1.8.0/1.8.1, PyTorch 1.9.0, PyTorch 1.10.0/1.10.1/1.10.2, PyTorch 1.11.0, PyTorch 1.12.0/1.12.1, PyTorch 1.13.0/1.13.1, PyTorch 2.0.0/2.0.1, PyTorch 2.1.0/2.1.1/2.1.2, PyTorch 2.2.0/2.2.1/2.2.2, PyTorch 2.3.0/2.3.1, PyTorch 2.4.0/2.4.1, PyTorch 2.5.0/2.5.1, PyTorch 2.6.0, PyTorch 2.7.0/2.7.1, and PyTorch 2.8.0 (following the same procedure).
 For older versions, you need to explicitly specify the latest supported version number or install via `pip install --no-index` in order to prevent a manual installation from source.
 You can look up the latest supported version number [here](https://data.pyg.org/whl).
 
