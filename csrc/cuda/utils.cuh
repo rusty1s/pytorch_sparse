@@ -50,9 +50,30 @@ __shfl(const at::Half var, const int delta) {
 __device__ __inline__ at::Half __ldg(const at::Half* ptr) {
   return __ldg(reinterpret_cast<const __half*>(ptr));
 }
-#define SHFL_UP_SYNC(mask, var, delta) __shfl_up(var, delta)
-#define SHFL_DOWN_SYNC(mask, var, delta) __shfl_down(var, delta)
-#define SHFL_SYNC(mask, var, delta) __shfl(var, delta)
+
+__device__ __inline__ at::Half __shfl_up(const at::Half var,
+                                         const unsigned int delta,
+                                         const int width) {
+  return __shfl_up(var.operator __half(), delta, width);
+}
+
+__device__ __inline__ at::Half __shfl_down(const at::Half var,
+                                           const unsigned int delta,
+                                           const int width) {
+  return __shfl_down(var.operator __half(), delta, width);
+}
+
+__device__ __inline__ at::Half __shfl(const at::Half var, const int delta,
+                                      const int width) {
+  return __shfl(var.operator __half(), delta, width);
+}
+
+// CUDA's `__shfl_*_sync` default to a width of `warpSize`, i.e. 32. HIP
+// defaults to the wavefront size, which is 64 on CDNA, so the width has to be
+// passed explicitly to preserve the 32-lane semantics these kernels assume.
+#define SHFL_UP_SYNC(mask, var, delta) __shfl_up(var, delta, 32)
+#define SHFL_DOWN_SYNC(mask, var, delta) __shfl_down(var, delta, 32)
+#define SHFL_SYNC(mask, var, delta) __shfl(var, delta, 32)
 #else
 #define SHFL_UP_SYNC __shfl_up_sync
 #define SHFL_DOWN_SYNC __shfl_down_sync
