@@ -19,8 +19,12 @@ __version__ = '0.6.18'
 URL = 'https://github.com/rusty1s/pytorch_sparse'
 
 WITH_CUDA = False
-if torch.cuda.is_available():
-    WITH_CUDA = CUDA_HOME is not None or torch.version.hip
+if torch.version.hip is not None:
+    # A ROCm build of PyTorch always targets HIP, and no GPU needs to be
+    # visible at build time (e.g. when building wheels on a CI runner):
+    WITH_CUDA = True
+elif torch.cuda.is_available():
+    WITH_CUDA = CUDA_HOME is not None
 suffices = ['cpu', 'cuda'] if WITH_CUDA else ['cpu']
 if os.getenv('FORCE_CUDA', '0') == '1':
     suffices = ['cuda', 'cpu']
@@ -144,7 +148,7 @@ test_requires = [
 
 # work-around hipify abs paths
 include_package_data = True
-if torch.cuda.is_available() and torch.version.hip:
+if torch.version.hip is not None:
     include_package_data = False
 
 setup(
